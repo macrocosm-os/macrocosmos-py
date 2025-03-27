@@ -1,0 +1,354 @@
+syntax = "proto3";
+
+package apex.v1;
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/apex/v1";
+
+service ApexService {
+  // ChatCompletion generates a completion for a given request.
+  rpc ChatCompletion(ChatCompletionRequest) returns (ChatCompletionResponse);
+
+  // ChatCompletionStream generates a stream of completions for a given request.
+  rpc ChatCompletionStream(ChatCompletionRequest) returns (stream ChatCompletionChunkResponse);
+
+  // WebRetrieval retrieves web search results for a given request.
+  rpc WebRetrieval(WebRetrievalRequest) returns (WebRetrievalResponse);
+}
+
+// A request to generate completions following Apex CompletionsRequest format.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message ChatCompletionRequest {
+  // uids: the miner UIDs that will be used to generate the completion (optional).
+  repeated int64 uids = 1;
+  // messages: the messages to generate completions for.
+  repeated ChatMessage messages = 2;
+  // seed: the seed to use for the completion.
+  int64 seed = 3;
+  // task: the task to generate completions for (e.g. "InferenceTask").
+  string task = 4;
+  // model: the LLM name to use for the completion. (optional, suggest leaving this empty as not all LLMs are supported)
+  string model = 5;
+  // test_time_inference: whether to use test time inference.
+  bool test_time_inference = 6;
+  // mixture: whether to use a mixture of miners to create a slower but better answer.
+  bool mixture = 7;
+  // sampling_parameters: the sampling parameters to use for the completion.
+  SamplingParameters sampling_parameters = 8;
+  // inference_mode: the inference mode to use for the completion.
+  string inference_mode = 9;
+  // json_format: whether to use JSON format for the completion.
+  bool json_format = 10;
+  // stream: whether to stream the completion.
+  bool stream = 11;
+}
+
+// The sampling parameters for the completion.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message SamplingParameters {
+  // temperature: the temperature to use for the completion.
+  double temperature = 1;
+  // top_p: the top_p to use for the completion.
+  double top_p = 2;
+  // top_k: the top_k to use for the completion.
+  double top_k = 3;
+  // max_new_tokens: the max_new_tokens to use for the completion.
+  int64 max_new_tokens = 4;
+  // do_sample: whether to do sample for the completion.
+  bool do_sample = 5;
+}
+
+// A chat completion response, following OpenAI's ChatCompletion format.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion.py
+message ChatCompletionResponse {
+  // id: the id of the completion.
+  string id = 1;
+  // choices: the choices of the completion.
+  repeated Choice choices = 2;
+  // created: the created time of the completion.
+  int64 created = 3;
+  // model: the model of the completion.
+  string model = 4;
+  // object: the object of the completion.
+  string object = 5;
+  // service_tier: the service tier of the completion. (not currently supported in Apex)
+  string service_tier = 6;
+  // system_fingerprint: the system fingerprint of the completion. (not currently supported in Apex)
+  string system_fingerprint = 7;
+  // usage: the usage of the completion. (not currently supported in Apex)
+  CompletionUsage usage = 8;
+}
+
+// The choice object containing the message response from the LLM for the completion.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion.py
+message Choice {
+  // finish_reason: the finish reason of the choice.
+  string finish_reason = 1;
+  // index: the index of the choice.
+  int64 index = 2;
+  // logprobs: the logprobs of the choice.
+  ChoiceLogprobs logprobs = 3;
+  // message: the message of the choice.
+  ChatCompletionMessage message = 4;
+}
+
+// The message response object from the LLM.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message ChatCompletionMessage {
+  // content: the content of the message.
+  string content = 1;
+  // refusal: the refusal of the message. (not currently supported in Apex)
+  string refusal = 2;
+  // role: the role of the message.
+  string role = 3;
+  // annotations: the annotations of the message. (not currently supported in Apex)
+  repeated Annotation annotations = 4;
+  // audio: the audio of the message. (not currently supported in Apex)
+  ChatCompletionAudio audio = 5;
+  // function_call: the function call of the message.
+  FunctionCall function_call = 6;
+  // tool_calls: the tool calls of the message.
+  repeated ChatCompletionMessageToolCall tool_calls = 7;
+}
+
+// The annotation object for the message. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message Annotation {
+  // content: the content of the annotation.
+  string content = 1;
+  // role: the role of the annotation.
+  string role = 2;
+}
+
+// The audio object for the message. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_audio.py
+message ChatCompletionAudio {
+  // id: the id of the audio.
+  string id = 1;
+  // data: the data of the audio.
+  string data = 2;
+  // expires_at: the expires at of the audio.
+  int64 expires_at = 3;
+  // transcript: the transcript of the audio.
+  string transcript = 4;
+}
+
+// The function call object for the message.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message FunctionCall {
+  // arguments: the arguments of the function call.
+  repeated string arguments = 1;
+  // name: the name of the function call.
+  string name = 2;
+}
+
+// The tool call object for the message.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message_tool_call.py
+message ChatCompletionMessageToolCall {
+  // id: the id of the tool call.
+  string id = 1;
+  // function: the function object for the tool call.
+  Function function = 2;
+  // type: the type of the tool call.
+  string type = 3;
+}
+
+// The function object for the tool call.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message_tool_call.py
+message Function {
+  // arguments: the arguments of the function.
+  repeated string arguments = 1;
+  // name: the name of the function.
+  string name = 2;
+}
+
+// A streaming chunk response, following OpenAI's ChatCompletionChunk format.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChatCompletionChunkResponse {
+  // id: the id of the chunk.
+  string id = 1;
+  // choices: the choices of the chunk.
+  repeated ChunkChoice choices = 2;
+  // created: the created time of the chunk.
+  int64 created = 3;
+  // model: the model of the chunk.
+  string model = 4;
+  // object: the object of the chunk. (not currently supported in Apex)
+  string object = 5;
+  // service_tier: the service tier of the chunk. (not currently supported in Apex)
+  string service_tier = 6;
+  // system_fingerprint: the system fingerprint of the chunk. (not currently supported in Apex)
+  string system_fingerprint = 7;
+  // usage: the usage of the chunk. (not currently supported in Apex)
+  CompletionUsage usage = 8;
+}
+
+// The choice object for the chunk.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message ChatMessage {
+  // role: the role of the message.
+  string role = 1;
+  // content: the content of the message.
+  string content = 2;
+}
+
+// The choice object for the chunk.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChunkChoice {
+  // delta: the delta of the choice.
+  ChoiceDelta delta = 1;
+  // finish_reason: the finish reason of the choice.
+  string finish_reason = 2;
+  // index: the index of the choice.
+  int64 index = 3;
+  // logprobs: the logprobs of the choice. (not currently supported in Apex)
+  ChoiceLogprobs logprobs = 4;
+}
+
+// The logprobs object for the choice.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceLogprobs {
+  // content: the content of the logprobs.
+  repeated ChatCompletionTokenLogprob content = 1;
+  // refusal: the refusal of the logprobs.
+  repeated ChatCompletionTokenLogprob refusal = 2;
+}
+
+// The delta object for the choice.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDelta {
+  // content: the content of the delta.
+  string content = 1;
+  // function_call: the function call of the delta.
+  ChoiceDeltaFunctionCall function_call = 2;
+  // refusal: the refusal of the delta.
+  string refusal = 3;
+  // role: the role of the delta.
+  string role = 4;
+  // tool_calls: the tool calls of the delta.
+  repeated ChoiceDeltaToolCall tool_calls = 5;
+}
+
+// The function call object for the delta.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaFunctionCall {
+  // arguments: the arguments of the function call.
+  repeated string arguments = 1;
+  // name: the name of the function call.
+  string name = 2;
+}
+
+// The tool call object for the delta.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaToolCall {
+  // index: the index of the tool call.
+  int64 index = 1;
+  // id: the id of the tool call.
+  string id = 2;
+  // function: the function object for the tool call.
+  ChoiceDeltaToolCallFunction function = 3;
+  // type: the type of the tool call.
+  string type = 4;
+}
+
+// The function object for the tool call.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaToolCallFunction {
+  // arguments: the arguments of the function.
+  repeated string arguments = 1;
+  // name: the name of the function.
+  string name = 2;
+}
+
+// The chat completion token logprob object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_token_logprob.py
+message ChatCompletionTokenLogprob {
+  // token: the token of the logprob.
+  string token = 1;
+  // bytes: the bytes of the logprob.
+  repeated int64 bytes = 2;
+  // logprob: the logprob of the token.
+  double logprob = 3;
+  // top_logprobs: the top logprobs of the token.
+  repeated TopLogprob top_logprobs = 4;
+}
+
+// The top logprob object for the token. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_token_logprob.py
+message TopLogprob {
+  // token: the token of the logprob.
+  string token = 1;
+  // bytes: the bytes of the logprob.
+  repeated int64 bytes = 2;
+  // logprob: the logprob of the token.
+  double logprob = 3;
+}
+
+// The completion usage object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message CompletionUsage {
+  // completion_tokens: the completion tokens of the usage.
+  int64 completion_tokens = 1;
+  // prompt_tokens: the prompt tokens of the usage.
+  int64 prompt_tokens = 2;
+  // total_tokens: the total tokens of the usage.
+  int64 total_tokens = 3;
+  // completion_tokens_details: the completion tokens details of the usage.
+  CompletionTokensDetails completion_tokens_details = 4;
+  // prompt_tokens_details: the prompt tokens details of the usage.
+  PromptTokensDetails prompt_tokens_details = 5;
+}
+
+// The completion tokens details object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message CompletionTokensDetails {
+  // accepted_prediction_tokens: the accepted prediction tokens of the details.
+  int64 accepted_prediction_tokens = 1;
+  // audio_tokens: the audio tokens of the details.
+  int64 audio_tokens = 2;
+  // reasoning_tokens: the reasoning tokens of the details.
+  int64 reasoning_tokens = 3;
+  // rejected_prediction_tokens: the rejected prediction tokens of the details.
+  int64 rejected_prediction_tokens = 4;
+}
+
+// The prompt tokens details object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message PromptTokensDetails {
+  // audio_tokens: the audio tokens of the details.
+  int64 audio_tokens = 1;
+  // cached_tokens: the cached tokens of the details.
+  int64 cached_tokens = 2;
+}
+
+// A web retrival request from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebRetrievalRequest {
+  // uids: the miner UIDs that will be used to generate the completion (optional).
+  repeated int64 uids = 1;
+  // search_query: the search query.
+  string search_query = 2;
+  // n_miners: the number of miners to use for the query.
+  int64 n_miners = 3;
+  // n_results: the number of results to return.
+  int64 n_results = 4;
+  // max_response_time: the max response time to allow for the miners to respond in seconds.
+  int64 max_response_time = 5;
+}
+
+// A web search result from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebSearchResult {
+  // url: the url of the result.
+  string url = 1;
+  // content: the entire page contents.
+  string content = 2;
+  // relevant: the relevant part of the page best fitting the query..
+  string relevant = 3;
+}
+
+// A web retrieval response from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebRetrievalResponse {
+  // results: the results of the web retrieval.
+  repeated WebSearchResult results = 1;
+}
