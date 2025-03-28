@@ -7,9 +7,6 @@ import "google/protobuf/timestamp.proto";
 option go_package = "macrocosm-os/rift/constellation_api/gen/gravity/v1";
 
 service GravityService {
-  // Get a single gravity task by its ID
-  rpc GetGravityTask(GetGravityTaskRequest) returns (GetGravityTaskResponse);
-
   // Lists all data collection tasks for a user
   rpc GetGravityTasks(GetGravityTasksRequest) returns (GetGravityTasksResponse);
 
@@ -107,24 +104,10 @@ message GravityTaskState {
   repeated Crawler crawler_workflows = 5;
 }
 
-// GetGravityTaskRequest is the request message for getting a gravity task by its ID
-message GetGravityTaskRequest {
-  // gravity_task_id: the ID of the gravity task
-  string gravity_task_id = 1;
-  // include_crawlers: whether to include the crawler states in the response
-  bool include_crawlers = 2;
-}
-
-// GetGravityTaskResponse is the response message for getting a gravity task by its ID
-message GetGravityTaskResponse {
-  // gravity_task_state: the current state of the gravity task
-  GravityTaskState gravity_task_state = 1;
-}
-
 // GetGravityTasksRequest is the request message for listing gravity tasks for a user
 message GetGravityTasksRequest {
-  // user_email: the email address of the user requesting the gravity tasks
-  string user_email = 1;
+  // gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
+  string gravity_task_id = 1;
   // include_crawlers: whether to include the crawler states in the response
   bool include_crawlers = 2;
 }
