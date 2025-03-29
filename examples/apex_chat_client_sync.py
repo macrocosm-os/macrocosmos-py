@@ -1,3 +1,7 @@
+"""
+Example of using the Apex Chat API to get multiple chat completions sequentially with the Macrocosmos SDK.
+"""
+
 import macrocosmos as mc
 
 import os

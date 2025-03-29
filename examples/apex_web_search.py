@@ -1,0 +1,58 @@
+"""
+Example of using the Apex Web Search API with Macrocosmos SDK.
+"""
+
+import macrocosmos as mc
+
+import os
+import asyncio
+
+
+# Synchronous example
+def sync_example():
+    print("Running synchronous example")
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    client = mc.ApexClient(api_key=api_key)
+
+    # Simple web search query
+    response = client.web_search.search(
+        search_query="What is Bittensor?",
+        n_results=3,
+        max_response_time=20,
+    )
+
+    # Print the results
+    print(f"Got {len(response.results)} results for 'What is Bittensor?'")
+    for i, result in enumerate(response.results):
+        print(f"\nResult {i+1}:")
+        print(f"URL: {result.url}")
+        print(f"Relevant content: {result.relevant[:200]}...")
+
+
+# Asynchronous example
+async def async_example():
+    print("\nRunning asynchronous example")
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    client = mc.AsyncApexClient(api_key=api_key)
+
+    # Simple web search query
+    response = await client.web_search.search(
+        search_query="Latest AI research papers",
+        n_results=3,
+        max_response_time=20,
+    )
+
+    # Print the results
+    print(f"Got {len(response.results)} results for 'Latest AI research papers'")
+    for i, result in enumerate(response.results):
+        print(f"\nResult {i+1}:")
+        print(f"URL: {result.url}")
+        print(f"Relevant content: {result.relevant[:200]}...")
+
+
+if __name__ == "__main__":
+    # Run synchronous example
+    sync_example()
+
+    # Run asynchronous example using asyncio
+    asyncio.run(async_example())

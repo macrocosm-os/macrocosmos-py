@@ -1,6 +1,6 @@
 from ._exceptions import MacrocosmosError
 from ..generated.apex.v1.apex_p2p import ChatMessage, SamplingParameters
-from ..generated.apex.v1.apex_pb2 import ChatCompletionResponse, ChatCompletionChunkResponse
+from ..generated.apex.v1.apex_pb2 import ChatCompletionResponse, ChatCompletionChunkResponse, WebRetrievalResponse
 
 __all__ = [
     "ChatMessage",
@@ -8,4 +8,5 @@ __all__ = [
     "ChatCompletionResponse",
     "ChatCompletionChunkResponse",
     "MacrocosmosError",
+    "WebRetrievalResponse",
 ]

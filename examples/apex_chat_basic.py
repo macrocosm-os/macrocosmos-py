@@ -1,3 +1,7 @@
+"""
+Example of using the Apex Chat API with Macrocosmos SDK in its most basic form.
+"""
+
 import macrocosmos as mc
 import os
 

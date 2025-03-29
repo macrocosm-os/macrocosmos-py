@@ -1,3 +1,7 @@
+"""
+Example of using the async Apex Chat API to stream a chat completion using the Macrocosmos SDK.
+"""
+
 import macrocosmos as mc
 
 import asyncio

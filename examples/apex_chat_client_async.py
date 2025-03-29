@@ -1,3 +1,7 @@
+"""
+Example of using the async Apex Chat API to get multiple chat completions concurrently using the Macrocosmos SDK.
+"""
+
 import macrocosmos as mc
 
 import asyncio

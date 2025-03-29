@@ -1,12 +1,3 @@
-import grpc
-import os
-
-from macrocosmos import __version__, __package_name__
-from macrocosmos.client import DEFAULT_BASE_URL
-from macrocosmos.generated.apex.v1 import apex_pb2
-from macrocosmos.generated.apex.v1 import apex_pb2_grpc
-
-
 """
 NOTE: This demo is showing how the raw gRPC endpoint works using the protobufs.
 
@@ -14,6 +5,14 @@ This is not recommended for most use cases, as the macrocosmos client handles
 compression, retries, and other details for you.  You should use the client
 interface instead.  See the other examples for how to use the client.
 """
+
+import grpc
+import os
+
+from macrocosmos import __version__, __package_name__
+from macrocosmos.client import DEFAULT_BASE_URL
+from macrocosmos.generated.apex.v1 import apex_pb2
+from macrocosmos.generated.apex.v1 import apex_pb2_grpc
 
 
 def demo_chat_completion():

@@ -4,6 +4,7 @@ from typing import Optional
 
 from macrocosmos.types import MacrocosmosError
 from macrocosmos.resources._chat import AsyncChat, AsyncCompletions, SyncChat, SyncCompletions
+from macrocosmos.resources._web_search import AsyncWebSearch, SyncWebSearch
 
 DEFAULT_BASE_URL = "159.89.87.66:4000"  # "constellation.api.macrocosmos.ai"
 
@@ -44,6 +45,7 @@ class AsyncApexClient:
         # Initialize resources
         self.chat = AsyncChat(self)
         self.completions = AsyncCompletions(self)
+        self.web_search = AsyncWebSearch(self)
 
 
 class ApexClient:
@@ -82,3 +84,4 @@ class ApexClient:
         # Initialize resources with synchronous versions
         self.chat = SyncChat(self)
         self.completions = SyncCompletions(self)
+        self.web_search = SyncWebSearch(self)

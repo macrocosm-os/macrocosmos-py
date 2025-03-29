@@ -13,15 +13,29 @@ pip install macrocosmos
 ## Apex
 Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).
 
-### Chat Completions
 Use the synchronous `ApexClient` or asynchronous `AsyncApexClient` for inferencing tasks. See the examples for additional features and functionality.
 
+### Chat Completions
 ```py
 import macrocosmos as mc
 
-client = mc.ApexClient(api_key=api_key)
+client = mc.ApexClient(api_key="<your-api-key>")
 response = client.chat.completions.create(
     messages=[{"role": "user", "content": "Write a short story about a cosmonaut learning to paint."}],
+)
+
+print(response)
+```
+
+### Web Search
+```py
+import macrocosmos as mc
+
+client = mc.ApexClient(api_key="<your-api-key>")
+response = client.web_search.search(
+    search_query="What is Bittensor?",
+    n_results=3,
+    max_response_time=20,
 )
 
 print(response)
