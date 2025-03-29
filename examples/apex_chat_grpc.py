@@ -2,7 +2,7 @@ import grpc
 import os
 
 from macrocosmos import __version__, __package_name__
-from macrocosmos.client import BASE_URL
+from macrocosmos.client import DEFAULT_BASE_URL
 from macrocosmos.generated.apex.v1 import apex_pb2
 from macrocosmos.generated.apex.v1 import apex_pb2_grpc
 
@@ -19,7 +19,7 @@ interface instead.  See the other examples for how to use the client.
 def demo_chat_completion():
     """Demo processing a single chat completion using the raw gRPC API."""
 
-    channel = grpc.insecure_channel(BASE_URL)
+    channel = grpc.insecure_channel(DEFAULT_BASE_URL)
     stub = apex_pb2_grpc.ApexServiceStub(channel)
 
     messages = [apex_pb2.ChatMessage(role="user", content="Hello, how are you today?")]
@@ -69,7 +69,7 @@ def demo_chat_completion():
 def demo_chat_completion_stream():
     """Demo processing a chat completion stream using the raw gRPC API."""
 
-    channel = grpc.insecure_channel(BASE_URL)
+    channel = grpc.insecure_channel(DEFAULT_BASE_URL)
     stub = apex_pb2_grpc.ApexServiceStub(channel)
 
     sampling_params = apex_pb2.SamplingParameters(

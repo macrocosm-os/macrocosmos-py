@@ -1,10 +1,9 @@
+import macrocosmos as mc
+
 import os
 import grpc
 import time
 from typing import List
-
-from macrocosmos.client import ApexClient
-from macrocosmos.types import ChatMessage, SamplingParameters, ChatCompletionResponse
 
 
 def demo_multiple_chat_completions():
@@ -14,20 +13,20 @@ def demo_multiple_chat_completions():
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
 
     message_sets = [
-        [ChatMessage(role="user", content="Tell me a joke about programming.")],
-        [ChatMessage(role="user", content="Explain quantum computing in simple terms.")],
-        [ChatMessage(role="user", content="Write a haiku about artificial intelligence.")],
-        [ChatMessage(role="user", content="What are the benefits of exercise?")],
+        [mc.ChatMessage(role="user", content="Tell me a joke about programming.")],
+        [mc.ChatMessage(role="user", content="Explain quantum computing in simple terms.")],
+        [mc.ChatMessage(role="user", content="Write a haiku about artificial intelligence.")],
+        [mc.ChatMessage(role="user", content="What are the benefits of exercise?")],
     ]
 
-    sampling_params = SamplingParameters(
+    sampling_params = mc.SamplingParameters(
         temperature=0.7,
         top_p=0.9,
         max_new_tokens=50,
         do_sample=True,
     )
 
-    client = ApexClient(
+    client = mc.ApexClient(
         max_retries=0,
         timeout=30,
         api_key=api_key,
@@ -49,9 +48,9 @@ def demo_multiple_chat_completions():
 
 
 def process_chat_completion(
-    client: ApexClient,
-    messages: List[ChatMessage],
-    sampling_params: SamplingParameters,
+    client: mc.ApexClient,
+    messages: List[mc.ChatMessage],
+    sampling_params: mc.SamplingParameters,
     index: int,
 ):
     """Helper function to process a single chat completion request and return the duration."""
@@ -62,7 +61,7 @@ def process_chat_completion(
     try:
         print(f"\nStarting request {index} with prompt: {messages[0].content[:50]}...")
 
-        response: ChatCompletionResponse = client.chat.completions.create(
+        response: mc.ChatCompletionResponse = client.chat.completions.create(
             messages=messages,
             sampling_parameters=sampling_params,
         )

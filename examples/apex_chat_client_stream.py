@@ -1,25 +1,24 @@
+import macrocosmos as mc
+
 import asyncio
 import grpc
 import os
-
-from macrocosmos.client import AsyncApexClient
-from macrocosmos.types import ChatMessage, SamplingParameters, ChatCompletionChunkResponse
 
 
 async def demo_chat_completion_stream():
     """Demo using the chat completion stream API using the client interface."""
 
-    messages = [ChatMessage(role="user", content="Write a short story about a cosmonaut learning to paint.")]
+    messages = [mc.ChatMessage(role="user", content="Write a short story about a cosmonaut learning to paint.")]
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
 
-    sampling_params = SamplingParameters(
+    sampling_params = mc.SamplingParameters(
         temperature=0.7,
         top_p=0.9,
         max_new_tokens=256,
         do_sample=True,
     )
 
-    client = AsyncApexClient(
+    client = mc.AsyncApexClient(
         max_retries=0,
         timeout=30,
         api_key=api_key,
@@ -35,7 +34,7 @@ async def demo_chat_completion_stream():
         print("Streaming response:")
         full_content = ""
 
-        chunk: ChatCompletionChunkResponse
+        chunk: mc.ChatCompletionChunkResponse
         async for chunk in response_stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 content = chunk.choices[0].delta.content

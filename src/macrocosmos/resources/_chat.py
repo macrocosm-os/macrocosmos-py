@@ -53,7 +53,9 @@ class AsyncCompletions:
                 elif isinstance(msg, dict):
                     proto_messages.append(apex_pb2.ChatMessage(**msg))
                 else:
-                    raise MacrocosmosError(f"Invalid type for message: {type(msg)}")
+                    raise TypeError(f"Invalid type for message: {type(msg)}")
+        else:
+            raise AttributeError("messages is a required parameter")
 
         proto_sampling_params = None
         if sampling_parameters:
@@ -62,7 +64,14 @@ class AsyncCompletions:
             elif isinstance(sampling_parameters, dict):
                 proto_sampling_params = apex_pb2.SamplingParameters(**sampling_parameters)
             else:
-                raise MacrocosmosError(f"Invalid type for sampling_parameters '{type(sampling_parameters)}'")
+                raise TypeError(f"Invalid type for sampling_parameters '{type(sampling_parameters)}'")
+        else:
+            proto_sampling_params = apex_pb2.SamplingParameters(
+                temperature=0.7,
+                top_p=0.95,
+                max_new_tokens=4096,
+                do_sample=True,
+            )
 
         request = apex_pb2.ChatCompletionRequest(
             messages=proto_messages,
