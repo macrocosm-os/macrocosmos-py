@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package gravity.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/gravity/v1";
+
+service GravityService {
+  // Lists all data collection tasks for a user
+  rpc GetGravityTasks(GetGravityTasksRequest) returns (GetGravityTasksResponse);
+
+  // Get a single crawler by its ID
+  rpc GetCrawler(GetCrawlerRequest) returns (GetCrawlerResponse);
+
+  // Create a new gravity task
+  rpc CreateGravityTask(CreateGravityTaskRequest) returns (CreateGravityTaskResponse);
+
+  // Build a dataset for a single crawler
+  rpc BuildDataset(BuildDatasetRequest) returns (BuildDatasetResponse);
+
+  // Get the dataset build status and results
+  rpc GetDataset(GetDatasetRequest) returns (GetDatasetResponse);
+
+  // Cancel a gravity task and any crawlers associated with it
+  rpc CancelGravityTask(CancelGravityTaskRequest) returns (CancelGravityTaskResponse);
+
+  // Cancel dataset build if it is in progress and purges the dataset
+  rpc CancelDataset(CancelDatasetRequest) returns (CancelDatasetResponse);
+}
+
+// Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
+message Crawler {
+  // crawler_id: the ID of the crawler
+  string crawler_id = 1;
+  // criteria: the contents of the job and the notification details
+  CrawlerCriteria criteria = 2;
+  // start_time: the time the crawler was created
+  google.protobuf.Timestamp start_time = 3;
+  // deregistration_time: the time the crawler was deregistered
+  google.protobuf.Timestamp deregistration_time = 4;
+  // archive_time: the time the crawler was archived
+  google.protobuf.Timestamp archive_time = 5;
+  // state: the current state of the crawler
+  CrawlerState state = 6;
+  // dataset_workflows: the IDs of the dataset workflows that are associated with the crawler
+  repeated string dataset_workflows = 7;
+}
+
+// CrawlerCriteria is the contents of the job and the notification details
+message CrawlerCriteria {
+  // platform: the platform of the job ('x' or 'reddit')
+  string platform = 1;
+  // topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
+  string topic = 2;
+  // notification: the details of the notification to be sent to the user
+  CrawlerNotification notification = 3;
+  // mock: Used for testing purposes (optional, defaults to false)
+  bool mock = 4;
+}
+
+// CrawlerNotification is the details of the notification to be sent to the user
+message CrawlerNotification {
+  // to: the email address of the user
+  string to = 1;
+  // link: the redirect link in the email where the user can view the dataset
+  string link = 2;
+}
+
+// HfRepo is a single Hugging Face repository that contains data for a crawler
+message HfRepo {
+  // repo_name: the name of the Hugging Face repository
+  string repo_name = 1;
+  // row_count: the number of rows in the repository for the crawler criteria
+  uint64 row_count = 2;
+  // last_update: the last recorded time the repository was updated
+  string last_update = 3;
+}
+
+// CrawlerState is the current state of the crawler
+message CrawlerState {
+  // status: the current status of the crawler
+  //   "Pending"   -- Crawler is pending submission to the SN13 Validator
+  //   "Submitted" -- Crawler is submitted to the SN13 Validator
+  //   "Running"   -- Crawler is running (we got the first update)
+  //   "Completed" -- Crawler is completed (timer expired)
+  //   "Cancelled" -- Crawler is cancelled by user via cancellation of workflow
+  //   "Archived"  -- Crawler is archived (now read-only i.e. no new dataset)
+  //   "Failed"    -- Crawler failed to run
+  string status = 1;
+  // bytes_collected: the estimated number of bytes collected by the crawler
+  uint64 bytes_collected = 2;
+  // records_collected: the estimated number of records collected by the crawler
+  uint64 records_collected = 3;
+  // repos: the Hugging Face repositories that contain data for a crawler
+  repeated HfRepo repos = 4;
+}
+
+// GravityTaskState is the current state of a gravity task
+message GravityTaskState {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+  // name: the name given by the user of the gravity task
+  string name = 2;
+  // status: the current status of the gravity task
+  string status = 3;
+  // start_time: the time the gravity task was created
+  google.protobuf.Timestamp start_time = 4;
+  // crawler_ids: the IDs of the crawler workflows that are associated with the gravity task
+  repeated string crawler_ids = 5;
+  // crawler_workflows: the crawler workflows that are associated with the gravity task
+  repeated Crawler crawler_workflows = 6;
+}
+
+// GetGravityTasksRequest is the request message for listing gravity tasks for a user
+message GetGravityTasksRequest {
+  // gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
+  string gravity_task_id = 1;
+  // include_crawlers: whether to include the crawler states in the response
+  bool include_crawlers = 2;
+}
+
+// GetGravityTasksResponse is the response message for listing gravity tasks for a user
+message GetGravityTasksResponse {
+  // gravity_task_states: the current states of the gravity tasks
+  repeated GravityTaskState gravity_task_states = 1;
+}
+
+// GravityTask defines a crawler's criteria for a single job (platform/topic)
+message GravityTask {
+  // topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
+  string topic = 1;
+  // platform: the platform of the job ('x' or 'reddit')
+  string platform = 2;
+}
+
+// NotificationRequest is the request message for sending a notification to a user when a dataset is ready to download
+message NotificationRequest {
+  // type: the type of notification to send ('email' is only supported currently)
+  string type = 1;
+  // address: the address to send the notification to (only email addresses are supported currently)
+  string address = 2;
+  // redirect_url: the URL to include in the notication message that redirects the user to any built datasets
+  string redirect_url = 3;
+}
+
+// GetCrawlerRequest is the request message for getting a crawler
+message GetCrawlerRequest {
+  // crawler_id: the ID of the crawler
+  string crawler_id = 1;
+}
+
+// GetCrawlerResponse is the response message for getting a crawler
+message GetCrawlerResponse {
+  // crawler: the crawler
+  Crawler crawler = 1;
+}
+
+// CreateGravityTaskRequest is the request message for creating a new gravity task
+message CreateGravityTaskRequest {
+  // gravity_tasks: the criteria for the crawlers that will be created
+  repeated GravityTask gravity_tasks = 1;
+  // name: the name of the gravity task (optional, default will generate a random name)
+  string name = 2;
+  // notification_requests: the details of the notification to be sent to the user when a dataset
+  //   that is automatically generated upon completion of the crawler is ready to download (optional)
+  repeated NotificationRequest notification_requests = 3;
+  // gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
+  string gravity_task_id = 4;
+}
+
+// CreateGravityTaskResponse is the response message for creating a new gravity task
+message CreateGravityTaskResponse {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+}
+
+// BuildDatasetRequest is the request message for manually requesting the building of a dataset for a single crawler
+message BuildDatasetRequest {
+  // crawler_id: the ID of the crawler that will be used to build the dataset
+  string crawler_id = 1;
+  // notification_requests: the details of the notification to be sent to the user when the dataset is ready to download (optional)
+  repeated NotificationRequest notification_requests = 2;
+}
+
+// BuildDatasetResponse is the response message for manually requesting the building of a dataset for a single crawler
+// - dataset: the dataset that was built
+message BuildDatasetResponse {
+  // dataset_id: the ID of the dataset
+  string dataset_id = 1;
+  // dataset: the dataset that was built
+  Dataset dataset = 2;
+}
+
+// Dataset contains the progress and results of a dataset build
+message Dataset {
+  // crawler_workflow_id: the ID of the parent crawler for this dataset
+  string crawler_workflow_id = 1;
+  // create_date: the date the dataset was created
+  google.protobuf.Timestamp create_date = 2;
+  // expire_date: the date the dataset will expire (be deleted)
+  google.protobuf.Timestamp expire_date = 3;
+  // files: the details about the dataset files that are included in the dataset
+  repeated DatasetFile files = 4;
+  // status: the status of the dataset
+  string status = 5;
+  // status_message: the message of the status of the dataset
+  string status_message = 6;
+  // steps: the progress of the dataset build
+  repeated DatasetStep steps = 7;
+  // total_steps: the total number of steps in the dataset build
+  int64 total_steps = 8;
+}
+
+// DatasetFile contains the details about a dataset file
+message DatasetFile {
+  // file_name: the name of the file
+  string file_name = 1;
+  // file_size_bytes: the size of the file in bytes
+  uint64 file_size_bytes = 2;
+  // last_modified: the date the file was last modified
+  google.protobuf.Timestamp last_modified = 3;
+  // num_rows: the number of rows in the file
+  uint64 num_rows = 4;
+  // s3_key: the key of the file in S3 (internal use only)
+  string s3_key = 5;
+  // url: the URL of the file (public use)
+  string url = 6;
+}
+
+// DatasetStep contains one step of the progress of a dataset build
+// (NOTE: each step varies in time and complexity)
+message DatasetStep {
+  // progress: the progress of this step in the dataset build (0.0 - 1.0)
+  double progress = 1;
+  // step: the step number of the dataset build (1-indexed)
+  int64 step = 2;
+  // step_name: description of what is happening in the step
+  string step_name = 3;
+}
+
+// GetDatasetRequest is the request message for getting the status of a dataset
+message GetDatasetRequest {
+  // dataset_id: the ID of the dataset
+  string dataset_id = 1;
+}
+
+// GetDatasetResponse is the response message for getting the status of a dataset
+message GetDatasetResponse {
+  // dataset: the dataset that is being built
+  Dataset dataset = 1;
+}
+
+// CancelGravityTaskRequest is the request message for cancelling a gravity task
+message CancelGravityTaskRequest {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+}
+
+// CancelGravityTaskResponse is the response message for cancelling a gravity task
+message CancelGravityTaskResponse {
+  // message: the message of the cancellation of the gravity task (currently hardcoded to "success")
+  string message = 1;
+}
+
+// CancelDatasetRequest is the request message for cancelling a dataset build
+message CancelDatasetRequest {
+  // dataset_id: the ID of the dataset
+  string dataset_id = 1;
+}
+
+// CancelDatasetResponse is the response message for cancelling a dataset build
+message CancelDatasetResponse {
+  // message: the message of the cancellation of the dataset build (currently hardcoded to "success")
+  string message = 1;
+}
