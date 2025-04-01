@@ -10,6 +10,9 @@ service GravityService {
   // Lists all data collection tasks for a user
   rpc GetGravityTasks(GetGravityTasksRequest) returns (GetGravityTasksResponse);
 
+  // Get a single crawler by its ID
+  rpc GetCrawler(GetCrawlerRequest) returns (GetCrawlerResponse);
+
   // Create a new gravity task
   rpc CreateGravityTask(CreateGravityTaskRequest) returns (CreateGravityTaskResponse);
 
@@ -100,8 +103,10 @@ message GravityTaskState {
   string status = 3;
   // start_time: the time the gravity task was created
   google.protobuf.Timestamp start_time = 4;
+  // crawler_ids: the IDs of the crawler workflows that are associated with the gravity task
+  repeated string crawler_ids = 5;
   // crawler_workflows: the crawler workflows that are associated with the gravity task
-  repeated Crawler crawler_workflows = 5;
+  repeated Crawler crawler_workflows = 6;
 }
 
 // GetGravityTasksRequest is the request message for listing gravity tasks for a user
@@ -142,6 +147,18 @@ message User {
   string user_id = 1;
   // email: the email address of the user
   string email = 2;
+}
+
+// GetCrawlerRequest is the request message for getting a crawler
+message GetCrawlerRequest {
+  // crawler_id: the ID of the crawler
+  string crawler_id = 1;
+}
+
+// GetCrawlerResponse is the response message for getting a crawler
+message GetCrawlerResponse {
+  // crawler: the crawler
+  Crawler crawler = 1;
 }
 
 // CreateGravityTaskRequest is the request message for creating a new gravity task
