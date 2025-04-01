@@ -67,18 +67,20 @@ class CrawlerState(_message.Message):
     def __init__(self, status: _Optional[str] = ..., bytes_collected: _Optional[int] = ..., records_collected: _Optional[int] = ..., repos: _Optional[_Iterable[_Union[HfRepo, _Mapping]]] = ...) -> None: ...
 
 class GravityTaskState(_message.Message):
-    __slots__ = ("gravity_task_id", "name", "status", "start_time", "crawler_workflows")
+    __slots__ = ("gravity_task_id", "name", "status", "start_time", "crawler_ids", "crawler_workflows")
     GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     START_TIME_FIELD_NUMBER: _ClassVar[int]
+    CRAWLER_IDS_FIELD_NUMBER: _ClassVar[int]
     CRAWLER_WORKFLOWS_FIELD_NUMBER: _ClassVar[int]
     gravity_task_id: str
     name: str
     status: str
     start_time: _timestamp_pb2.Timestamp
+    crawler_ids: _containers.RepeatedScalarFieldContainer[str]
     crawler_workflows: _containers.RepeatedCompositeFieldContainer[Crawler]
-    def __init__(self, gravity_task_id: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., crawler_workflows: _Optional[_Iterable[_Union[Crawler, _Mapping]]] = ...) -> None: ...
+    def __init__(self, gravity_task_id: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., crawler_ids: _Optional[_Iterable[str]] = ..., crawler_workflows: _Optional[_Iterable[_Union[Crawler, _Mapping]]] = ...) -> None: ...
 
 class GetGravityTasksRequest(_message.Message):
     __slots__ = ("gravity_task_id", "include_crawlers")
@@ -119,6 +121,18 @@ class User(_message.Message):
     user_id: str
     email: str
     def __init__(self, user_id: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
+
+class GetCrawlerRequest(_message.Message):
+    __slots__ = ("crawler_id",)
+    CRAWLER_ID_FIELD_NUMBER: _ClassVar[int]
+    crawler_id: str
+    def __init__(self, crawler_id: _Optional[str] = ...) -> None: ...
+
+class GetCrawlerResponse(_message.Message):
+    __slots__ = ("crawler",)
+    CRAWLER_FIELD_NUMBER: _ClassVar[int]
+    crawler: Crawler
+    def __init__(self, crawler: _Optional[_Union[Crawler, _Mapping]] = ...) -> None: ...
 
 class CreateGravityTaskRequest(_message.Message):
     __slots__ = ("gravity_tasks", "name", "user", "notification_requests", "gravity_task_id")

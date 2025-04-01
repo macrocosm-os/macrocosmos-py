@@ -99,6 +99,8 @@ class GravityTaskState(BaseModel):
     status: str = Field(default="")
 # start_time: the time the gravity task was created
     start_time: datetime = Field(default_factory=datetime.now)
+# crawler_ids: the IDs of the crawler workflows that are associated with the gravity task
+    crawler_ids: typing.List[str] = Field(default_factory=list)
 # crawler_workflows: the crawler workflows that are associated with the gravity task
     crawler_workflows: typing.List[Crawler] = Field(default_factory=list)
 
@@ -151,6 +153,22 @@ class User(BaseModel):
     user_id: str = Field(default="")
 # email: the email address of the user
     email: str = Field(default="")
+
+class GetCrawlerRequest(BaseModel):
+    """
+     GetCrawlerRequest is the request message for getting a crawler
+    """
+
+# crawler_id: the ID of the crawler
+    crawler_id: str = Field(default="")
+
+class GetCrawlerResponse(BaseModel):
+    """
+     GetCrawlerResponse is the response message for getting a crawler
+    """
+
+# crawler: the crawler
+    crawler: Crawler = Field(default_factory=Crawler)
 
 class CreateGravityTaskRequest(BaseModel):
     """

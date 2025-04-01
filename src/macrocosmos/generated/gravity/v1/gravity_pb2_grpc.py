@@ -38,6 +38,11 @@ class GravityServiceStub(object):
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTasksRequest.SerializeToString,
                 response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTasksResponse.FromString,
                 _registered_method=True)
+        self.GetCrawler = channel.unary_unary(
+                '/gravity.v1.GravityService/GetCrawler',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.GetCrawlerRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetCrawlerResponse.FromString,
+                _registered_method=True)
         self.CreateGravityTask = channel.unary_unary(
                 '/gravity.v1.GravityService/CreateGravityTask',
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.CreateGravityTaskRequest.SerializeToString,
@@ -65,6 +70,13 @@ class GravityServiceServicer(object):
 
     def GetGravityTasks(self, request, context):
         """Lists all data collection tasks for a user
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCrawler(self, request, context):
+        """Get a single crawler by its ID
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -105,6 +117,11 @@ def add_GravityServiceServicer_to_server(servicer, server):
                     servicer.GetGravityTasks,
                     request_deserializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTasksRequest.FromString,
                     response_serializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTasksResponse.SerializeToString,
+            ),
+            'GetCrawler': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCrawler,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.GetCrawlerRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.GetCrawlerResponse.SerializeToString,
             ),
             'CreateGravityTask': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateGravityTask,
@@ -154,6 +171,33 @@ class GravityService(object):
             '/gravity.v1.GravityService/GetGravityTasks',
             gravity_dot_v1_dot_gravity__pb2.GetGravityTasksRequest.SerializeToString,
             gravity_dot_v1_dot_gravity__pb2.GetGravityTasksResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCrawler(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/GetCrawler',
+            gravity_dot_v1_dot_gravity__pb2.GetCrawlerRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.GetCrawlerResponse.FromString,
             options,
             channel_credentials,
             insecure,
