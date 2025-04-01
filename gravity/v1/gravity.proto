@@ -20,10 +20,13 @@ service GravityService {
   rpc BuildDataset(BuildDatasetRequest) returns (BuildDatasetResponse);
 
   // Get the dataset build status and results
-  rpc GetDatasetStatus(GetDatasetStatusRequest) returns (GetDatasetStatusResponse);
+  rpc GetDataset(GetDatasetRequest) returns (GetDatasetResponse);
 
-  // Cancel a gravity task
+  // Cancel a gravity task and any crawlers associated with it
   rpc CancelGravityTask(CancelGravityTaskRequest) returns (CancelGravityTaskResponse);
+
+  // Cancel dataset build if it is in progress and purges the dataset
+  rpc CancelDataset(CancelDatasetRequest) returns (CancelDatasetResponse);
 }
 
 // Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
@@ -236,14 +239,14 @@ message DatasetStep {
   string step_name = 3;
 }
 
-// GetDatasetStatusRequest is the request message for getting the status of a dataset
-message GetDatasetStatusRequest {
+// GetDatasetRequest is the request message for getting the status of a dataset
+message GetDatasetRequest {
   // dataset_id: the ID of the dataset
   string dataset_id = 1;
 }
 
-// GetDatasetStatusResponse is the response message for getting the status of a dataset
-message GetDatasetStatusResponse {
+// GetDatasetResponse is the response message for getting the status of a dataset
+message GetDatasetResponse {
   // dataset: the dataset that is being built
   Dataset dataset = 1;
 }
@@ -257,5 +260,17 @@ message CancelGravityTaskRequest {
 // CancelGravityTaskResponse is the response message for cancelling a gravity task
 message CancelGravityTaskResponse {
   // message: the message of the cancellation of the gravity task (currently hardcoded to "success")
+  string message = 1;
+}
+
+// CancelDatasetRequest is the request message for cancelling a dataset build
+message CancelDatasetRequest {
+  // dataset_id: the ID of the dataset
+  string dataset_id = 1;
+}
+
+// CancelDatasetResponse is the response message for cancelling a dataset build
+message CancelDatasetResponse {
+  // message: the message of the cancellation of the dataset build (currently hardcoded to "success")
   string message = 1;
 }
