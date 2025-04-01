@@ -9,6 +9,7 @@ pip install macrocosmos
 ```
 
 # Usage
+For complete documentation on the SDK and API, check out the [Macrocosmos guide](https://guide.macrocosmos.ai/api-documentation/introduction).
 
 ## Apex
 Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).

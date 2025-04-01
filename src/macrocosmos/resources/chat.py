@@ -93,15 +93,18 @@ class AsyncCompletions:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.insecure_channel(self._client.base_url)
+                channel = grpc.aio.secure_channel(self._client.base_url, grpc.ssl_channel_credentials())
+                # channel = grpc.aio.insecure_channel(self._client.base_url)
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 if not stream:
-                    return await stub.ChatCompletion(
+                    response = await stub.ChatCompletion(
                         request,
                         metadata=metadata,
                         timeout=self._client.timeout,
                         compression=compression,
                     )
+                    await channel.close()
+                    return response
                 else:
                     stream_response = stub.ChatCompletionStream(
                         request,

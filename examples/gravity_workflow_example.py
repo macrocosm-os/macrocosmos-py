@@ -1,0 +1,441 @@
+"""
+Example of a complete Gravity workflow using the Macrocosmos SDK:
+1. Check if a GravityTask exists and cancel it if found
+2. Create a new task with multiple crawlers
+3. Monitor data collection progress
+4. Build datasets for crawlers with data
+5. Monitor dataset build progress
+6. Display dataset URLs and handle cleanup
+"""
+
+import macrocosmos as mc
+import asyncio
+import os
+import sys
+import time
+import signal
+from typing import Dict, List, Optional, Set
+
+
+class GravityWorkflow:
+    def __init__(self, task_name: str, email: str, reddit_subreddit: str, x_hashtag: str):
+        self.task_name = task_name
+        self.email = email
+        self.reddit_subreddit = reddit_subreddit
+        self.x_hashtag = x_hashtag
+        self.api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+        self.client = mc.AsyncGravityClient(
+            max_retries=1,
+            timeout=30,
+            api_key=self.api_key,
+        )
+        self.task_id = None
+        self.crawler_ids = []
+        self.dataset_ids = []
+
+    async def run(self):
+        """Run the complete workflow."""
+        try:
+            # Step 1: Check if task exists and cancel it
+            await self.find_and_cancel_existing_task()
+
+            # Step 2: Create new task with X and Reddit crawlers
+            await self.create_new_task()
+
+            if not self.task_id:
+                print("Failed to create task. Exiting.")
+                return
+
+            # Step 3: Monitor data collection progress
+            crawlers_with_data = await self.monitor_data_collection()
+
+            # Step 4: Build datasets for crawlers with data
+            if crawlers_with_data:
+                await self.build_datasets(crawlers_with_data)
+
+                # Step 5 & 6: Monitor dataset builds and display URLs
+                if self.dataset_ids:
+                    await self.monitor_dataset_builds()
+
+                    # Step 7: Wait for user input before cleanup
+                    print("\n📌 Press Enter to cancel the task and exit...")
+                    # This runs in the background to allow the keyboard interrupt to work
+                    await self.wait_for_input()
+            else:
+                print("\n⚠️ No crawlers collected data within the time limit.")
+                await self.cleanup()
+
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            print("\n⚠️ Operation canceled.")
+            await self.cleanup()
+        except Exception as e:
+            print(f"\n❌ Error in workflow: {e}")
+            await self.cleanup()
+            raise
+
+    async def find_and_cancel_existing_task(self):
+        """Find and cancel any existing task with the given name."""
+        print(f"\n🔍 Checking if task '{self.task_name}' already exists...")
+
+        try:
+            # Get all tasks
+            response = await self.client.gravity.GetGravityTasks(include_crawlers=False)
+
+            existing_task = None
+            if response and response.gravity_task_states:
+                for task in response.gravity_task_states:
+                    if task.name == self.task_name:
+                        existing_task = task
+                        break
+
+            if existing_task:
+                print(f" Found existing task '{self.task_name}' with ID: {existing_task.gravity_task_id}")
+                print(f" Cancelling task...")
+
+                await self.client.gravity.CancelGravityTask(gravity_task_id=existing_task.gravity_task_id)
+
+                print(f"✅ Task cancelled successfully.")
+                # Wait a moment to ensure the cancellation is processed
+                await asyncio.sleep(3)
+            else:
+                print(f"✅ No existing task named '{self.task_name}' found.")
+
+        except Exception as e:
+            print(f"❌ Error checking/cancelling existing task: {e}")
+            raise
+
+    async def create_new_task(self):
+        """Create a new task with X and Reddit crawlers."""
+        print(f"\n🔨 Creating new task '{self.task_name}'...")
+
+        try:
+            # Define the crawlers
+            gravity_tasks = [
+                {"topic": self.x_hashtag, "platform": "x"},
+                {"topic": self.reddit_subreddit, "platform": "reddit"},
+            ]
+
+            # User info for notifications
+            user = {"email": self.email}
+            notification = {
+                "type": "email",
+                "address": self.email,
+                "redirect_url": "https://app.macrocosmos.ai/",
+            }
+
+            # Create the task
+            response = await self.client.gravity.CreateGravityTask(
+                gravity_tasks=gravity_tasks, name=self.task_name, user=user, notification_requests=[notification]
+            )
+
+            self.task_id = response.gravity_task_id
+            print(f"✅ Task created successfully with ID: {self.task_id}")
+
+        except Exception as e:
+            print(f"❌ Error creating new task: {e}")
+            raise
+
+    async def monitor_data_collection(self) -> Set[str]:
+        """Monitor data collection for 60 seconds, return crawler IDs with data."""
+        print(f"\n⏱️ Monitoring data collection for 60 seconds...")
+
+        crawlers_with_data = set()
+        start_time = time.time()
+        end_time = start_time + 60  # 60 seconds time limit
+
+        # Display header
+        print("\n{:<12} {:<25} {:<15} {:<15}".format("TIME", "CRAWLER", "STATUS", "RECORDS"))
+        print("─" * 70)
+
+        while time.time() < end_time:
+            elapsed = time.time() - start_time
+
+            try:
+                response = await self.client.gravity.GetGravityTasks(
+                    gravity_task_id=self.task_id, include_crawlers=True
+                )
+
+                if response and response.gravity_task_states:
+                    task = response.gravity_task_states[0]
+
+                    if task.crawler_workflows:
+                        for crawler in task.crawler_workflows:
+                            # Save crawler IDs for later
+                            if crawler.crawler_id and crawler.crawler_id not in self.crawler_ids:
+                                self.crawler_ids.append(crawler.crawler_id)
+
+                            # Check if this crawler has collected data
+                            if crawler.state.records_collected > 0:
+                                crawlers_with_data.add(crawler.crawler_id)
+
+                            # Print status with color indicators
+                            status_indicator = "⏳"
+                            if crawler.state.status == "Running":
+                                status_indicator = "🟢"
+                            elif crawler.state.status == "Completed":
+                                status_indicator = "✅"
+                            elif crawler.state.status in ["Failed", "Cancelled"]:
+                                status_indicator = "❌"
+
+                            records = crawler.state.records_collected
+                            records_display = f"{records} ↑" if records > 0 else str(records)
+
+                            print(
+                                "{:<12} {:<25} {:<15} {:<15}".format(
+                                    f"{elapsed:.1f}s",
+                                    f"{crawler.criteria.platform}/{crawler.criteria.topic}",
+                                    f"{status_indicator} {crawler.state.status}",
+                                    records_display,
+                                )
+                            )
+
+                # Sleep for 5 seconds
+                await asyncio.sleep(5)
+
+            except Exception as e:
+                print(f"❌ Error monitoring task: {e}")
+                await asyncio.sleep(5)
+
+        print(f"\n✅ Monitoring complete. Found {len(crawlers_with_data)} crawlers with data.")
+        return crawlers_with_data
+
+    async def build_datasets(self, crawler_ids: Set[str]):
+        """Build datasets for crawlers that have collected data."""
+        print(f"\n📦 Building datasets for {len(crawler_ids)} crawlers...")
+
+        for crawler_id in crawler_ids:
+            try:
+                # Notification for dataset completion
+                notification = {
+                    "type": "email",
+                    "address": self.email,
+                    "redirect_url": "https://example.com/datasets",
+                }
+
+                # Build dataset
+                response = await self.client.gravity.BuildDataset(
+                    crawler_id=crawler_id, notification_requests=[notification]
+                )
+
+                if response and response.dataset_id:
+                    self.dataset_ids.append(response.dataset_id)
+                    print(f"✅ Dataset build initiated for crawler {crawler_id}")
+                    print(f"   Dataset ID: {response.dataset_id}")
+                else:
+                    print(f"❌ Failed to initiate dataset build for crawler {crawler_id}")
+
+            except Exception as e:
+                print(f"❌ Error building dataset for crawler {crawler_id}: {e}")
+
+    async def monitor_dataset_builds(self):
+        """Monitor the progress of dataset builds."""
+        print(f"\n⏱️ Monitoring {len(self.dataset_ids)} dataset builds...")
+
+        # Track which datasets are complete
+        completed_datasets = set()
+        dataset_status = {}  # Store current status for each dataset
+        start_time = time.time()
+
+        # Display header
+        print(
+            "\n{:<10} {:<12} {:<16} {:<10} {:<25} {:<15}".format(
+                "TIME", "DATASET", "STATUS", "PROGRESS", "STEP", "MESSAGE"
+            )
+        )
+        print("─" * 90)
+
+        while len(completed_datasets) < len(self.dataset_ids):
+            # Check if it's time to update dataset info (every 5s)
+            if int(time.time() - start_time) % 5 == 0:
+                # Get fresh data every 5 seconds
+                for dataset_id in self.dataset_ids:
+                    if dataset_id in completed_datasets:
+                        continue
+
+                    try:
+                        response = await self.client.gravity.GetDatasetStatus(dataset_id=dataset_id)
+
+                        if response and response.dataset:
+                            dataset = response.dataset
+
+                            # Calculate progress
+                            step_count = len(dataset.steps)
+                            total_steps = dataset.total_steps or 1  # Avoid division by zero
+                            current_step = dataset.steps[-1].step if step_count > 0 else 0
+                            step_name = dataset.steps[-1].step_name if step_count > 0 else "Initializing"
+
+                            # Get current step progress percentage (0.0-1.0)
+                            step_progress = dataset.steps[-1].progress if step_count > 0 else 0.0
+                            progress_pct = f"{step_progress*100:.1f}%"
+
+                            # Format step info
+                            step_info = f"Step {current_step}/{total_steps}: {step_name}"
+
+                            # Status indicator
+                            status_indicator = "⏳"
+                            if dataset.status == "Completed":
+                                status_indicator = "✅"
+                            elif dataset.status in ["Failed", "Cancelled"]:
+                                status_indicator = "❌"
+
+                            status_text = f"{status_indicator} {dataset.status}"
+                            message = dataset.status_message or ""
+
+                            # Store current status
+                            dataset_status[dataset_id] = {
+                                "status": status_text,
+                                "step": step_info,
+                                "progress": progress_pct,
+                                "message": message,
+                                "completed": dataset.status in ["Completed", "Failed", "Cancelled"],
+                                "dataset": dataset,
+                            }
+
+                            # Check if dataset is complete
+                            if dataset.status in ["Completed", "Failed", "Cancelled"]:
+                                completed_datasets.add(dataset_id)
+
+                    except Exception as e:
+                        dataset_status[dataset_id] = {
+                            "status": "❌ Error",
+                            "step": "Unknown",
+                            "progress": "0.0%",
+                            "message": str(e),
+                            "completed": False,
+                            "dataset": None,
+                        }
+
+            # Display current status for all datasets with updated elapsed time (refreshes every 1s)
+            elapsed = time.time() - start_time
+
+            # Clear previous lines and redraw table rows
+            for i, dataset_id in enumerate(self.dataset_ids):
+                if dataset_id in dataset_status:
+                    status = dataset_status[dataset_id]
+                    # Move cursor to beginning of line and clear it
+                    if i > 0:
+                        print("\033[1A\033[K", end="")
+                    else:
+                        print("\033[K", end="")
+
+                    id_short = dataset_id[:8] + "..." if len(dataset_id) > 12 else dataset_id
+                    step_truncated = status["step"][:25] if len(status["step"]) > 25 else status["step"]
+                    msg_truncated = status["message"][:15] + "..." if len(status["message"]) > 15 else status["message"]
+
+                    print(
+                        "{:<10} {:<12} {:<16} {:<10} {:<25} {:<15}".format(
+                            f"{elapsed:.1f}s",
+                            id_short,
+                            status["status"],
+                            status["progress"],
+                            step_truncated,
+                            msg_truncated,
+                        )
+                    )
+
+            # Wait for 1 second before refreshing display
+            await asyncio.sleep(1)
+
+            # If some datasets just completed, don't clear lines to preserve final status
+            if len(completed_datasets) == len(self.dataset_ids):
+                break
+
+        # Show completed dataset files
+        for dataset_id in self.dataset_ids:
+            if (
+                dataset_id in dataset_status
+                and dataset_status[dataset_id]["completed"]
+                and dataset_status[dataset_id]["dataset"]
+            ):
+                dataset = dataset_status[dataset_id]["dataset"]
+
+                if dataset.status == "Completed" and dataset.files:
+                    print(f"\n📄 Dataset {dataset_id} files available:")
+                    for i, file in enumerate(dataset.files):
+                        file_size_mb = file.file_size_bytes / (1024 * 1024)
+                        print(f"   File {i+1}: {file.file_name}")
+                        print(f"   • Size: {file_size_mb:.2f} MB")
+                        print(f"   • Rows: {file.num_rows}")
+                        print(f"   • URL: {file.url}")
+
+        print(f"\n✅ All dataset builds completed!")
+
+    async def wait_for_input(self):
+        """Wait for user input in a non-blocking way."""
+        # Using run_in_executor to run synchronous input() in a thread pool
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, input)
+        await self.cleanup()
+
+    async def cleanup(self):
+        """Cancel the task and cleanup resources."""
+        if self.task_id:
+            try:
+                print(f"\n🧹 Cleaning up: Cancelling task {self.task_id}...")
+                await self.client.gravity.CancelGravityTask(gravity_task_id=self.task_id)
+                print("✅ Task cancelled successfully.")
+            except Exception as e:
+                print(f"❌ Error during cleanup: {e}")
+
+
+def get_user_input():
+    """Get user input with defaults."""
+    print("\n📝 Please enter your preferences (press Enter for defaults):")
+
+    # Get email with default
+    email = input("Email address [example@example.com]: ").strip()
+    if not email:
+        email = "example@example.com"
+
+    # Get Reddit subreddit with default
+    reddit = input("Reddit subreddit [r/MachineLearning]: ").strip()
+    if not reddit:
+        reddit = "r/MachineLearning"
+    elif not reddit.startswith("r/"):
+        reddit = f"r/{reddit}"
+
+    # Get X hashtag with default
+    x_hashtag = input("X hashtag [#ai]: ").strip()
+    if not x_hashtag:
+        x_hashtag = "#ai"
+    elif not x_hashtag.startswith("#"):
+        x_hashtag = f"#{x_hashtag}"
+
+    # Get task name with default
+    task_name = input("Task name [MyTestTask]: ").strip()
+    if not task_name:
+        task_name = "MyTestTask"
+
+    return email, reddit, x_hashtag, task_name
+
+
+async def main():
+    print("🚀 Gravity Workflow Example")
+    print("══════════════════════════")
+
+    # Get user input with defaults
+    email, reddit, x_hashtag, task_name = get_user_input()
+
+    # Set up signal handlers for graceful shutdown
+    loop = asyncio.get_running_loop()
+
+    workflow = GravityWorkflow(task_name, email, reddit, x_hashtag)
+
+    # Register signal handlers
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(handle_signal(workflow)))
+
+    print("\n▶️ Starting workflow...")
+    await workflow.run()
+
+
+async def handle_signal(workflow):
+    """Handle termination signals by cleaning up."""
+    print("\n⚠️ Received termination signal. Cleaning up...")
+    await workflow.cleanup()
+    # Stop the event loop
+    asyncio.get_running_loop().stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

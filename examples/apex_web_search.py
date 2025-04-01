@@ -9,7 +9,9 @@ import asyncio
 
 
 # Synchronous example
-def sync_example():
+def demo_web_search_sync():
+    """Demo synchronous web search using the Macrocosmos SDK."""
+
     print("Running synchronous example")
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
     client = mc.ApexClient(api_key=api_key)
@@ -30,7 +32,9 @@ def sync_example():
 
 
 # Asynchronous example
-async def async_example():
+async def demo_web_search_async():
+    """Demo asynchronous web search using the Macrocosmos SDK."""
+
     print("\nRunning asynchronous example")
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
     client = mc.AsyncApexClient(api_key=api_key)
@@ -52,7 +56,7 @@ async def async_example():
 
 if __name__ == "__main__":
     # Run synchronous example
-    sync_example()
+    demo_web_search_sync()
 
     # Run asynchronous example using asyncio
-    asyncio.run(async_example())
+    asyncio.run(demo_web_search_async())

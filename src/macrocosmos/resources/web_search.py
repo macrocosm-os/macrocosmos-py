@@ -1,7 +1,6 @@
 import asyncio
 import grpc
-import random
-from typing import Dict, List, Optional, Union
+from typing import List
 
 from macrocosmos import __version__, __package_name__
 from macrocosmos.types import MacrocosmosError
@@ -61,7 +60,7 @@ class AsyncWebSearch:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.insecure_channel(self._client.base_url)
+                channel = grpc.aio.secure_channel(self._client.base_url)
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.WebRetrieval(
                     request,
