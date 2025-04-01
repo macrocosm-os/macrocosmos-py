@@ -63,7 +63,7 @@ class GravityWorkflow:
                     await self.wait_for_input()
             else:
                 print("\n⚠️ No crawlers collected data within the time limit.")
-                await self.cleanup()
+                # await self.cleanup()
 
         except (KeyboardInterrupt, asyncio.CancelledError):
             print("\n⚠️ Operation canceled.")
@@ -131,6 +131,9 @@ class GravityWorkflow:
             self.task_id = response.gravity_task_id
             print(f"✅ Task created successfully with ID: {self.task_id}")
 
+            # Wait a moment to ensure the task is created
+            await asyncio.sleep(5)
+
         except Exception as e:
             print(f"❌ Error creating new task: {e}")
             raise
@@ -143,6 +146,21 @@ class GravityWorkflow:
         start_time = time.time()
         end_time = start_time + 60  # 60 seconds time limit
 
+        # First get the crawler IDs from the task
+        try:
+            response = await self.client.gravity.GetGravityTasks(gravity_task_id=self.task_id, include_crawlers=False)
+            print(f"Got response: {response.gravity_task_states}")
+            if response and response.gravity_task_states:
+                task = response.gravity_task_states[0]
+                self.crawler_ids = list(task.crawler_ids)
+                print(f"Got crawler IDs: {self.crawler_ids}")
+            else:
+                print(f"❌ Gravity task response is empty")
+                return crawlers_with_data
+        except Exception as e:
+            print(f"❌ Error getting crawler IDs: {e}")
+            return crawlers_with_data
+
         # Display header
         print("\n{:<12} {:<25} {:<15} {:<15}".format("TIME", "CRAWLER", "STATUS", "RECORDS"))
         print("─" * 70)
@@ -151,43 +169,38 @@ class GravityWorkflow:
             elapsed = time.time() - start_time
 
             try:
-                response = await self.client.gravity.GetGravityTasks(
-                    gravity_task_id=self.task_id, include_crawlers=True
-                )
+                # Get status for each crawler
+                for crawler_id in self.crawler_ids:
+                    print(f"Getting crawler status for {crawler_id}")
+                    response = await self.client.gravity.GetCrawler(crawler_id=crawler_id)
+                    print("Got crawler response")
+                    if response and response.crawler:
+                        crawler = response.crawler
 
-                if response and response.gravity_task_states:
-                    task = response.gravity_task_states[0]
+                        # Check if this crawler has collected data
+                        if crawler.state.records_collected > 0:
+                            crawlers_with_data.add(crawler.crawler_id)
 
-                    if task.crawler_workflows:
-                        for crawler in task.crawler_workflows:
-                            # Save crawler IDs for later
-                            if crawler.crawler_id and crawler.crawler_id not in self.crawler_ids:
-                                self.crawler_ids.append(crawler.crawler_id)
+                        # Print status with color indicators
+                        status_indicator = "⏳"
+                        if crawler.state.status == "Running":
+                            status_indicator = "🟢"
+                        elif crawler.state.status == "Completed":
+                            status_indicator = "✅"
+                        elif crawler.state.status in ["Failed", "Cancelled"]:
+                            status_indicator = "❌"
 
-                            # Check if this crawler has collected data
-                            if crawler.state.records_collected > 0:
-                                crawlers_with_data.add(crawler.crawler_id)
+                        records = crawler.state.records_collected
+                        records_display = f"{records} ↑" if records > 0 else str(records)
 
-                            # Print status with color indicators
-                            status_indicator = "⏳"
-                            if crawler.state.status == "Running":
-                                status_indicator = "🟢"
-                            elif crawler.state.status == "Completed":
-                                status_indicator = "✅"
-                            elif crawler.state.status in ["Failed", "Cancelled"]:
-                                status_indicator = "❌"
-
-                            records = crawler.state.records_collected
-                            records_display = f"{records} ↑" if records > 0 else str(records)
-
-                            print(
-                                "{:<12} {:<25} {:<15} {:<15}".format(
-                                    f"{elapsed:.1f}s",
-                                    f"{crawler.criteria.platform}/{crawler.criteria.topic}",
-                                    f"{status_indicator} {crawler.state.status}",
-                                    records_display,
-                                )
+                        print(
+                            "{:<12} {:<25} {:<15} {:<15}".format(
+                                f"{elapsed:.1f}s",
+                                f"{crawler.criteria.platform}/{crawler.criteria.topic}",
+                                f"{status_indicator} {crawler.state.status}",
+                                records_display,
                             )
+                        )
 
                 # Sleep for 5 seconds
                 await asyncio.sleep(5)
@@ -371,9 +384,9 @@ class GravityWorkflow:
         """Cancel the task and cleanup resources."""
         if self.task_id:
             try:
-                print(f"\n🧹 Cleaning up: Cancelling task {self.task_id}...")
+                print(f"\n🧹 Cleaning up: Cancelling task {self.task_id}...", end="")
                 await self.client.gravity.CancelGravityTask(gravity_task_id=self.task_id)
-                print("✅ Task cancelled successfully.")
+                print("Done.")
             except Exception as e:
                 print(f"❌ Error during cleanup: {e}")
 
