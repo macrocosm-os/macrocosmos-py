@@ -51,6 +51,7 @@ def main():
 
     except Exception as e:
         print(f"Error getting task status: {e}")
+        raise
 
 
 if __name__ == "__main__":

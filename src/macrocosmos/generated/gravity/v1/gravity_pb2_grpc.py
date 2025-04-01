@@ -53,15 +53,20 @@ class GravityServiceStub(object):
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.BuildDatasetRequest.SerializeToString,
                 response_deserializer=gravity_dot_v1_dot_gravity__pb2.BuildDatasetResponse.FromString,
                 _registered_method=True)
-        self.GetDatasetStatus = channel.unary_unary(
-                '/gravity.v1.GravityService/GetDatasetStatus',
-                request_serializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusRequest.SerializeToString,
-                response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusResponse.FromString,
+        self.GetDataset = channel.unary_unary(
+                '/gravity.v1.GravityService/GetDataset',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetResponse.FromString,
                 _registered_method=True)
         self.CancelGravityTask = channel.unary_unary(
                 '/gravity.v1.GravityService/CancelGravityTask',
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskRequest.SerializeToString,
                 response_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskResponse.FromString,
+                _registered_method=True)
+        self.CancelDataset = channel.unary_unary(
+                '/gravity.v1.GravityService/CancelDataset',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.FromString,
                 _registered_method=True)
 
 
@@ -96,7 +101,7 @@ class GravityServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetDatasetStatus(self, request, context):
+    def GetDataset(self, request, context):
         """Get the dataset build status and results
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -104,7 +109,14 @@ class GravityServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def CancelGravityTask(self, request, context):
-        """Cancel a gravity task
+        """Cancel a gravity task and any crawlers associated with it
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CancelDataset(self, request, context):
+        """Cancel dataset build if it is in progress and purges the dataset
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -133,15 +145,20 @@ def add_GravityServiceServicer_to_server(servicer, server):
                     request_deserializer=gravity_dot_v1_dot_gravity__pb2.BuildDatasetRequest.FromString,
                     response_serializer=gravity_dot_v1_dot_gravity__pb2.BuildDatasetResponse.SerializeToString,
             ),
-            'GetDatasetStatus': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetDatasetStatus,
-                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusRequest.FromString,
-                    response_serializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusResponse.SerializeToString,
+            'GetDataset': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDataset,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.GetDatasetResponse.SerializeToString,
             ),
             'CancelGravityTask': grpc.unary_unary_rpc_method_handler(
                     servicer.CancelGravityTask,
                     request_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskRequest.FromString,
                     response_serializer=gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskResponse.SerializeToString,
+            ),
+            'CancelDataset': grpc.unary_unary_rpc_method_handler(
+                    servicer.CancelDataset,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -263,7 +280,7 @@ class GravityService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetDatasetStatus(request,
+    def GetDataset(request,
             target,
             options=(),
             channel_credentials=None,
@@ -276,9 +293,9 @@ class GravityService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/gravity.v1.GravityService/GetDatasetStatus',
-            gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusRequest.SerializeToString,
-            gravity_dot_v1_dot_gravity__pb2.GetDatasetStatusResponse.FromString,
+            '/gravity.v1.GravityService/GetDataset',
+            gravity_dot_v1_dot_gravity__pb2.GetDatasetRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.GetDatasetResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -306,6 +323,33 @@ class GravityService(object):
             '/gravity.v1.GravityService/CancelGravityTask',
             gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskRequest.SerializeToString,
             gravity_dot_v1_dot_gravity__pb2.CancelGravityTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CancelDataset(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/CancelDataset',
+            gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -60,7 +60,6 @@ class AsyncGravity:
         self,
         gravity_tasks: List[Union[gravity_p2p.GravityTask, Dict]] = None,
         name: str = "",
-        user: Union[gravity_p2p.User, Dict] = None,
         notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
         gravity_task_id: str = "",
     ) -> gravity_pb2.CreateGravityTaskResponse:
@@ -70,7 +69,6 @@ class AsyncGravity:
         Args:
             gravity_tasks: The list of gravity task criteria for the crawlers.
             name: The name of the gravity task (optional).
-            user: The user who is creating the gravity task (optional).
             notification_requests: The details of the notifications to be sent (optional).
             gravity_task_id: The ID of the gravity task (optional).
 
@@ -89,17 +87,6 @@ class AsyncGravity:
         else:
             raise AttributeError("gravity_tasks is a required parameter")
 
-        proto_user = None
-        if user:
-            if isinstance(user, gravity_p2p.User):
-                proto_user = gravity_pb2.User(**user.model_dump())
-            elif isinstance(user, dict):
-                proto_user = gravity_pb2.User(**user)
-            else:
-                raise TypeError(f"Invalid type for user: {type(user)}")
-        else:
-            proto_user = gravity_pb2.User()
-
         proto_notification_requests = []
         if notification_requests:
             for notification in notification_requests:
@@ -113,7 +100,6 @@ class AsyncGravity:
         request = gravity_pb2.CreateGravityTaskRequest(
             gravity_tasks=proto_gravity_tasks,
             name=name,
-            user=proto_user,
             notification_requests=proto_notification_requests,
             gravity_task_id=gravity_task_id,
         )
@@ -155,12 +141,12 @@ class AsyncGravity:
 
         return await self._make_request("BuildDataset", request)
 
-    async def GetDatasetStatus(
+    async def GetDataset(
         self,
         dataset_id: str,
-    ) -> gravity_pb2.GetDatasetStatusResponse:
+    ) -> gravity_pb2.GetDatasetResponse:
         """
-        Get the status of a dataset build.
+        Get the status of a dataset.
 
         Args:
             dataset_id: The ID of the dataset to get the status for.
@@ -171,11 +157,11 @@ class AsyncGravity:
         if not dataset_id:
             raise AttributeError("dataset_id is a required parameter")
 
-        request = gravity_pb2.GetDatasetStatusRequest(
+        request = gravity_pb2.GetDatasetRequest(
             dataset_id=dataset_id,
         )
 
-        return await self._make_request("GetDatasetStatus", request)
+        return await self._make_request("GetDataset", request)
 
     async def CancelGravityTask(
         self,
@@ -198,6 +184,28 @@ class AsyncGravity:
         )
 
         return await self._make_request("CancelGravityTask", request)
+
+    async def CancelDataset(
+        self,
+        dataset_id: str,
+    ) -> gravity_pb2.CancelDatasetResponse:
+        """
+        Cancel a dataset.
+
+        Args:
+            dataset_id: The ID of the dataset to cancel.
+
+        Returns:
+            A response containing the cancellation status.
+        """
+        if not dataset_id:
+            raise AttributeError("dataset_id is a required parameter")
+
+        request = gravity_pb2.CancelDatasetRequest(
+            dataset_id=dataset_id,
+        )
+
+        return await self._make_request("CancelDataset", request)
 
     async def _make_request(self, method_name, request):
         """
@@ -278,7 +286,6 @@ class SyncGravity:
         self,
         gravity_tasks: List[Union[gravity_p2p.GravityTask, Dict]] = None,
         name: str = "",
-        user: Union[gravity_p2p.User, Dict] = None,
         notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
         gravity_task_id: str = "",
     ) -> gravity_pb2.CreateGravityTaskResponse:
@@ -288,7 +295,6 @@ class SyncGravity:
         Args:
             gravity_tasks: The list of gravity task criteria for the crawlers.
             name: The name of the gravity task (optional).
-            user: The user who is creating the gravity task (optional).
             notification_requests: The details of the notifications to be sent (optional).
             gravity_task_id: The ID of the gravity task (optional).
 
@@ -299,7 +305,6 @@ class SyncGravity:
             self._async_gravity.CreateGravityTask(
                 gravity_tasks=gravity_tasks,
                 name=name,
-                user=user,
                 notification_requests=notification_requests,
                 gravity_task_id=gravity_task_id,
             )
@@ -327,10 +332,10 @@ class SyncGravity:
             )
         )
 
-    def GetDatasetStatus(
+    def GetDataset(
         self,
         dataset_id: str,
-    ) -> gravity_pb2.GetDatasetStatusResponse:
+    ) -> gravity_pb2.GetDatasetResponse:
         """
         Get the status of a dataset build synchronously.
 
@@ -341,7 +346,7 @@ class SyncGravity:
             A response containing the dataset status.
         """
         return asyncio.run(
-            self._async_gravity.GetDatasetStatus(
+            self._async_gravity.GetDataset(
                 dataset_id=dataset_id,
             )
         )
@@ -362,5 +367,18 @@ class SyncGravity:
         return asyncio.run(
             self._async_gravity.CancelGravityTask(
                 gravity_task_id=gravity_task_id,
+            )
+        )
+
+    def CancelDataset(
+        self,
+        dataset_id: str,
+    ) -> gravity_pb2.CancelDatasetResponse:
+        """
+        Cancel a dataset build synchronously.
+        """
+        return asyncio.run(
+            self._async_gravity.CancelDataset(
+                dataset_id=dataset_id,
             )
         )

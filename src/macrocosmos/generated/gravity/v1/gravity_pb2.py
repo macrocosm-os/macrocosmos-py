@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18gravity/v1/gravity.proto\x12\ngravity.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xab\x02\n\x07\x43rawler\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\x12-\n\x08\x63riteria\x18\x02 \x01(\x0b\x32\x1b.gravity.v1.CrawlerCriteria\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x37\n\x13\x64\x65registration_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x30\n\x0c\x61rchive_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\'\n\x05state\x18\x06 \x01(\x0b\x32\x18.gravity.v1.CrawlerState\x12\x19\n\x11\x64\x61taset_workflows\x18\x07 \x03(\t\"w\n\x0f\x43rawlerCriteria\x12\x10\n\x08platform\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x35\n\x0cnotification\x18\x03 \x01(\x0b\x32\x1f.gravity.v1.CrawlerNotification\x12\x0c\n\x04mock\x18\x04 \x01(\x08\"/\n\x13\x43rawlerNotification\x12\n\n\x02to\x18\x01 \x01(\t\x12\x0c\n\x04link\x18\x02 \x01(\t\"C\n\x06HfRepo\x12\x11\n\trepo_name\x18\x01 \x01(\t\x12\x11\n\trow_count\x18\x02 \x01(\x04\x12\x13\n\x0blast_update\x18\x03 \x01(\t\"u\n\x0c\x43rawlerState\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x17\n\x0f\x62ytes_collected\x18\x02 \x01(\x04\x12\x19\n\x11records_collected\x18\x03 \x01(\x04\x12!\n\x05repos\x18\x04 \x03(\x0b\x32\x12.gravity.v1.HfRepo\"\xbe\x01\n\x10GravityTaskState\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t\x12.\n\nstart_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x13\n\x0b\x63rawler_ids\x18\x05 \x03(\t\x12.\n\x11\x63rawler_workflows\x18\x06 \x03(\x0b\x32\x13.gravity.v1.Crawler\"K\n\x16GetGravityTasksRequest\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\x12\x18\n\x10include_crawlers\x18\x02 \x01(\x08\"T\n\x17GetGravityTasksResponse\x12\x39\n\x13gravity_task_states\x18\x01 \x03(\x0b\x32\x1c.gravity.v1.GravityTaskState\".\n\x0bGravityTask\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x10\n\x08platform\x18\x02 \x01(\t\"J\n\x13NotificationRequest\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x14\n\x0credirect_url\x18\x03 \x01(\t\"&\n\x04User\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\"\'\n\x11GetCrawlerRequest\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\":\n\x12GetCrawlerResponse\x12$\n\x07\x63rawler\x18\x01 \x01(\x0b\x32\x13.gravity.v1.Crawler\"\xd1\x01\n\x18\x43reateGravityTaskRequest\x12.\n\rgravity_tasks\x18\x01 \x03(\x0b\x32\x17.gravity.v1.GravityTask\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x1e\n\x04user\x18\x03 \x01(\x0b\x32\x10.gravity.v1.User\x12>\n\x15notification_requests\x18\x04 \x03(\x0b\x32\x1f.gravity.v1.NotificationRequest\x12\x17\n\x0fgravity_task_id\x18\x05 \x01(\t\"4\n\x19\x43reateGravityTaskResponse\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\"i\n\x13\x42uildDatasetRequest\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\x12>\n\x15notification_requests\x18\x02 \x03(\x0b\x32\x1f.gravity.v1.NotificationRequest\"P\n\x14\x42uildDatasetResponse\x12\x12\n\ndataset_id\x18\x01 \x01(\t\x12$\n\x07\x64\x61taset\x18\x02 \x01(\x0b\x32\x13.gravity.v1.Dataset\"\x95\x02\n\x07\x44\x61taset\x12\x1b\n\x13\x63rawler_workflow_id\x18\x01 \x01(\t\x12/\n\x0b\x63reate_date\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x65xpire_date\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12&\n\x05\x66iles\x18\x04 \x03(\x0b\x32\x17.gravity.v1.DatasetFile\x12\x0e\n\x06status\x18\x05 \x01(\t\x12\x16\n\x0estatus_message\x18\x06 \x01(\t\x12&\n\x05steps\x18\x07 \x03(\x0b\x32\x17.gravity.v1.DatasetStep\x12\x13\n\x0btotal_steps\x18\x08 \x01(\x03\"\x9b\x01\n\x0b\x44\x61tasetFile\x12\x11\n\tfile_name\x18\x01 \x01(\t\x12\x17\n\x0f\x66ile_size_bytes\x18\x02 \x01(\x04\x12\x31\n\rlast_modified\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x10\n\x08num_rows\x18\x04 \x01(\x04\x12\x0e\n\x06s3_key\x18\x05 \x01(\t\x12\x0b\n\x03url\x18\x06 \x01(\t\"@\n\x0b\x44\x61tasetStep\x12\x10\n\x08progress\x18\x01 \x01(\x01\x12\x0c\n\x04step\x18\x02 \x01(\x03\x12\x11\n\tstep_name\x18\x03 \x01(\t\"-\n\x17GetDatasetStatusRequest\x12\x12\n\ndataset_id\x18\x01 \x01(\t\"@\n\x18GetDatasetStatusResponse\x12$\n\x07\x64\x61taset\x18\x01 \x01(\x0b\x32\x13.gravity.v1.Dataset\"3\n\x18\x43\x61ncelGravityTaskRequest\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\",\n\x19\x43\x61ncelGravityTaskResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2\xaf\x04\n\x0eGravityService\x12Z\n\x0fGetGravityTasks\x12\".gravity.v1.GetGravityTasksRequest\x1a#.gravity.v1.GetGravityTasksResponse\x12K\n\nGetCrawler\x12\x1d.gravity.v1.GetCrawlerRequest\x1a\x1e.gravity.v1.GetCrawlerResponse\x12`\n\x11\x43reateGravityTask\x12$.gravity.v1.CreateGravityTaskRequest\x1a%.gravity.v1.CreateGravityTaskResponse\x12Q\n\x0c\x42uildDataset\x12\x1f.gravity.v1.BuildDatasetRequest\x1a .gravity.v1.BuildDatasetResponse\x12]\n\x10GetDatasetStatus\x12#.gravity.v1.GetDatasetStatusRequest\x1a$.gravity.v1.GetDatasetStatusResponse\x12`\n\x11\x43\x61ncelGravityTask\x12$.gravity.v1.CancelGravityTaskRequest\x1a%.gravity.v1.CancelGravityTaskResponseB4Z2macrocosm-os/rift/constellation_api/gen/gravity/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18gravity/v1/gravity.proto\x12\ngravity.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xab\x02\n\x07\x43rawler\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\x12-\n\x08\x63riteria\x18\x02 \x01(\x0b\x32\x1b.gravity.v1.CrawlerCriteria\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x37\n\x13\x64\x65registration_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x30\n\x0c\x61rchive_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\'\n\x05state\x18\x06 \x01(\x0b\x32\x18.gravity.v1.CrawlerState\x12\x19\n\x11\x64\x61taset_workflows\x18\x07 \x03(\t\"w\n\x0f\x43rawlerCriteria\x12\x10\n\x08platform\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x35\n\x0cnotification\x18\x03 \x01(\x0b\x32\x1f.gravity.v1.CrawlerNotification\x12\x0c\n\x04mock\x18\x04 \x01(\x08\"/\n\x13\x43rawlerNotification\x12\n\n\x02to\x18\x01 \x01(\t\x12\x0c\n\x04link\x18\x02 \x01(\t\"C\n\x06HfRepo\x12\x11\n\trepo_name\x18\x01 \x01(\t\x12\x11\n\trow_count\x18\x02 \x01(\x04\x12\x13\n\x0blast_update\x18\x03 \x01(\t\"u\n\x0c\x43rawlerState\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x17\n\x0f\x62ytes_collected\x18\x02 \x01(\x04\x12\x19\n\x11records_collected\x18\x03 \x01(\x04\x12!\n\x05repos\x18\x04 \x03(\x0b\x32\x12.gravity.v1.HfRepo\"\xbe\x01\n\x10GravityTaskState\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t\x12.\n\nstart_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x13\n\x0b\x63rawler_ids\x18\x05 \x03(\t\x12.\n\x11\x63rawler_workflows\x18\x06 \x03(\x0b\x32\x13.gravity.v1.Crawler\"K\n\x16GetGravityTasksRequest\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\x12\x18\n\x10include_crawlers\x18\x02 \x01(\x08\"T\n\x17GetGravityTasksResponse\x12\x39\n\x13gravity_task_states\x18\x01 \x03(\x0b\x32\x1c.gravity.v1.GravityTaskState\".\n\x0bGravityTask\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x10\n\x08platform\x18\x02 \x01(\t\"J\n\x13NotificationRequest\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x14\n\x0credirect_url\x18\x03 \x01(\t\"\'\n\x11GetCrawlerRequest\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\":\n\x12GetCrawlerResponse\x12$\n\x07\x63rawler\x18\x01 \x01(\x0b\x32\x13.gravity.v1.Crawler\"\xb1\x01\n\x18\x43reateGravityTaskRequest\x12.\n\rgravity_tasks\x18\x01 \x03(\x0b\x32\x17.gravity.v1.GravityTask\x12\x0c\n\x04name\x18\x02 \x01(\t\x12>\n\x15notification_requests\x18\x03 \x03(\x0b\x32\x1f.gravity.v1.NotificationRequest\x12\x17\n\x0fgravity_task_id\x18\x04 \x01(\t\"4\n\x19\x43reateGravityTaskResponse\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\"i\n\x13\x42uildDatasetRequest\x12\x12\n\ncrawler_id\x18\x01 \x01(\t\x12>\n\x15notification_requests\x18\x02 \x03(\x0b\x32\x1f.gravity.v1.NotificationRequest\"P\n\x14\x42uildDatasetResponse\x12\x12\n\ndataset_id\x18\x01 \x01(\t\x12$\n\x07\x64\x61taset\x18\x02 \x01(\x0b\x32\x13.gravity.v1.Dataset\"\x95\x02\n\x07\x44\x61taset\x12\x1b\n\x13\x63rawler_workflow_id\x18\x01 \x01(\t\x12/\n\x0b\x63reate_date\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x65xpire_date\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12&\n\x05\x66iles\x18\x04 \x03(\x0b\x32\x17.gravity.v1.DatasetFile\x12\x0e\n\x06status\x18\x05 \x01(\t\x12\x16\n\x0estatus_message\x18\x06 \x01(\t\x12&\n\x05steps\x18\x07 \x03(\x0b\x32\x17.gravity.v1.DatasetStep\x12\x13\n\x0btotal_steps\x18\x08 \x01(\x03\"\x9b\x01\n\x0b\x44\x61tasetFile\x12\x11\n\tfile_name\x18\x01 \x01(\t\x12\x17\n\x0f\x66ile_size_bytes\x18\x02 \x01(\x04\x12\x31\n\rlast_modified\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x10\n\x08num_rows\x18\x04 \x01(\x04\x12\x0e\n\x06s3_key\x18\x05 \x01(\t\x12\x0b\n\x03url\x18\x06 \x01(\t\"@\n\x0b\x44\x61tasetStep\x12\x10\n\x08progress\x18\x01 \x01(\x01\x12\x0c\n\x04step\x18\x02 \x01(\x03\x12\x11\n\tstep_name\x18\x03 \x01(\t\"\'\n\x11GetDatasetRequest\x12\x12\n\ndataset_id\x18\x01 \x01(\t\":\n\x12GetDatasetResponse\x12$\n\x07\x64\x61taset\x18\x01 \x01(\x0b\x32\x13.gravity.v1.Dataset\"3\n\x18\x43\x61ncelGravityTaskRequest\x12\x17\n\x0fgravity_task_id\x18\x01 \x01(\t\",\n\x19\x43\x61ncelGravityTaskResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"*\n\x14\x43\x61ncelDatasetRequest\x12\x12\n\ndataset_id\x18\x01 \x01(\t\"(\n\x15\x43\x61ncelDatasetResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2\xf3\x04\n\x0eGravityService\x12Z\n\x0fGetGravityTasks\x12\".gravity.v1.GetGravityTasksRequest\x1a#.gravity.v1.GetGravityTasksResponse\x12K\n\nGetCrawler\x12\x1d.gravity.v1.GetCrawlerRequest\x1a\x1e.gravity.v1.GetCrawlerResponse\x12`\n\x11\x43reateGravityTask\x12$.gravity.v1.CreateGravityTaskRequest\x1a%.gravity.v1.CreateGravityTaskResponse\x12Q\n\x0c\x42uildDataset\x12\x1f.gravity.v1.BuildDatasetRequest\x1a .gravity.v1.BuildDatasetResponse\x12K\n\nGetDataset\x12\x1d.gravity.v1.GetDatasetRequest\x1a\x1e.gravity.v1.GetDatasetResponse\x12`\n\x11\x43\x61ncelGravityTask\x12$.gravity.v1.CancelGravityTaskRequest\x1a%.gravity.v1.CancelGravityTaskResponse\x12T\n\rCancelDataset\x12 .gravity.v1.CancelDatasetRequest\x1a!.gravity.v1.CancelDatasetResponseB4Z2macrocosm-os/rift/constellation_api/gen/gravity/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -53,34 +53,36 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GRAVITYTASK']._serialized_end=1135
   _globals['_NOTIFICATIONREQUEST']._serialized_start=1137
   _globals['_NOTIFICATIONREQUEST']._serialized_end=1211
-  _globals['_USER']._serialized_start=1213
-  _globals['_USER']._serialized_end=1251
-  _globals['_GETCRAWLERREQUEST']._serialized_start=1253
-  _globals['_GETCRAWLERREQUEST']._serialized_end=1292
-  _globals['_GETCRAWLERRESPONSE']._serialized_start=1294
-  _globals['_GETCRAWLERRESPONSE']._serialized_end=1352
-  _globals['_CREATEGRAVITYTASKREQUEST']._serialized_start=1355
-  _globals['_CREATEGRAVITYTASKREQUEST']._serialized_end=1564
-  _globals['_CREATEGRAVITYTASKRESPONSE']._serialized_start=1566
-  _globals['_CREATEGRAVITYTASKRESPONSE']._serialized_end=1618
-  _globals['_BUILDDATASETREQUEST']._serialized_start=1620
-  _globals['_BUILDDATASETREQUEST']._serialized_end=1725
-  _globals['_BUILDDATASETRESPONSE']._serialized_start=1727
-  _globals['_BUILDDATASETRESPONSE']._serialized_end=1807
-  _globals['_DATASET']._serialized_start=1810
-  _globals['_DATASET']._serialized_end=2087
-  _globals['_DATASETFILE']._serialized_start=2090
-  _globals['_DATASETFILE']._serialized_end=2245
-  _globals['_DATASETSTEP']._serialized_start=2247
-  _globals['_DATASETSTEP']._serialized_end=2311
-  _globals['_GETDATASETSTATUSREQUEST']._serialized_start=2313
-  _globals['_GETDATASETSTATUSREQUEST']._serialized_end=2358
-  _globals['_GETDATASETSTATUSRESPONSE']._serialized_start=2360
-  _globals['_GETDATASETSTATUSRESPONSE']._serialized_end=2424
-  _globals['_CANCELGRAVITYTASKREQUEST']._serialized_start=2426
-  _globals['_CANCELGRAVITYTASKREQUEST']._serialized_end=2477
-  _globals['_CANCELGRAVITYTASKRESPONSE']._serialized_start=2479
-  _globals['_CANCELGRAVITYTASKRESPONSE']._serialized_end=2523
-  _globals['_GRAVITYSERVICE']._serialized_start=2526
-  _globals['_GRAVITYSERVICE']._serialized_end=3085
+  _globals['_GETCRAWLERREQUEST']._serialized_start=1213
+  _globals['_GETCRAWLERREQUEST']._serialized_end=1252
+  _globals['_GETCRAWLERRESPONSE']._serialized_start=1254
+  _globals['_GETCRAWLERRESPONSE']._serialized_end=1312
+  _globals['_CREATEGRAVITYTASKREQUEST']._serialized_start=1315
+  _globals['_CREATEGRAVITYTASKREQUEST']._serialized_end=1492
+  _globals['_CREATEGRAVITYTASKRESPONSE']._serialized_start=1494
+  _globals['_CREATEGRAVITYTASKRESPONSE']._serialized_end=1546
+  _globals['_BUILDDATASETREQUEST']._serialized_start=1548
+  _globals['_BUILDDATASETREQUEST']._serialized_end=1653
+  _globals['_BUILDDATASETRESPONSE']._serialized_start=1655
+  _globals['_BUILDDATASETRESPONSE']._serialized_end=1735
+  _globals['_DATASET']._serialized_start=1738
+  _globals['_DATASET']._serialized_end=2015
+  _globals['_DATASETFILE']._serialized_start=2018
+  _globals['_DATASETFILE']._serialized_end=2173
+  _globals['_DATASETSTEP']._serialized_start=2175
+  _globals['_DATASETSTEP']._serialized_end=2239
+  _globals['_GETDATASETREQUEST']._serialized_start=2241
+  _globals['_GETDATASETREQUEST']._serialized_end=2280
+  _globals['_GETDATASETRESPONSE']._serialized_start=2282
+  _globals['_GETDATASETRESPONSE']._serialized_end=2340
+  _globals['_CANCELGRAVITYTASKREQUEST']._serialized_start=2342
+  _globals['_CANCELGRAVITYTASKREQUEST']._serialized_end=2393
+  _globals['_CANCELGRAVITYTASKRESPONSE']._serialized_start=2395
+  _globals['_CANCELGRAVITYTASKRESPONSE']._serialized_end=2439
+  _globals['_CANCELDATASETREQUEST']._serialized_start=2441
+  _globals['_CANCELDATASETREQUEST']._serialized_end=2483
+  _globals['_CANCELDATASETRESPONSE']._serialized_start=2485
+  _globals['_CANCELDATASETRESPONSE']._serialized_end=2525
+  _globals['_GRAVITYSERVICE']._serialized_start=2528
+  _globals['_GRAVITYSERVICE']._serialized_end=3155
 # @@protoc_insertion_point(module_scope)

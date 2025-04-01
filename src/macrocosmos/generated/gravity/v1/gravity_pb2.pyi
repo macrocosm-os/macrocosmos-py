@@ -114,14 +114,6 @@ class NotificationRequest(_message.Message):
     redirect_url: str
     def __init__(self, type: _Optional[str] = ..., address: _Optional[str] = ..., redirect_url: _Optional[str] = ...) -> None: ...
 
-class User(_message.Message):
-    __slots__ = ("user_id", "email")
-    USER_ID_FIELD_NUMBER: _ClassVar[int]
-    EMAIL_FIELD_NUMBER: _ClassVar[int]
-    user_id: str
-    email: str
-    def __init__(self, user_id: _Optional[str] = ..., email: _Optional[str] = ...) -> None: ...
-
 class GetCrawlerRequest(_message.Message):
     __slots__ = ("crawler_id",)
     CRAWLER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -135,18 +127,16 @@ class GetCrawlerResponse(_message.Message):
     def __init__(self, crawler: _Optional[_Union[Crawler, _Mapping]] = ...) -> None: ...
 
 class CreateGravityTaskRequest(_message.Message):
-    __slots__ = ("gravity_tasks", "name", "user", "notification_requests", "gravity_task_id")
+    __slots__ = ("gravity_tasks", "name", "notification_requests", "gravity_task_id")
     GRAVITY_TASKS_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
-    USER_FIELD_NUMBER: _ClassVar[int]
     NOTIFICATION_REQUESTS_FIELD_NUMBER: _ClassVar[int]
     GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
     gravity_tasks: _containers.RepeatedCompositeFieldContainer[GravityTask]
     name: str
-    user: User
     notification_requests: _containers.RepeatedCompositeFieldContainer[NotificationRequest]
     gravity_task_id: str
-    def __init__(self, gravity_tasks: _Optional[_Iterable[_Union[GravityTask, _Mapping]]] = ..., name: _Optional[str] = ..., user: _Optional[_Union[User, _Mapping]] = ..., notification_requests: _Optional[_Iterable[_Union[NotificationRequest, _Mapping]]] = ..., gravity_task_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, gravity_tasks: _Optional[_Iterable[_Union[GravityTask, _Mapping]]] = ..., name: _Optional[str] = ..., notification_requests: _Optional[_Iterable[_Union[NotificationRequest, _Mapping]]] = ..., gravity_task_id: _Optional[str] = ...) -> None: ...
 
 class CreateGravityTaskResponse(_message.Message):
     __slots__ = ("gravity_task_id",)
@@ -216,13 +206,13 @@ class DatasetStep(_message.Message):
     step_name: str
     def __init__(self, progress: _Optional[float] = ..., step: _Optional[int] = ..., step_name: _Optional[str] = ...) -> None: ...
 
-class GetDatasetStatusRequest(_message.Message):
+class GetDatasetRequest(_message.Message):
     __slots__ = ("dataset_id",)
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     dataset_id: str
     def __init__(self, dataset_id: _Optional[str] = ...) -> None: ...
 
-class GetDatasetStatusResponse(_message.Message):
+class GetDatasetResponse(_message.Message):
     __slots__ = ("dataset",)
     DATASET_FIELD_NUMBER: _ClassVar[int]
     dataset: Dataset
@@ -235,6 +225,18 @@ class CancelGravityTaskRequest(_message.Message):
     def __init__(self, gravity_task_id: _Optional[str] = ...) -> None: ...
 
 class CancelGravityTaskResponse(_message.Message):
+    __slots__ = ("message",)
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    message: str
+    def __init__(self, message: _Optional[str] = ...) -> None: ...
+
+class CancelDatasetRequest(_message.Message):
+    __slots__ = ("dataset_id",)
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    def __init__(self, dataset_id: _Optional[str] = ...) -> None: ...
+
+class CancelDatasetResponse(_message.Message):
     __slots__ = ("message",)
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     message: str

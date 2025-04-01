@@ -144,16 +144,6 @@ class NotificationRequest(BaseModel):
 # redirect_url: the URL to include in the notication message that redirects the user to any built datasets
     redirect_url: str = Field(default="")
 
-class User(BaseModel):
-    """
-     User is the user who created the gravity tasks and is used for querying existing jobs
-    """
-
-# user_id: the ID of the user (this is currently not used)
-    user_id: str = Field(default="")
-# email: the email address of the user
-    email: str = Field(default="")
-
 class GetCrawlerRequest(BaseModel):
     """
      GetCrawlerRequest is the request message for getting a crawler
@@ -179,8 +169,6 @@ class CreateGravityTaskRequest(BaseModel):
     gravity_tasks: typing.List[GravityTask] = Field(default_factory=list)
 # name: the name of the gravity task (optional, default will generate a random name)
     name: str = Field(default="")
-# user: the user who is creating the gravity task so it can be queried for existing jobs
-    user: User = Field(default_factory=User)
 # notification_requests: the details of the notification to be sent to the user when a dataset
 #   that is automatically generated upon completion of the crawler is ready to download (optional)
     notification_requests: typing.List[NotificationRequest] = Field(default_factory=list)
@@ -269,17 +257,17 @@ class BuildDatasetResponse(BaseModel):
 # dataset: the dataset that was built
     dataset: Dataset = Field(default_factory=Dataset)
 
-class GetDatasetStatusRequest(BaseModel):
+class GetDatasetRequest(BaseModel):
     """
-     GetDatasetStatusRequest is the request message for getting the status of a dataset
+     GetDatasetRequest is the request message for getting the status of a dataset
     """
 
 # dataset_id: the ID of the dataset
     dataset_id: str = Field(default="")
 
-class GetDatasetStatusResponse(BaseModel):
+class GetDatasetResponse(BaseModel):
     """
-     GetDatasetStatusResponse is the response message for getting the status of a dataset
+     GetDatasetResponse is the response message for getting the status of a dataset
     """
 
 # dataset: the dataset that is being built
@@ -299,4 +287,20 @@ class CancelGravityTaskResponse(BaseModel):
     """
 
 # message: the message of the cancellation of the gravity task (currently hardcoded to "success")
+    message: str = Field(default="")
+
+class CancelDatasetRequest(BaseModel):
+    """
+     CancelDatasetRequest is the request message for cancelling a dataset build
+    """
+
+# dataset_id: the ID of the dataset
+    dataset_id: str = Field(default="")
+
+class CancelDatasetResponse(BaseModel):
+    """
+     CancelDatasetResponse is the response message for cancelling a dataset build
+    """
+
+# message: the message of the cancellation of the dataset build (currently hardcoded to "success")
     message: str = Field(default="")

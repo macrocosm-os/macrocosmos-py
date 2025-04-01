@@ -16,6 +16,8 @@ import time
 import signal
 from typing import Dict, List, Optional, Set
 
+from macrocosmos.generated.gravity.v1 import gravity_pb2
+
 
 class GravityWorkflow:
     def __init__(self, task_name: str, email: str, reddit_subreddit: str, x_hashtag: str):
@@ -58,50 +60,57 @@ class GravityWorkflow:
                     await self.monitor_dataset_builds()
 
                     # Step 7: Wait for user input before cleanup
-                    print("\n📌 Press Enter to cancel the task and exit...")
+                    print("\n📌 Press Enter when you're done downloading the datasets to clean up and exit...")
                     # This runs in the background to allow the keyboard interrupt to work
                     await self.wait_for_input()
             else:
                 print("\n⚠️ No crawlers collected data within the time limit.")
-                # await self.cleanup()
+                await self.cleanup(self.task_id)
 
         except (KeyboardInterrupt, asyncio.CancelledError):
             print("\n⚠️ Operation canceled.")
-            await self.cleanup()
+            await self.cleanup(self.task_id)
         except Exception as e:
             print(f"\n❌ Error in workflow: {e}")
-            await self.cleanup()
+            await self.cleanup(self.task_id)
             raise
 
     async def find_and_cancel_existing_task(self):
-        """Find and cancel any existing task with the given name."""
-        print(f"\n🔍 Checking if task '{self.task_name}' already exists...")
+        """Find and cancel any existing tasks with the given name that aren't completed."""
+        print(f"\n🔍 Checking if tasks with name '{self.task_name}' exist...")
 
         try:
             # Get all tasks
             response = await self.client.gravity.GetGravityTasks(include_crawlers=False)
 
-            existing_task = None
+            existing_tasks: List[gravity_pb2.GravityTaskState] = []
             if response and response.gravity_task_states:
                 for task in response.gravity_task_states:
                     if task.name == self.task_name:
-                        existing_task = task
-                        break
+                        existing_tasks.append(task)
 
-            if existing_task:
-                print(f" Found existing task '{self.task_name}' with ID: {existing_task.gravity_task_id}")
-                print(f" Cancelling task...")
+            if existing_tasks:
+                print(f" Found {len(existing_tasks)} tasks with name '{self.task_name}'")
 
-                await self.client.gravity.CancelGravityTask(gravity_task_id=existing_task.gravity_task_id)
+                # Filter out completed tasks
+                tasks_to_cancel = [task for task in existing_tasks if task.status != "Completed"]
 
-                print(f"✅ Task cancelled successfully.")
-                # Wait a moment to ensure the cancellation is processed
-                await asyncio.sleep(3)
+                if tasks_to_cancel:
+                    print(f" Cancelling {len(tasks_to_cancel)} non-completed tasks...")
+
+                    for task in tasks_to_cancel:
+                        await self.cleanup(task.gravity_task_id)
+
+                    print(f"✅ All non-completed tasks cancelled successfully.")
+                    # Wait a moment to ensure the cancellations are processed
+                    await asyncio.sleep(3)
+                else:
+                    print(f"✅ All existing tasks are already completed.")
             else:
-                print(f"✅ No existing task named '{self.task_name}' found.")
+                print(f"✅ No existing tasks named '{self.task_name}' found.")
 
         except Exception as e:
-            print(f"❌ Error checking/cancelling existing task: {e}")
+            print(f"❌ Error checking/cancelling existing tasks: {e}")
             raise
 
     async def create_new_task(self):
@@ -125,14 +134,14 @@ class GravityWorkflow:
 
             # Create the task
             response = await self.client.gravity.CreateGravityTask(
-                gravity_tasks=gravity_tasks, name=self.task_name, user=user, notification_requests=[notification]
+                gravity_tasks=gravity_tasks, name=self.task_name, notification_requests=[notification]
             )
 
             self.task_id = response.gravity_task_id
             print(f"✅ Task created successfully with ID: {self.task_id}")
 
             # Wait a moment to ensure the task is created
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
         except Exception as e:
             print(f"❌ Error creating new task: {e}")
@@ -149,11 +158,9 @@ class GravityWorkflow:
         # First get the crawler IDs from the task
         try:
             response = await self.client.gravity.GetGravityTasks(gravity_task_id=self.task_id, include_crawlers=False)
-            print(f"Got response: {response.gravity_task_states}")
             if response and response.gravity_task_states:
                 task = response.gravity_task_states[0]
                 self.crawler_ids = list(task.crawler_ids)
-                print(f"Got crawler IDs: {self.crawler_ids}")
             else:
                 print(f"❌ Gravity task response is empty")
                 return crawlers_with_data
@@ -164,16 +171,21 @@ class GravityWorkflow:
         # Display header
         print("\n{:<12} {:<25} {:<15} {:<15}".format("TIME", "CRAWLER", "STATUS", "RECORDS"))
         print("─" * 70)
+        print("\n")  # add a new line to be overwritten
+
+        # Store the number of lines we need to clear
+        num_status_lines = len(self.crawler_ids)
 
         while time.time() < end_time:
             elapsed = time.time() - start_time
 
             try:
+                # Move cursor up to clear previous lines
+                print(f"\033[{num_status_lines}A", end="")
+
                 # Get status for each crawler
                 for crawler_id in self.crawler_ids:
-                    print(f"Getting crawler status for {crawler_id}")
                     response = await self.client.gravity.GetCrawler(crawler_id=crawler_id)
-                    print("Got crawler response")
                     if response and response.crawler:
                         crawler = response.crawler
 
@@ -202,12 +214,11 @@ class GravityWorkflow:
                             )
                         )
 
-                # Sleep for 5 seconds
-                await asyncio.sleep(5)
+                # Sleep for 10 seconds
+                await asyncio.sleep(10)
 
             except Exception as e:
                 print(f"❌ Error monitoring task: {e}")
-                await asyncio.sleep(5)
 
         print(f"\n✅ Monitoring complete. Found {len(crawlers_with_data)} crawlers with data.")
         return crawlers_with_data
@@ -251,11 +262,15 @@ class GravityWorkflow:
 
         # Display header
         print(
-            "\n{:<10} {:<12} {:<16} {:<10} {:<25} {:<15}".format(
+            "\n{:<10} {:<25} {:<16} {:<10} {:<12} {:<30}".format(
                 "TIME", "DATASET", "STATUS", "PROGRESS", "STEP", "MESSAGE"
             )
         )
-        print("─" * 90)
+        print("─" * 110)
+        print("\n")  # add 2 new lines to be overwritten.
+
+        # Store the number of lines we need to clear
+        num_status_lines = len(self.dataset_ids)
 
         while len(completed_datasets) < len(self.dataset_ids):
             # Check if it's time to update dataset info (every 5s)
@@ -266,7 +281,7 @@ class GravityWorkflow:
                         continue
 
                     try:
-                        response = await self.client.gravity.GetDatasetStatus(dataset_id=dataset_id)
+                        response = await self.client.gravity.GetDataset(dataset_id=dataset_id)
 
                         if response and response.dataset:
                             dataset = response.dataset
@@ -282,7 +297,7 @@ class GravityWorkflow:
                             progress_pct = f"{step_progress*100:.1f}%"
 
                             # Format step info
-                            step_info = f"Step {current_step}/{total_steps}: {step_name}"
+                            step_info = f"Step {current_step}/{total_steps}"
 
                             # Status indicator
                             status_indicator = "⏳"
@@ -321,22 +336,19 @@ class GravityWorkflow:
             # Display current status for all datasets with updated elapsed time (refreshes every 1s)
             elapsed = time.time() - start_time
 
-            # Clear previous lines and redraw table rows
-            for i, dataset_id in enumerate(self.dataset_ids):
+            # Move cursor up to clear previous lines
+            print(f"\033[{num_status_lines}A", end="")
+
+            # Redraw all status lines
+            for dataset_id in self.dataset_ids:
                 if dataset_id in dataset_status:
                     status = dataset_status[dataset_id]
-                    # Move cursor to beginning of line and clear it
-                    if i > 0:
-                        print("\033[1A\033[K", end="")
-                    else:
-                        print("\033[K", end="")
-
-                    id_short = dataset_id[:8] + "..." if len(dataset_id) > 12 else dataset_id
-                    step_truncated = status["step"][:25] if len(status["step"]) > 25 else status["step"]
-                    msg_truncated = status["message"][:15] + "..." if len(status["message"]) > 15 else status["message"]
+                    id_short = dataset_id[:21] + "..." if len(dataset_id) > 24 else dataset_id
+                    step_truncated = status["step"][:12] if len(status["step"]) > 12 else status["step"]
+                    msg_truncated = status["message"][:27] + "..." if len(status["message"]) > 30 else status["message"]
 
                     print(
-                        "{:<10} {:<12} {:<16} {:<10} {:<25} {:<15}".format(
+                        "{:<10} {:<25} {:<16} {:<10} {:<12} {:<30}".format(
                             f"{elapsed:.1f}s",
                             id_short,
                             status["status"],
@@ -378,17 +390,24 @@ class GravityWorkflow:
         # Using run_in_executor to run synchronous input() in a thread pool
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, input)
-        await self.cleanup()
+        await self.cleanup(self.task_id)
 
-    async def cleanup(self):
+    async def cleanup(self, task_id: str):
         """Cancel the task and cleanup resources."""
-        if self.task_id:
+        print(f"\n🧹 Cleaning up:")
+        if task_id:
             try:
-                print(f"\n🧹 Cleaning up: Cancelling task {self.task_id}...", end="")
-                await self.client.gravity.CancelGravityTask(gravity_task_id=self.task_id)
-                print("Done.")
+                print(f"  • Cancelling gravity task {task_id}...")
+                await self.client.gravity.CancelGravityTask(gravity_task_id=task_id)
             except Exception as e:
-                print(f"❌ Error during cleanup: {e}")
+                print(f"❌ Error cancelling task: {e}")
+        if self.dataset_ids:
+            for dataset_id in self.dataset_ids:
+                try:
+                    print(f"  • Cancelling dataset {dataset_id}...")
+                    await self.client.gravity.CancelDataset(dataset_id=dataset_id)
+                except Exception as e:
+                    continue
 
 
 def get_user_input():
@@ -423,8 +442,9 @@ def get_user_input():
 
 
 async def main():
-    print("🚀 Gravity Workflow Example")
-    print("══════════════════════════")
+    print("════════════════════════════════════════════════════")
+    print("          🚀 Gravity Workflow Example")
+    print("════════════════════════════════════════════════════")
 
     # Get user input with defaults
     email, reddit, x_hashtag, task_name = get_user_input()
@@ -444,10 +464,9 @@ async def main():
 
 async def handle_signal(workflow):
     """Handle termination signals by cleaning up."""
-    print("\n⚠️ Received termination signal. Cleaning up...")
-    await workflow.cleanup()
-    # Stop the event loop
-    asyncio.get_running_loop().stop()
+    for task in asyncio.all_tasks():
+        if task is not asyncio.current_task():  # Don't cancel our signal handler
+            task.cancel()
 
 
 if __name__ == "__main__":
