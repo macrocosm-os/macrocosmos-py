@@ -125,7 +125,6 @@ class GravityWorkflow:
             ]
 
             # User info for notifications
-            user = {"email": self.email}
             notification = {
                 "type": "email",
                 "address": self.email,
