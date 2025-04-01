@@ -141,14 +141,6 @@ message NotificationRequest {
   string redirect_url = 3;
 }
 
-// User is the user who created the gravity tasks and is used for querying existing jobs
-message User {
-  // user_id: the ID of the user (this is currently not used)
-  string user_id = 1;
-  // email: the email address of the user
-  string email = 2;
-}
-
 // GetCrawlerRequest is the request message for getting a crawler
 message GetCrawlerRequest {
   // crawler_id: the ID of the crawler
@@ -167,13 +159,11 @@ message CreateGravityTaskRequest {
   repeated GravityTask gravity_tasks = 1;
   // name: the name of the gravity task (optional, default will generate a random name)
   string name = 2;
-  // user: the user who is creating the gravity task so it can be queried for existing jobs
-  User user = 3;
   // notification_requests: the details of the notification to be sent to the user when a dataset
   //   that is automatically generated upon completion of the crawler is ready to download (optional)
-  repeated NotificationRequest notification_requests = 4;
+  repeated NotificationRequest notification_requests = 3;
   // gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
-  string gravity_task_id = 5;
+  string gravity_task_id = 4;
 }
 
 // CreateGravityTaskResponse is the response message for creating a new gravity task
