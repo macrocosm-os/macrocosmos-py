@@ -1,9 +1,9 @@
-name: Lint
+name: Checks
 
 on: [ push, pull_request ]
 
 jobs:
-  lint:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
           python-version-file: ".python-version"
 
       - name: Install dependencies
-        run: uv pip install --group lint
+        run: uv pip install --group dev
         env:
           UV_SYSTEM_PYTHON: 1
 
@@ -28,6 +28,3 @@ jobs:
         
       - name: Run ruff format
         run: ruff format . --check
-
-      - name: Run isort
-        run: isort . --check-only --diff
