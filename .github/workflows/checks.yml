@@ -1,6 +1,15 @@
 name: Checks
 
-on: [ push, pull_request ]
+on:
+  pull_request:
+    types:
+      # default events to trigger actions
+      # ref: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request
+      - opened
+      - synchronize
+      - reopened
+      # additional events to trigger actions
+      - labeled
 
 jobs:
   checks:
