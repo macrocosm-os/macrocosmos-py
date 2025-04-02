@@ -1,0 +1,73 @@
+name: Publish to PyPI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    # Only run if ENABLE_AUTO_PUBLISH_TO_PYPI is 'true'
+    if: ${{ vars.ENABLE_AUTO_PUBLISH_TO_PYPI == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # We need full history to diff versions
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.10"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install dependencies
+        run: uv pip install --group dev
+        env:
+          UV_SYSTEM_PYTHON: 1
+
+      - name: Get previous commit on main
+        id: prev
+        run: |
+          echo "PREV_COMMIT=$(git rev-parse HEAD^1)" >> $GITHUB_OUTPUT
+
+      - name: Get previous version
+        id: old_version
+        run: |
+          git show ${{ steps.prev.outputs.PREV_COMMIT }}:pyproject.toml | grep '^version' | cut -d'"' -f2 > old_version.txt
+          echo "OLD_VERSION=$(cat old_version.txt)" >> $GITHUB_OUTPUT
+
+      - name: Get current version
+        id: new_version
+        run: |
+          grep '^version' pyproject.toml | cut -d'"' -f2 > new_version.txt
+          echo "NEW_VERSION=$(cat new_version.txt)" >> $GITHUB_OUTPUT
+
+      - name: Check version bump
+        id: version_check
+        run: |
+          if [ "${{ steps.old_version.outputs.OLD_VERSION }}" != "${{ steps.new_version.outputs.NEW_VERSION }}" ]; then
+            echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        if: steps.version_check.outputs.VERSION_CHANGED == 'true'
+        run: uv publish --token ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Create Tag and Release
+        if: steps.version_check.outputs.VERSION_CHANGED == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.NEW_VERSION }}
+          name: Release v${{ steps.new_version.outputs.NEW_VERSION }}
+          generate_release_notes: true

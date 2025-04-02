@@ -7,6 +7,7 @@ import grpc
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_p2p, apex_pb2, apex_pb2_grpc
 from macrocosmos.resources._stream import StreamGenerator
+from macrocosmos.resources._client import BaseClient
 from macrocosmos.types import (
     ChatCompletionChunkResponse,
     ChatCompletionResponse,
@@ -19,7 +20,13 @@ from macrocosmos.types import (
 class AsyncCompletions:
     """Asynchronous Completions resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the asynchronous Completions resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
 
     async def create(
@@ -89,6 +96,7 @@ class AsyncCompletions:
         )
 
         metadata = [
+            ("x-source", self._client.app_name),
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
@@ -100,9 +108,7 @@ class AsyncCompletions:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(
-                    self._client.base_url, grpc.ssl_channel_credentials()
-                )
+                channel = self._client.get_channel()
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 if not stream:
                     response = await stub.ChatCompletion(
@@ -138,7 +144,13 @@ class AsyncCompletions:
 class AsyncChat:
     """Asynchronous Chat resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the asynchronous Chat resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
         self.completions = AsyncCompletions(client)
 
@@ -146,7 +158,13 @@ class AsyncChat:
 class SyncCompletions:
     """Synchronous Completions resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the synchronous Completions resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
         self._async_completions = AsyncCompletions(client)
 
@@ -183,6 +201,12 @@ class SyncCompletions:
 class SyncChat:
     """Synchronous Chat resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the synchronous Chat resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
         self.completions = SyncCompletions(client)

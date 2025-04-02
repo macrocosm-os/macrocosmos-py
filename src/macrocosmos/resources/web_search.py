@@ -6,12 +6,19 @@ import grpc
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_pb2, apex_pb2_grpc
 from macrocosmos.types import MacrocosmosError
+from macrocosmos.resources._client import BaseClient
 
 
 class AsyncWebSearch:
     """Asynchronous WebSearch resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the asynchronous WebSearch resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
 
     async def search(
@@ -50,6 +57,7 @@ class AsyncWebSearch:
         )
 
         metadata = [
+            ("x-source", self._client.app_name),
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
@@ -61,9 +69,7 @@ class AsyncWebSearch:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(
-                    self._client.base_url, grpc.ssl_channel_credentials()
-                )
+                channel = self._client.get_channel()
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.WebRetrieval(
                     request,
@@ -87,7 +93,13 @@ class AsyncWebSearch:
 class SyncWebSearch:
     """Synchronous WebSearch resource for the Apex (subnet 1) API."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the synchronous WebSearch resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
         self._async_web_search = AsyncWebSearch(client)
 
