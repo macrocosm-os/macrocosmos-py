@@ -1,6 +1,6 @@
 [project]
 name = "macrocosmos"
-version = "0.1.0"
+version = "0.1.1"
 description = "The official Python SDK for Macrocosmos"
 readme = "README.md"
 license = "Apache-2.0"
@@ -11,6 +11,7 @@ requires-python = ">=3.8"
 dependencies = [
     "grpcio>=1.70.0",
     "grpcio-tools>=1.70.0",
+    "pydantic>=2.10.6",
 ]
 
 [build-system]
@@ -29,4 +30,14 @@ dev = [
 lint = [
     "isort>=5.13.2",
     "ruff>=0.11.2",
+]
+
+[tool.ruff]
+exclude = [
+    "generated",
+    ".git",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
 ]

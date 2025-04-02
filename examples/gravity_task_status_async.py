@@ -2,9 +2,10 @@
 Example that demonstrates how to get the status of a specific gravity task using async/await.
 """
 
-import macrocosmos as mc
-import os
 import asyncio
+import os
+
+import macrocosmos as mc
 
 
 async def main():

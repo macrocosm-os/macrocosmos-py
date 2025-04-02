@@ -2,8 +2,9 @@
 Example of using the Apex Chat API with Macrocosmos SDK in its most basic form.
 """
 
-import macrocosmos as mc
 import os
+
+import macrocosmos as mc
 
 api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
 

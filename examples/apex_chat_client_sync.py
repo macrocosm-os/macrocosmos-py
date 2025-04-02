@@ -2,12 +2,13 @@
 Example of using the Apex Chat API to get multiple chat completions sequentially with the Macrocosmos SDK.
 """
 
-import macrocosmos as mc
-
 import os
-import grpc
 import time
 from typing import List
+
+import grpc
+
+import macrocosmos as mc
 
 
 def demo_multiple_chat_completions():
@@ -44,7 +45,7 @@ def demo_multiple_chat_completions():
     total_time = time.time() - start_time_total
 
     print("\n" + "=" * 50)
-    print(f"Timing Summary:")
+    print("Timing Summary:")
     for i, duration in enumerate(results):
         print(f"Request {i} completed in {duration:.2f} seconds")
     print(f"Total execution time: {total_time:.2f} seconds")

@@ -1,10 +1,11 @@
 import os
 from typing import Optional
 
-from macrocosmos.types import MacrocosmosError
-from macrocosmos.resources.chat import AsyncChat, AsyncCompletions, SyncChat, SyncCompletions
-from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
+from macrocosmos.resources.chat import (AsyncChat, AsyncCompletions, SyncChat,
+                                        SyncCompletions)
 from macrocosmos.resources.gravity import AsyncGravity, SyncGravity
+from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
+from macrocosmos.types import MacrocosmosError
 
 # DEFAULT_BASE_URL = "159.89.87.66:4000"
 DEFAULT_BASE_URL = "staging-constellation-api-t572.encr.app"

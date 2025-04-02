@@ -3,7 +3,7 @@
 __package_name__ = "macrocosmos-py-sdk"
 
 try:
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 
     try:
         __version__ = version("macrocosmos")
@@ -18,8 +18,14 @@ except ImportError:
         __version__ = "unknown"
 
 # Import client and types
-from .client import AsyncApexClient, ApexClient, AsyncGravityClient, GravityClient
-from .types import *
+from .client import ApexClient, AsyncApexClient, AsyncGravityClient, GravityClient
+from .types import (
+    ChatMessage,
+    SamplingParameters,
+    ChatCompletionResponse,
+    ChatCompletionChunkResponse,
+    WebRetrievalResponse,
+)
 
 __all__ = [
     "__package_name__",
@@ -31,4 +37,5 @@ __all__ = [
     "ChatCompletionResponse",
     "ChatCompletionChunkResponse",
     "SamplingParameters",
+    "WebRetrievalResponse",
 ]

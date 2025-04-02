@@ -1,11 +1,11 @@
 import asyncio
-import grpc
-import random
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
-from macrocosmos import __version__, __package_name__
+import grpc
+
+from macrocosmos import __package_name__, __version__
+from macrocosmos.generated.gravity.v1 import gravity_p2p, gravity_pb2, gravity_pb2_grpc
 from macrocosmos.types import MacrocosmosError
-from macrocosmos.generated.gravity.v1 import gravity_pb2, gravity_p2p, gravity_pb2_grpc
 
 
 class AsyncGravity:

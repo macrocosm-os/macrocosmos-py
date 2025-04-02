@@ -2,8 +2,9 @@
 Example that demonstrates how to get the status of a specific gravity task.
 """
 
-import macrocosmos as mc
 import os
+
+import macrocosmos as mc
 
 
 def main():

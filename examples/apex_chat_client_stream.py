@@ -2,11 +2,12 @@
 Example of using the async Apex Chat API to stream a chat completion using the Macrocosmos SDK.
 """
 
-import macrocosmos as mc
-
 import asyncio
-import grpc
 import os
+
+import grpc
+
+import macrocosmos as mc
 
 
 async def demo_chat_completion_stream():

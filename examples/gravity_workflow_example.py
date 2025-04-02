@@ -8,14 +8,13 @@ Example of a complete Gravity workflow using the Macrocosmos SDK:
 6. Display dataset URLs and handle cleanup
 """
 
-import macrocosmos as mc
 import asyncio
 import os
-import sys
-import time
 import signal
-from typing import Dict, List, Optional, Set
+import time
+from typing import List, Set
 
+import macrocosmos as mc
 from macrocosmos.generated.gravity.v1 import gravity_pb2
 
 
@@ -101,11 +100,11 @@ class GravityWorkflow:
                     for task in tasks_to_cancel:
                         await self.cleanup(task.gravity_task_id)
 
-                    print(f"✅ All non-completed tasks cancelled successfully.")
+                    print("✅ All non-completed tasks cancelled successfully.")
                     # Wait a moment to ensure the cancellations are processed
                     await asyncio.sleep(3)
                 else:
-                    print(f"✅ All existing tasks are already completed.")
+                    print("✅ All existing tasks are already completed.")
             else:
                 print(f"✅ No existing tasks named '{self.task_name}' found.")
 
@@ -148,7 +147,7 @@ class GravityWorkflow:
 
     async def monitor_data_collection(self) -> Set[str]:
         """Monitor data collection for 60 seconds, return crawler IDs with data."""
-        print(f"\n⏱️ Monitoring data collection for 60 seconds...")
+        print("\n⏱️ Monitoring data collection for 60 seconds...")
 
         crawlers_with_data = set()
         start_time = time.time()
@@ -161,7 +160,7 @@ class GravityWorkflow:
                 task = response.gravity_task_states[0]
                 self.crawler_ids = list(task.crawler_ids)
             else:
-                print(f"❌ Gravity task response is empty")
+                print("❌ Gravity task response is empty")
                 return crawlers_with_data
         except Exception as e:
             print(f"❌ Error getting crawler IDs: {e}")
@@ -289,7 +288,6 @@ class GravityWorkflow:
                             step_count = len(dataset.steps)
                             total_steps = dataset.total_steps or 1  # Avoid division by zero
                             current_step = dataset.steps[-1].step if step_count > 0 else 0
-                            step_name = dataset.steps[-1].step_name if step_count > 0 else "Initializing"
 
                             # Get current step progress percentage (0.0-1.0)
                             step_progress = dataset.steps[-1].progress if step_count > 0 else 0.0
@@ -382,7 +380,7 @@ class GravityWorkflow:
                         print(f"   • Rows: {file.num_rows}")
                         print(f"   • URL: {file.url}")
 
-        print(f"\n✅ All dataset builds completed!")
+        print("\n✅ All dataset builds completed!")
 
     async def wait_for_input(self):
         """Wait for user input in a non-blocking way."""
@@ -393,7 +391,7 @@ class GravityWorkflow:
 
     async def cleanup(self, task_id: str):
         """Cancel the task and cleanup resources."""
-        print(f"\n🧹 Cleaning up:")
+        print("\n🧹 Cleaning up:")
         if task_id:
             try:
                 print(f"  • Cancelling gravity task {task_id}...")
@@ -405,7 +403,7 @@ class GravityWorkflow:
                 try:
                     print(f"  • Cancelling dataset {dataset_id}...")
                     await self.client.gravity.CancelDataset(dataset_id=dataset_id)
-                except Exception as e:
+                except Exception:
                     continue
 
 

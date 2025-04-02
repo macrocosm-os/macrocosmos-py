@@ -2,10 +2,10 @@
 Example of using the Apex Web Search API with Macrocosmos SDK.
 """
 
-import macrocosmos as mc
-
-import os
 import asyncio
+import os
+
+import macrocosmos as mc
 
 
 # Synchronous example

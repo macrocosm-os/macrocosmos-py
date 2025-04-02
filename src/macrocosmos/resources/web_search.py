@@ -1,10 +1,11 @@
 import asyncio
-import grpc
 from typing import List
 
-from macrocosmos import __version__, __package_name__
-from macrocosmos.types import MacrocosmosError
+import grpc
+
+from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_pb2, apex_pb2_grpc
+from macrocosmos.types import MacrocosmosError
 
 
 class AsyncWebSearch:
@@ -60,7 +61,7 @@ class AsyncWebSearch:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(self._client.base_url)
+                channel = grpc.aio.secure_channel(self._client.base_url, grpc.ssl_channel_credentials())
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.WebRetrieval(
                     request,

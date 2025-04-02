@@ -1,5 +1,6 @@
+from typing import AsyncIterator, Generic, TypeVar
+
 from grpc.aio import Channel
-from typing import AsyncIterator, TypeVar, Generic
 
 T = TypeVar("T")
 

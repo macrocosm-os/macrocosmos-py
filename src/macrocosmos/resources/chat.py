@@ -1,18 +1,15 @@
 import asyncio
-import grpc
 import random
-from typing import Dict, List, Optional, Union, AsyncIterator
+from typing import AsyncIterator, Dict, List, Optional, Union
 
-from macrocosmos import __version__, __package_name__
-from macrocosmos.types import (
-    ChatMessage,
-    SamplingParameters,
-    MacrocosmosError,
-    ChatCompletionResponse,
-    ChatCompletionChunkResponse,
-)
-from macrocosmos.generated.apex.v1 import apex_pb2, apex_p2p, apex_pb2_grpc
+import grpc
+
+from macrocosmos import __package_name__, __version__
+from macrocosmos.generated.apex.v1 import apex_p2p, apex_pb2, apex_pb2_grpc
 from macrocosmos.resources._stream import StreamGenerator
+from macrocosmos.types import (ChatCompletionChunkResponse,
+                               ChatCompletionResponse, ChatMessage,
+                               MacrocosmosError, SamplingParameters)
 
 
 class AsyncCompletions:
