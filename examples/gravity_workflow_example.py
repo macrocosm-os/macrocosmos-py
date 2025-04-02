@@ -19,12 +19,16 @@ from macrocosmos.generated.gravity.v1 import gravity_pb2
 
 
 class GravityWorkflow:
-    def __init__(self, task_name: str, email: str, reddit_subreddit: str, x_hashtag: str):
+    def __init__(
+        self, task_name: str, email: str, reddit_subreddit: str, x_hashtag: str
+    ):
         self.task_name = task_name
         self.email = email
         self.reddit_subreddit = reddit_subreddit
         self.x_hashtag = x_hashtag
-        self.api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+        self.api_key = os.environ.get(
+            "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+        )
         self.client = mc.AsyncGravityClient(
             max_retries=1,
             timeout=30,
@@ -59,7 +63,9 @@ class GravityWorkflow:
                     await self.monitor_dataset_builds()
 
                     # Step 7: Wait for user input before cleanup
-                    print("\n📌 Press Enter when you're done downloading the datasets to clean up and exit...")
+                    print(
+                        "\n📌 Press Enter when you're done downloading the datasets to clean up and exit..."
+                    )
                     # This runs in the background to allow the keyboard interrupt to work
                     await self.wait_for_input()
             else:
@@ -89,10 +95,14 @@ class GravityWorkflow:
                         existing_tasks.append(task)
 
             if existing_tasks:
-                print(f" Found {len(existing_tasks)} tasks with name '{self.task_name}'")
+                print(
+                    f" Found {len(existing_tasks)} tasks with name '{self.task_name}'"
+                )
 
                 # Filter out completed tasks
-                tasks_to_cancel = [task for task in existing_tasks if task.status != "Completed"]
+                tasks_to_cancel = [
+                    task for task in existing_tasks if task.status != "Completed"
+                ]
 
                 if tasks_to_cancel:
                     print(f" Cancelling {len(tasks_to_cancel)} non-completed tasks...")
@@ -132,7 +142,9 @@ class GravityWorkflow:
 
             # Create the task
             response = await self.client.gravity.CreateGravityTask(
-                gravity_tasks=gravity_tasks, name=self.task_name, notification_requests=[notification]
+                gravity_tasks=gravity_tasks,
+                name=self.task_name,
+                notification_requests=[notification],
             )
 
             self.task_id = response.gravity_task_id
@@ -155,7 +167,9 @@ class GravityWorkflow:
 
         # First get the crawler IDs from the task
         try:
-            response = await self.client.gravity.GetGravityTasks(gravity_task_id=self.task_id, include_crawlers=False)
+            response = await self.client.gravity.GetGravityTasks(
+                gravity_task_id=self.task_id, include_crawlers=False
+            )
             if response and response.gravity_task_states:
                 task = response.gravity_task_states[0]
                 self.crawler_ids = list(task.crawler_ids)
@@ -167,7 +181,11 @@ class GravityWorkflow:
             return crawlers_with_data
 
         # Display header
-        print("\n{:<12} {:<25} {:<15} {:<15}".format("TIME", "CRAWLER", "STATUS", "RECORDS"))
+        print(
+            "\n{:<12} {:<25} {:<15} {:<15}".format(
+                "TIME", "CRAWLER", "STATUS", "RECORDS"
+            )
+        )
         print("─" * 70)
         print("\n")  # add a new line to be overwritten
 
@@ -183,7 +201,9 @@ class GravityWorkflow:
 
                 # Get status for each crawler
                 for crawler_id in self.crawler_ids:
-                    response = await self.client.gravity.GetCrawler(crawler_id=crawler_id)
+                    response = await self.client.gravity.GetCrawler(
+                        crawler_id=crawler_id
+                    )
                     if response and response.crawler:
                         crawler = response.crawler
 
@@ -201,7 +221,9 @@ class GravityWorkflow:
                             status_indicator = "❌"
 
                         records = crawler.state.records_collected
-                        records_display = f"{records} ↑" if records > 0 else str(records)
+                        records_display = (
+                            f"{records} ↑" if records > 0 else str(records)
+                        )
 
                         print(
                             "{:<12} {:<25} {:<15} {:<15}".format(
@@ -218,7 +240,9 @@ class GravityWorkflow:
             except Exception as e:
                 print(f"❌ Error monitoring task: {e}")
 
-        print(f"\n✅ Monitoring complete. Found {len(crawlers_with_data)} crawlers with data.")
+        print(
+            f"\n✅ Monitoring complete. Found {len(crawlers_with_data)} crawlers with data."
+        )
         return crawlers_with_data
 
     async def build_datasets(self, crawler_ids: Set[str]):
@@ -244,7 +268,9 @@ class GravityWorkflow:
                     print(f"✅ Dataset build initiated for crawler {crawler_id}")
                     print(f"   Dataset ID: {response.dataset_id}")
                 else:
-                    print(f"❌ Failed to initiate dataset build for crawler {crawler_id}")
+                    print(
+                        f"❌ Failed to initiate dataset build for crawler {crawler_id}"
+                    )
 
             except Exception as e:
                 print(f"❌ Error building dataset for crawler {crawler_id}: {e}")
@@ -279,19 +305,27 @@ class GravityWorkflow:
                         continue
 
                     try:
-                        response = await self.client.gravity.GetDataset(dataset_id=dataset_id)
+                        response = await self.client.gravity.GetDataset(
+                            dataset_id=dataset_id
+                        )
 
                         if response and response.dataset:
                             dataset = response.dataset
 
                             # Calculate progress
                             step_count = len(dataset.steps)
-                            total_steps = dataset.total_steps or 1  # Avoid division by zero
-                            current_step = dataset.steps[-1].step if step_count > 0 else 0
+                            total_steps = (
+                                dataset.total_steps or 1
+                            )  # Avoid division by zero
+                            current_step = (
+                                dataset.steps[-1].step if step_count > 0 else 0
+                            )
 
                             # Get current step progress percentage (0.0-1.0)
-                            step_progress = dataset.steps[-1].progress if step_count > 0 else 0.0
-                            progress_pct = f"{step_progress*100:.1f}%"
+                            step_progress = (
+                                dataset.steps[-1].progress if step_count > 0 else 0.0
+                            )
+                            progress_pct = f"{step_progress * 100:.1f}%"
 
                             # Format step info
                             step_info = f"Step {current_step}/{total_steps}"
@@ -312,7 +346,8 @@ class GravityWorkflow:
                                 "step": step_info,
                                 "progress": progress_pct,
                                 "message": message,
-                                "completed": dataset.status in ["Completed", "Failed", "Cancelled"],
+                                "completed": dataset.status
+                                in ["Completed", "Failed", "Cancelled"],
                                 "dataset": dataset,
                             }
 
@@ -340,9 +375,19 @@ class GravityWorkflow:
             for dataset_id in self.dataset_ids:
                 if dataset_id in dataset_status:
                     status = dataset_status[dataset_id]
-                    id_short = dataset_id[:21] + "..." if len(dataset_id) > 24 else dataset_id
-                    step_truncated = status["step"][:12] if len(status["step"]) > 12 else status["step"]
-                    msg_truncated = status["message"][:27] + "..." if len(status["message"]) > 30 else status["message"]
+                    id_short = (
+                        dataset_id[:21] + "..." if len(dataset_id) > 24 else dataset_id
+                    )
+                    step_truncated = (
+                        status["step"][:12]
+                        if len(status["step"]) > 12
+                        else status["step"]
+                    )
+                    msg_truncated = (
+                        status["message"][:27] + "..."
+                        if len(status["message"]) > 30
+                        else status["message"]
+                    )
 
                     print(
                         "{:<10} {:<25} {:<16} {:<10} {:<12} {:<30}".format(
@@ -375,7 +420,7 @@ class GravityWorkflow:
                     print(f"\n📄 Dataset {dataset_id} files available:")
                     for i, file in enumerate(dataset.files):
                         file_size_mb = file.file_size_bytes / (1024 * 1024)
-                        print(f"   File {i+1}: {file.file_name}")
+                        print(f"   File {i + 1}: {file.file_name}")
                         print(f"   • Size: {file_size_mb:.2f} MB")
                         print(f"   • Rows: {file.num_rows}")
                         print(f"   • URL: {file.url}")
@@ -453,7 +498,9 @@ async def main():
 
     # Register signal handlers
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, lambda: asyncio.create_task(handle_signal(workflow)))
+        loop.add_signal_handler(
+            sig, lambda: asyncio.create_task(handle_signal(workflow))
+        )
 
     print("\n▶️ Starting workflow...")
     await workflow.run()

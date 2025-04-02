@@ -7,9 +7,13 @@ import grpc
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_p2p, apex_pb2, apex_pb2_grpc
 from macrocosmos.resources._stream import StreamGenerator
-from macrocosmos.types import (ChatCompletionChunkResponse,
-                               ChatCompletionResponse, ChatMessage,
-                               MacrocosmosError, SamplingParameters)
+from macrocosmos.types import (
+    ChatCompletionChunkResponse,
+    ChatCompletionResponse,
+    ChatMessage,
+    MacrocosmosError,
+    SamplingParameters,
+)
 
 
 class AsyncCompletions:
@@ -57,11 +61,17 @@ class AsyncCompletions:
         proto_sampling_params = None
         if sampling_parameters:
             if isinstance(sampling_parameters, apex_p2p.SamplingParameters):
-                proto_sampling_params = apex_pb2.SamplingParameters(**sampling_parameters.model_dump())
+                proto_sampling_params = apex_pb2.SamplingParameters(
+                    **sampling_parameters.model_dump()
+                )
             elif isinstance(sampling_parameters, dict):
-                proto_sampling_params = apex_pb2.SamplingParameters(**sampling_parameters)
+                proto_sampling_params = apex_pb2.SamplingParameters(
+                    **sampling_parameters
+                )
             else:
-                raise TypeError(f"Invalid type for sampling_parameters '{type(sampling_parameters)}'")
+                raise TypeError(
+                    f"Invalid type for sampling_parameters '{type(sampling_parameters)}'"
+                )
         else:
             proto_sampling_params = apex_pb2.SamplingParameters(
                 temperature=0.7,
@@ -90,7 +100,9 @@ class AsyncCompletions:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(self._client.base_url, grpc.ssl_channel_credentials())
+                channel = grpc.aio.secure_channel(
+                    self._client.base_url, grpc.ssl_channel_credentials()
+                )
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 if not stream:
                     response = await stub.ChatCompletion(
@@ -109,7 +121,9 @@ class AsyncCompletions:
                         compression=compression,
                     )
 
-                    return StreamGenerator[ChatCompletionChunkResponse](stream_response, channel)
+                    return StreamGenerator[ChatCompletionChunkResponse](
+                        stream_response, channel
+                    )
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1

@@ -111,7 +111,9 @@ def fix_imports(compile_pkg_name, output_dir):
         with open(py_file, "r") as file:
             content = file.read()
 
-        modified_content = re.sub(pattern_package_import, replace_package_import, content)
+        modified_content = re.sub(
+            pattern_package_import, replace_package_import, content
+        )
 
         if modified_content != content:
             with open(py_file, "w") as file:

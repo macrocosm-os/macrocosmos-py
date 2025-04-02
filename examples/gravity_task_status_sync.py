@@ -9,7 +9,9 @@ import macrocosmos as mc
 
 def main():
     # Get API key from environment variable
-    api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    api_key = os.environ.get(
+        "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
 
     # Create a Gravity client
     client = mc.GravityClient(
@@ -23,7 +25,9 @@ def main():
 
     try:
         # Get the task status
-        response = client.gravity.GetGravityTasks(gravity_task_id=task_id, include_crawlers=True)
+        response = client.gravity.GetGravityTasks(
+            gravity_task_id=task_id, include_crawlers=True
+        )
 
         if not response.gravity_task_states:
             print(f"No task found with ID: {task_id}")

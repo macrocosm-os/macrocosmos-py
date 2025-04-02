@@ -1,8 +1,12 @@
 import os
 from typing import Optional
 
-from macrocosmos.resources.chat import (AsyncChat, AsyncCompletions, SyncChat,
-                                        SyncCompletions)
+from macrocosmos.resources.chat import (
+    AsyncChat,
+    AsyncCompletions,
+    SyncChat,
+    SyncCompletions,
+)
 from macrocosmos.resources.gravity import AsyncGravity, SyncGravity
 from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
 from macrocosmos.types import MacrocosmosError
@@ -33,7 +37,9 @@ class AsyncApexClient:
         compress: bool = True,
     ):
         if api_key is None:
-            api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+            api_key = os.environ.get(
+                "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
+            )
         if api_key is None:
             raise MacrocosmosError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the APEX_API_KEY or MACROCOSMOS_API_KEY environment variable"
@@ -72,7 +78,9 @@ class ApexClient:
         compress: bool = True,
     ):
         if api_key is None:
-            api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+            api_key = os.environ.get(
+                "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
+            )
         if api_key is None:
             raise MacrocosmosError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the APEX_API_KEY or MACROCOSMOS_API_KEY environment variable"
@@ -111,7 +119,9 @@ class AsyncGravityClient:
         compress: bool = True,
     ):
         if api_key is None:
-            api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+            api_key = os.environ.get(
+                "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
+            )
         if api_key is None:
             raise MacrocosmosError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the GRAVITY_API_KEY or MACROCOSMOS_API_KEY environment variable"
@@ -148,7 +158,9 @@ class GravityClient:
         compress: bool = True,
     ):
         if api_key is None:
-            api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+            api_key = os.environ.get(
+                "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
+            )
         if api_key is None:
             raise MacrocosmosError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the GRAVITY_API_KEY or MACROCOSMOS_API_KEY environment variable"

@@ -61,7 +61,9 @@ class AsyncWebSearch:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(self._client.base_url, grpc.ssl_channel_credentials())
+                channel = grpc.aio.secure_channel(
+                    self._client.base_url, grpc.ssl_channel_credentials()
+                )
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.WebRetrieval(
                     request,

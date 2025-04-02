@@ -30,7 +30,9 @@ def demo_chat_completion():
         do_sample=True,
     )
 
-    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    api_key = os.environ.get(
+        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
     metadata = [
         ("x-client-id", __package_name__),
         ("x-client-version", __version__),
@@ -78,7 +80,12 @@ def demo_chat_completion_stream():
         do_sample=True,
     )
 
-    messages = [apex_pb2.ChatMessage(role="user", content="Write a short story about a cosmonaut learning to paint.")]
+    messages = [
+        apex_pb2.ChatMessage(
+            role="user",
+            content="Write a short story about a cosmonaut learning to paint.",
+        )
+    ]
 
     request = apex_pb2.ChatCompletionRequest(
         messages=messages,
@@ -86,7 +93,9 @@ def demo_chat_completion_stream():
         stream=True,
     )
 
-    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    api_key = os.environ.get(
+        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
     metadata = [
         ("x-client-id", __package_name__),
         ("x-client-version", __version__),

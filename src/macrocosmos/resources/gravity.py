@@ -60,7 +60,9 @@ class AsyncGravity:
         self,
         gravity_tasks: List[Union[gravity_p2p.GravityTask, Dict]] = None,
         name: str = "",
-        notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
+        notification_requests: List[
+            Union[gravity_p2p.NotificationRequest, Dict]
+        ] = None,
         gravity_task_id: str = "",
     ) -> gravity_pb2.CreateGravityTaskResponse:
         """
@@ -79,7 +81,9 @@ class AsyncGravity:
         if gravity_tasks:
             for task in gravity_tasks:
                 if isinstance(task, gravity_p2p.GravityTask):
-                    proto_gravity_tasks.append(gravity_pb2.GravityTask(**task.model_dump()))
+                    proto_gravity_tasks.append(
+                        gravity_pb2.GravityTask(**task.model_dump())
+                    )
                 elif isinstance(task, dict):
                     proto_gravity_tasks.append(gravity_pb2.GravityTask(**task))
                 else:
@@ -91,11 +95,17 @@ class AsyncGravity:
         if notification_requests:
             for notification in notification_requests:
                 if isinstance(notification, gravity_p2p.NotificationRequest):
-                    proto_notification_requests.append(gravity_pb2.NotificationRequest(**notification.model_dump()))
+                    proto_notification_requests.append(
+                        gravity_pb2.NotificationRequest(**notification.model_dump())
+                    )
                 elif isinstance(notification, dict):
-                    proto_notification_requests.append(gravity_pb2.NotificationRequest(**notification))
+                    proto_notification_requests.append(
+                        gravity_pb2.NotificationRequest(**notification)
+                    )
                 else:
-                    raise TypeError(f"Invalid type for notification request: {type(notification)}")
+                    raise TypeError(
+                        f"Invalid type for notification request: {type(notification)}"
+                    )
 
         request = gravity_pb2.CreateGravityTaskRequest(
             gravity_tasks=proto_gravity_tasks,
@@ -109,7 +119,9 @@ class AsyncGravity:
     async def BuildDataset(
         self,
         crawler_id: str,
-        notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
+        notification_requests: List[
+            Union[gravity_p2p.NotificationRequest, Dict]
+        ] = None,
     ) -> gravity_pb2.BuildDatasetResponse:
         """
         Build a dataset for a single crawler.
@@ -128,11 +140,17 @@ class AsyncGravity:
         if notification_requests:
             for notification in notification_requests:
                 if isinstance(notification, gravity_p2p.NotificationRequest):
-                    proto_notification_requests.append(gravity_pb2.NotificationRequest(**notification.model_dump()))
+                    proto_notification_requests.append(
+                        gravity_pb2.NotificationRequest(**notification.model_dump())
+                    )
                 elif isinstance(notification, dict):
-                    proto_notification_requests.append(gravity_pb2.NotificationRequest(**notification))
+                    proto_notification_requests.append(
+                        gravity_pb2.NotificationRequest(**notification)
+                    )
                 else:
-                    raise TypeError(f"Invalid type for notification request: {type(notification)}")
+                    raise TypeError(
+                        f"Invalid type for notification request: {type(notification)}"
+                    )
 
         request = gravity_pb2.BuildDatasetRequest(
             crawler_id=crawler_id,
@@ -222,7 +240,10 @@ class AsyncGravity:
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
-            ("remote-user-email", "example@example.com"),  # TODO: Remove this once authentication is fully implemented
+            (
+                "remote-user-email",
+                "example@example.com",
+            ),  # TODO: Remove this once authentication is fully implemented
         ]
 
         compression = grpc.Compression.Gzip if self._client.compress else None
@@ -231,7 +252,9 @@ class AsyncGravity:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(self._client.base_url, grpc.ssl_channel_credentials())
+                channel = grpc.aio.secure_channel(
+                    self._client.base_url, grpc.ssl_channel_credentials()
+                )
                 stub = gravity_pb2_grpc.GravityServiceStub(channel)
                 method = getattr(stub, method_name)
                 response = await method(
@@ -286,7 +309,9 @@ class SyncGravity:
         self,
         gravity_tasks: List[Union[gravity_p2p.GravityTask, Dict]] = None,
         name: str = "",
-        notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
+        notification_requests: List[
+            Union[gravity_p2p.NotificationRequest, Dict]
+        ] = None,
         gravity_task_id: str = "",
     ) -> gravity_pb2.CreateGravityTaskResponse:
         """
@@ -313,7 +338,9 @@ class SyncGravity:
     def BuildDataset(
         self,
         crawler_id: str,
-        notification_requests: List[Union[gravity_p2p.NotificationRequest, Dict]] = None,
+        notification_requests: List[
+            Union[gravity_p2p.NotificationRequest, Dict]
+        ] = None,
     ) -> gravity_pb2.BuildDatasetResponse:
         """
         Build a dataset for a single crawler synchronously.

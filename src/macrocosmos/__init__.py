@@ -20,10 +20,10 @@ except ImportError:
 # Import client and types
 from .client import ApexClient, AsyncApexClient, AsyncGravityClient, GravityClient
 from .types import (
+    ChatCompletionChunkResponse,
+    ChatCompletionResponse,
     ChatMessage,
     SamplingParameters,
-    ChatCompletionResponse,
-    ChatCompletionChunkResponse,
     WebRetrievalResponse,
 )
 

@@ -16,12 +16,22 @@ async def demo_multiple_chat_completions():
     """Demo processing multiple chat completion requests concurrently with timing."""
 
     start_time_total = time.time()
-    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    api_key = os.environ.get(
+        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
 
     message_sets = [
         [mc.ChatMessage(role="user", content="Tell me a joke about programming.")],
-        [mc.ChatMessage(role="user", content="Explain quantum computing in simple terms.")],
-        [mc.ChatMessage(role="user", content="Write a haiku about artificial intelligence.")],
+        [
+            mc.ChatMessage(
+                role="user", content="Explain quantum computing in simple terms."
+            )
+        ],
+        [
+            mc.ChatMessage(
+                role="user", content="Write a haiku about artificial intelligence."
+            )
+        ],
         [mc.ChatMessage(role="user", content="What are the benefits of exercise?")],
     ]
 
@@ -83,7 +93,9 @@ async def process_chat_completion(
 
     except grpc.RpcError as e:
         duration = time.time() - start_time
-        print(f"RPC error in request {index} (after {duration:.2f}s): {e.code()}: {e.details()}")
+        print(
+            f"RPC error in request {index} (after {duration:.2f}s): {e.code()}: {e.details()}"
+        )
         return duration
 
 
