@@ -3,10 +3,12 @@ repos:
     rev: v0.11.2
     hooks:
     -   id: ruff
-        args: [ "check", "." ]
+        types_or: [ python, pyi ]
+        args: [ "--fix" ]
+    -   id: ruff-format
+        types_or: [ python, pyi ]
 
 -   repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
     -   id: isort
-        args: [ ".", "--check-only" ]
