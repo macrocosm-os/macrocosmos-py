@@ -4,8 +4,14 @@ The offical Python SDK for [Macrocosmos](https://www.macrocosmos.ai/).
 
 # Installation
 
+## Using `pip`
 ```bash
 pip install macrocosmos
+```
+
+## Using `uv`
+```bash
+uv add macrocosmos
 ```
 
 # Usage

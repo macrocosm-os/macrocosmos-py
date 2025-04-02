@@ -2,14 +2,17 @@
 Example that demonstrates how to get the status of a specific gravity task using async/await.
 """
 
-import macrocosmos as mc
-import os
 import asyncio
+import os
+
+import macrocosmos as mc
 
 
 async def main():
     # Get API key from environment variable
-    api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    api_key = os.environ.get(
+        "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
 
     # Create an async Gravity client
     client = mc.AsyncGravityClient(
@@ -23,7 +26,9 @@ async def main():
 
     try:
         # Get the task status
-        response = await client.gravity.GetGravityTasks(gravity_task_id=task_id, include_crawlers=True)
+        response = await client.gravity.GetGravityTasks(
+            gravity_task_id=task_id, include_crawlers=True
+        )
 
         if not response.gravity_task_states:
             print(f"No task found with ID: {task_id}")

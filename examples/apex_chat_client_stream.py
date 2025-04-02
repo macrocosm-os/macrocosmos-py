@@ -2,18 +2,26 @@
 Example of using the async Apex Chat API to stream a chat completion using the Macrocosmos SDK.
 """
 
-import macrocosmos as mc
-
 import asyncio
-import grpc
 import os
+
+import grpc
+
+import macrocosmos as mc
 
 
 async def demo_chat_completion_stream():
     """Demo using the chat completion stream API using the client interface."""
 
-    messages = [mc.ChatMessage(role="user", content="Write a short story about a cosmonaut learning to paint.")]
-    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key"))
+    messages = [
+        mc.ChatMessage(
+            role="user",
+            content="Write a short story about a cosmonaut learning to paint.",
+        )
+    ]
+    api_key = os.environ.get(
+        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+    )
 
     sampling_params = mc.SamplingParameters(
         temperature=0.7,
