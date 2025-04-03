@@ -25,7 +25,7 @@ class AsyncWebSearch:
         self,
         search_query: str,
         n_miners: int = 5,
-        n_results: int = 5,
+        max_results_per_miner: int = 5,
         max_response_time: int = 30,
         uids: List[int] = None,
         **kwargs,
@@ -36,7 +36,7 @@ class AsyncWebSearch:
         Args:
             search_query: The search query to find relevant web results.
             n_miners: The number of miners to use for the query.
-            n_results: The number of results to return.
+            max_results_per_miner: The max number of results to return per miner.
             max_response_time: The max response time in seconds to allow for miners to respond.
             uids: Optional list of specific miner UIDs to use.
             **kwargs: Additional parameters to include in the request.
@@ -50,7 +50,7 @@ class AsyncWebSearch:
         request = apex_pb2.WebRetrievalRequest(
             search_query=search_query,
             n_miners=n_miners,
-            n_results=n_results,
+            n_results=max_results_per_miner,
             max_response_time=max_response_time,
             uids=uids or [],
             **kwargs,
@@ -107,7 +107,7 @@ class SyncWebSearch:
         self,
         search_query: str,
         n_miners: int = 5,
-        n_results: int = 5,
+        max_results_per_miner: int = 5,
         max_response_time: int = 30,
         uids: List[int] = None,
         **kwargs,
@@ -118,7 +118,7 @@ class SyncWebSearch:
         Args:
             search_query: The search query to find relevant web results.
             n_miners: The number of miners to use for the query.
-            n_results: The number of results to return.
+            max_results_per_miner: The max number of results to return per miner.
             max_response_time: The max response time in seconds to allow for miners to respond.
             uids: Optional list of specific miner UIDs to use.
             **kwargs: Additional parameters to include in the request.
@@ -130,7 +130,7 @@ class SyncWebSearch:
             self._async_web_search.search(
                 search_query=search_query,
                 n_miners=n_miners,
-                n_results=n_results,
+                max_results_per_miner=max_results_per_miner,
                 max_response_time=max_response_time,
                 uids=uids,
                 **kwargs,

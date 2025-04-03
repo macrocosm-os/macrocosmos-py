@@ -16,9 +16,7 @@ async def demo_multiple_chat_completions():
     """Demo processing multiple chat completion requests concurrently with timing."""
 
     start_time_total = time.time()
-    api_key = os.environ.get(
-        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
 
     message_sets = [
         [mc.ChatMessage(role="user", content="Tell me a joke about programming.")],
@@ -46,6 +44,7 @@ async def demo_multiple_chat_completions():
         max_retries=0,
         timeout=30,
         api_key=api_key,
+        app_name="examples/apex_chat_client_async",
     )
 
     tasks = []

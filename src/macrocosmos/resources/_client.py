@@ -4,11 +4,8 @@ from typing import Optional
 import os
 from macrocosmos.types import MacrocosmosError
 
-DEFAULT_BASE_URL = "localhost:4000"
-# DEFAULT_BASE_URL = "159.89.87.66:4000"
-# DEFAULT_BASE_URL = "staging-constellation-api-t572.encr.app"
-# DEFAULT_BASE_URL = "constellation.api.cloud.macrocosmos.ai"
-DEFAULT_SECURE = False
+DEFAULT_BASE_URL = "constellation.api.cloud.macrocosmos.ai"
+DEFAULT_USE_HTTPS = True
 
 
 class BaseClient(ABC):
@@ -34,22 +31,28 @@ class BaseClient(ABC):
             base_url: The base URL for the API.
             timeout: Time to wait for a response in seconds. (default: None)
             max_retries: The maximum number of retries. (default: 0)
-            secure: Whether to use HTTPS (default: True).
+            secure: Whether to use HTTPS. Set this if you're using a custom base URL.
             compress: Whether to compress the request using gzip (default: True).
             app_name: The name of the application using the client.
         """
         if not api_key:
-            api_key = os.environ.get("MACROCOSMOS_API_KEY")
-        if not api_key:
-            raise MacrocosmosError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the APEX_API_KEY or MACROCOSMOS_API_KEY environment variable"
-            )
+            api_key = os.environ.get("MACROCOSMOS_API_KEY").strip()
+            if not api_key:
+                raise MacrocosmosError(
+                    "The api_key client option must be set either by passing api_key to the client or by setting the MACROCOSMOS_API_KEY environment variable"
+                )
 
         if not base_url:
-            base_url = DEFAULT_BASE_URL
+            base_url = os.environ.get("MACROCOSMOS_BASE_URL").strip()
+            if not base_url:
+                base_url = DEFAULT_BASE_URL
 
-        if not secure:
-            secure = DEFAULT_SECURE
+        if not isinstance(secure, bool):
+            secure_str = os.environ.get("MACROCOSMOS_USE_HTTPS", "").strip().lower()
+            if secure_str == "":
+                secure = DEFAULT_USE_HTTPS
+            else:
+                secure = secure_str in ["true", "1", "yes", "y", "on"]
 
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")

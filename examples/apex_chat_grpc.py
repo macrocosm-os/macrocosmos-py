@@ -30,10 +30,9 @@ def demo_chat_completion():
         do_sample=True,
     )
 
-    api_key = os.environ.get(
-        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
     metadata = [
+        ("x-source", "examples/apex_chat_grpc"),
         ("x-client-id", __package_name__),
         ("x-client-version", __version__),
         ("authorization", f"Bearer {api_key}"),
@@ -93,9 +92,7 @@ def demo_chat_completion_stream():
         stream=True,
     )
 
-    api_key = os.environ.get(
-        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
     metadata = [
         ("x-client-id", __package_name__),
         ("x-client-version", __version__),

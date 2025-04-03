@@ -27,12 +27,13 @@ class GravityWorkflow:
         self.reddit_subreddit = reddit_subreddit
         self.x_hashtag = x_hashtag
         self.api_key = os.environ.get(
-            "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
+            "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
         )
         self.client = mc.AsyncGravityClient(
             max_retries=1,
             timeout=30,
             api_key=self.api_key,
+            app_name="examples/gravity_workflow_example",
         )
         self.task_id = None
         self.crawler_ids = []
@@ -255,7 +256,7 @@ class GravityWorkflow:
                 notification = {
                     "type": "email",
                     "address": self.email,
-                    "redirect_url": "https://example.com/datasets",
+                    "redirect_url": "https://app.macrocosmos.ai/gravity/tasks",
                 }
 
                 # Build dataset
@@ -286,8 +287,8 @@ class GravityWorkflow:
 
         # Display header
         print(
-            "\n{:<10} {:<25} {:<16} {:<10} {:<12} {:<30}".format(
-                "TIME", "DATASET", "STATUS", "PROGRESS", "STEP", "MESSAGE"
+            "\n{:<10} {:<25} {:<16} {:<12} {:<10} {:<30}".format(
+                "TIME", "DATASET", "STATUS", "STEP", "PROGRESS", "MESSAGE"
             )
         )
         print("─" * 110)
@@ -378,11 +379,6 @@ class GravityWorkflow:
                     id_short = (
                         dataset_id[:21] + "..." if len(dataset_id) > 24 else dataset_id
                     )
-                    step_truncated = (
-                        status["step"][:12]
-                        if len(status["step"]) > 12
-                        else status["step"]
-                    )
                     msg_truncated = (
                         status["message"][:27] + "..."
                         if len(status["message"]) > 30
@@ -390,18 +386,18 @@ class GravityWorkflow:
                     )
 
                     print(
-                        "{:<10} {:<25} {:<16} {:<10} {:<12} {:<30}".format(
+                        "{:<10} {:<25} {:<16} {:<12} {:<10} {:<30}".format(
                             f"{elapsed:.1f}s",
                             id_short,
                             status["status"],
+                            status["step"],
                             status["progress"],
-                            step_truncated,
                             msg_truncated,
                         )
                     )
 
             # Wait for 1 second before refreshing display
-            await asyncio.sleep(1)
+            await asyncio.sleep(10)
 
             # If some datasets just completed, don't clear lines to preserve final status
             if len(completed_datasets) == len(self.dataset_ids):
@@ -457,9 +453,9 @@ def get_user_input():
     print("\n📝 Please enter your preferences (press Enter for defaults):")
 
     # Get email with default
-    email = input("Email address [example@example.com]: ").strip()
+    email = input("Email address [your@email.com]: ").strip()
     if not email:
-        email = "example@example.com"
+        email = "your@email.com"
 
     # Get Reddit subreddit with default
     reddit = input("Reddit subreddit [r/MachineLearning]: ").strip()

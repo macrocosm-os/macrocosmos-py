@@ -43,10 +43,15 @@ class AsyncApexClient(BaseClient):
             api_key = os.environ.get("APEX_API_KEY")
 
         super().__init__(
-            api_key, base_url, timeout, max_retries, secure, compress, app_name
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            compress=compress,
+            app_name=app_name,
         )
 
-        # Initialize resources
         self.chat = AsyncChat(self)
         self.completions = AsyncCompletions(self)
         self.web_search = AsyncWebSearch(self)
@@ -80,9 +85,15 @@ class ApexClient(BaseClient):
         if not api_key:
             api_key = os.environ.get("APEX_API_KEY")
 
-        super().__init__(api_key, base_url, timeout, max_retries, secure, app_name)
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            app_name=app_name,
+        )
 
-        # Initialize resources with synchronous versions
         self.chat = SyncChat(self)
         self.completions = SyncCompletions(self)
         self.web_search = SyncWebSearch(self)
@@ -120,10 +131,15 @@ class AsyncGravityClient(BaseClient):
             api_key = os.environ.get("GRAVITY_API_KEY")
 
         super().__init__(
-            api_key, base_url, timeout, max_retries, secure, compress, app_name
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            compress=compress,
+            app_name=app_name,
         )
 
-        # Initialize resources
         self.gravity = AsyncGravity(self)
 
 
@@ -155,7 +171,13 @@ class GravityClient:
         if not api_key:
             api_key = os.environ.get("GRAVITY_API_KEY")
 
-        super().__init__(api_key, base_url, timeout, max_retries, secure, app_name)
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            app_name=app_name,
+        )
 
-        # Initialize resources with synchronous versions
         self.gravity = SyncGravity(self)
