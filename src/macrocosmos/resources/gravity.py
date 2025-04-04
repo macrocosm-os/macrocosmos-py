@@ -6,12 +6,19 @@ import grpc
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.gravity.v1 import gravity_p2p, gravity_pb2, gravity_pb2_grpc
 from macrocosmos.types import MacrocosmosError
+from macrocosmos.resources._client import BaseClient
 
 
 class AsyncGravity:
     """Asynchronous Gravity resource for the Data Universe (subnet 13) API on Bittensor."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the asynchronous Gravity resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
 
     async def GetGravityTasks(
@@ -237,6 +244,7 @@ class AsyncGravity:
             The response from the service.
         """
         metadata = [
+            ("x-source", self._client.app_name),
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
@@ -252,9 +260,7 @@ class AsyncGravity:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = grpc.aio.secure_channel(
-                    self._client.base_url, grpc.ssl_channel_credentials()
-                )
+                channel = self._client.get_channel()
                 stub = gravity_pb2_grpc.GravityServiceStub(channel)
                 method = getattr(stub, method_name)
                 response = await method(
@@ -279,7 +285,13 @@ class AsyncGravity:
 class SyncGravity:
     """Synchronous Gravity resource for the Data Universe (subnet 13) API on Bittensor."""
 
-    def __init__(self, client):
+    def __init__(self, client: BaseClient):
+        """
+        Initialize the synchronous Gravity resource.
+
+        Args:
+            client: The client to use for the resource.
+        """
         self._client = client
         self._async_gravity = AsyncGravity(client)
 

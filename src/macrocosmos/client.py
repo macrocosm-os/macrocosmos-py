@@ -9,168 +9,175 @@ from macrocosmos.resources.chat import (
 )
 from macrocosmos.resources.gravity import AsyncGravity, SyncGravity
 from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
-from macrocosmos.types import MacrocosmosError
-
-# DEFAULT_BASE_URL = "159.89.87.66:4000"
-DEFAULT_BASE_URL = "staging-constellation-api-t572.encr.app"
-# DEFAULT_BASE_URL = "constellation.api.cloud.macrocosmos.ai"
+from macrocosmos.resources._client import BaseClient
 
 
-class AsyncApexClient:
+class AsyncApexClient(BaseClient):
     """
     Asynchronous client for the Apex (subnet 1) API on Bittensor.
-
-    Args:
-        api_key: The API key.
-        base_url: The base URL for the API.
-        timeout: Time to wait for a response in seconds. (default: None)
-        max_retries: The maximum number of retries. (default: 0)
-        compress: Whether to compress the request using gzip (default: True).
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = DEFAULT_BASE_URL,
+        base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
+        secure: Optional[bool] = None,
+        app_name: Optional[str] = None,
     ):
-        if api_key is None:
-            api_key = os.environ.get(
-                "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
-            )
-        if api_key is None:
-            raise MacrocosmosError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the APEX_API_KEY or MACROCOSMOS_API_KEY environment variable"
-            )
-        self.api_key = api_key
+        """
+        Initialize the asynchronous Apex client.
 
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.compress = compress
+        Args:
+            api_key: The API key.
+            base_url: The base URL for the API.
+            timeout: Time to wait for a response in seconds. (default: None)
+            max_retries: The maximum number of retries. (default: 0)
+            compress: Whether to compress the request using gzip (default: True).
+            secure: Whether to use HTTPS (default: True).
+            app_name: The name of the application using the client.
+        """
+        if not api_key:
+            api_key = os.environ.get("APEX_API_KEY")
 
-        # Initialize resources
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            compress=compress,
+            app_name=app_name,
+        )
+
         self.chat = AsyncChat(self)
         self.completions = AsyncCompletions(self)
         self.web_search = AsyncWebSearch(self)
 
 
-class ApexClient:
+class ApexClient(BaseClient):
     """
     Synchronous client for the Apex (subnet 1) API on Bittensor.
-
-    Args:
-        api_key: The API key.
-        base_url: The base URL for the API.
-        timeout: Time to wait for a response in seconds. (default: None)
-        max_retries: The maximum number of retries. (default: 0)
-        compress: Whether to compress the request using gzip (default: True).
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = DEFAULT_BASE_URL,
+        base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        compress: bool = True,
+        secure: Optional[bool] = None,
+        app_name: Optional[str] = None,
     ):
-        if api_key is None:
-            api_key = os.environ.get(
-                "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
-            )
-        if api_key is None:
-            raise MacrocosmosError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the APEX_API_KEY or MACROCOSMOS_API_KEY environment variable"
-            )
-        self.api_key = api_key
+        """
+        Initialize the synchronous Apexclient.
 
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.compress = compress
+        Args:
+            api_key: The API key.
+            base_url: The base URL for the API.
+            timeout: Time to wait for a response in seconds. (default: None)
+            max_retries: The maximum number of retries. (default: 0)
+            secure: Whether to use HTTPS (default: True).
+            app_name: The name of the application using the client.
+        """
+        if not api_key:
+            api_key = os.environ.get("APEX_API_KEY")
 
-        # Initialize resources with synchronous versions
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            app_name=app_name,
+        )
+
         self.chat = SyncChat(self)
         self.completions = SyncCompletions(self)
         self.web_search = SyncWebSearch(self)
 
 
-class AsyncGravityClient:
+class AsyncGravityClient(BaseClient):
     """
     Asynchronous client for the Gravity (subnet 13) API on Bittensor.
-
-    Args:
-        api_key: The API key.
-        base_url: The base URL for the API.
-        timeout: Time to wait for a response in seconds. (default: None)
-        max_retries: The maximum number of retries. (default: 0)
-        compress: Whether to compress the request using gzip (default: True).
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = DEFAULT_BASE_URL,
+        base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
+        secure: Optional[bool] = None,
+        app_name: Optional[str] = None,
     ):
-        if api_key is None:
-            api_key = os.environ.get(
-                "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
-            )
-        if api_key is None:
-            raise MacrocosmosError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the GRAVITY_API_KEY or MACROCOSMOS_API_KEY environment variable"
-            )
-        self.api_key = api_key
+        """
+        Initialize the asynchronous Gravity client.
 
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.compress = compress
 
-        # Initialize resources
+        Args:
+            api_key: The API key.
+            base_url: The base URL for the API.
+            timeout: Time to wait for a response in seconds. (default: None)
+            max_retries: The maximum number of retries. (default: 0)
+            compress: Whether to compress the request using gzip (default: True).
+            secure: Whether to use HTTPS (default: True).
+            app_name: The name of the application using the client.
+        """
+        if not api_key:
+            api_key = os.environ.get("GRAVITY_API_KEY")
+
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            compress=compress,
+            app_name=app_name,
+        )
+
         self.gravity = AsyncGravity(self)
 
 
 class GravityClient:
     """
     Synchronous client for the Gravity (subnet 13) API on Bittensor.
-
-    Args:
-        api_key: The API key.
-        base_url: The base URL for the API.
-        timeout: Time to wait for a response in seconds. (default: None)
-        max_retries: The maximum number of retries. (default: 0)
-        compress: Whether to compress the request using gzip (default: True).
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = DEFAULT_BASE_URL,
+        base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        compress: bool = True,
+        secure: Optional[bool] = None,
+        app_name: Optional[str] = None,
     ):
-        if api_key is None:
-            api_key = os.environ.get(
-                "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
-            )
-        if api_key is None:
-            raise MacrocosmosError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the GRAVITY_API_KEY or MACROCOSMOS_API_KEY environment variable"
-            )
-        self.api_key = api_key
+        """
+        Initialize the synchronous Gravity client.
 
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.compress = compress
+        Args:
+            api_key: The API key.
+            base_url: The base URL for the API.
+            timeout: Time to wait for a response in seconds. (default: None)
+            max_retries: The maximum number of retries. (default: 0)
+            secure: Whether to use HTTPS (default: True).
+            app_name: The name of the application using the client.
+        """
+        if not api_key:
+            api_key = os.environ.get("GRAVITY_API_KEY")
 
-        # Initialize resources with synchronous versions
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            secure=secure,
+            app_name=app_name,
+        )
+
         self.gravity = SyncGravity(self)

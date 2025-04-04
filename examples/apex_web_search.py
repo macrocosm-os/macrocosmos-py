@@ -13,15 +13,13 @@ def demo_web_search_sync():
     """Demo synchronous web search using the Macrocosmos SDK."""
 
     print("Running synchronous example")
-    api_key = os.environ.get(
-        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
-    client = mc.ApexClient(api_key=api_key)
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+    client = mc.ApexClient(api_key=api_key, app_name="examples/apex_web_search")
 
     # Simple web search query
     response = client.web_search.search(
         search_query="What is Bittensor?",
-        n_results=3,
+        max_results_per_miner=3,
         max_response_time=20,
     )
 
@@ -38,15 +36,13 @@ async def demo_web_search_async():
     """Demo asynchronous web search using the Macrocosmos SDK."""
 
     print("\nRunning asynchronous example")
-    api_key = os.environ.get(
-        "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
-    client = mc.AsyncApexClient(api_key=api_key)
+    api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
+    client = mc.AsyncApexClient(api_key=api_key, app_name="examples/apex_web_search")
 
     # Simple web search query
     response = await client.web_search.search(
         search_query="Latest AI research papers",
-        n_results=3,
+        max_results_per_miner=3,
         max_response_time=20,
     )
 

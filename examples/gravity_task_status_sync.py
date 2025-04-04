@@ -9,15 +9,14 @@ import macrocosmos as mc
 
 def main():
     # Get API key from environment variable
-    api_key = os.environ.get(
-        "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-    )
+    api_key = os.environ.get("GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
 
     # Create a Gravity client
     client = mc.GravityClient(
         max_retries=1,
         timeout=30,
         api_key=api_key,
+        app_name="examples/gravity_task_status_sync",
     )
 
     # Get gravity task ID from user

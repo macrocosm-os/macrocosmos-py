@@ -6,11 +6,9 @@ import os
 
 import macrocosmos as mc
 
-api_key = os.environ.get(
-    "APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY", "test_api_key")
-)
+api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
 
-client = mc.ApexClient(api_key=api_key)
+client = mc.ApexClient(api_key=api_key, app_name="examples/apex_chat_basic")
 response = client.chat.completions.create(
     messages=[
         {
