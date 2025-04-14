@@ -36,19 +36,22 @@ class BaseClient(ABC):
             app_name: The name of the application using the client.
         """
         if not api_key:
-            api_key = os.environ.get("MACROCOSMOS_API_KEY").strip()
+            api_key = os.environ.get("MACROCOSMOS_API_KEY")
+            api_key = api_key.strip() if api_key else ""
             if not api_key:
                 raise MacrocosmosError(
                     "The api_key client option must be set either by passing api_key to the client or by setting the MACROCOSMOS_API_KEY environment variable"
                 )
 
         if not base_url:
-            base_url = os.environ.get("MACROCOSMOS_BASE_URL").strip()
+            base_url = os.environ.get("MACROCOSMOS_BASE_URL")
+            base_url = base_url.strip() if base_url else ""
             if not base_url:
                 base_url = DEFAULT_BASE_URL
 
         if not isinstance(secure, bool):
-            secure_str = os.environ.get("MACROCOSMOS_USE_HTTPS", "").strip().lower()
+            secure_str = os.environ.get("MACROCOSMOS_USE_HTTPS", "")
+            secure_str = secure_str.strip().lower() if secure_str else ""
             if secure_str == "":
                 secure = DEFAULT_USE_HTTPS
             else:

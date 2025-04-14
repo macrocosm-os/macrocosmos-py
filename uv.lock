@@ -556,7 +556,7 @@ wheels = [
 
 [[package]]
 name = "macrocosmos"
-version = "0.1.1"
+version = "0.1.3"
 source = { editable = "." }
 dependencies = [
     { name = "grpcio", version = "1.70.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
