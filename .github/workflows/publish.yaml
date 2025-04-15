@@ -5,9 +5,13 @@ on:
     branches:
       - main
 
+# Add permissions configuration for creating releases
+permissions:
+  contents: write
+
 jobs:
   publish:
-    # Only run if ENABLE_AUTO_PUBLISH_TO_PYPI is 'true'
+    # Only run if 'true'
     if: ${{ vars.ENABLE_AUTO_PUBLISH_TO_PYPI == 'true' }}
     runs-on: ubuntu-latest
     steps:
