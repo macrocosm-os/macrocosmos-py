@@ -275,6 +275,7 @@ class GravityWorkflow:
 
             except Exception as e:
                 print(f"❌ Error building dataset for crawler {crawler_id}: {e}")
+                raise
 
     async def monitor_dataset_builds(self):
         """Monitor the progress of dataset builds."""

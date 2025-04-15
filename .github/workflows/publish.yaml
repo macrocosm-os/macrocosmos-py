@@ -57,6 +57,9 @@ jobs:
             echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Lock version
+        run: uv lock
+
       - name: Build package
         run: uv build
 
