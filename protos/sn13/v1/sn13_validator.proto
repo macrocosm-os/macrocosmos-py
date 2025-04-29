@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package sn13.v1;
+
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/sn13/v1";
+
+
+service Sn13Service {
+  // ListTopics is the RPC method for getting the top topics
+  rpc ListTopics(ListTopicsRequest) returns (ListTopicsResponse);
+}
+
+// ListTopicsRequest is the request message for getting the top topics
+message ListTopicsRequest {
+  // source: the source to validate
+  string source = 1;
+}
+
+// ListTopicsResponseDetail is the response message for getting the top topics
+message ListTopicsResponseDetail {
+    // label_value: reddit or x topic
+    string label_value = 1;
+    // content_size_bytes: content size in bytes
+    uint64 content_size_bytes = 2;
+    // adj_content_size_bytes: adjacent content size in bytes
+    uint64 adj_content_size_bytes = 3;
+}
+
+// ListTopicsResponse is a list of ListTopicsResponseDetail(s) with top topics
+message ListTopicsResponse {
+  // message: the response message
+  repeated ListTopicsResponseDetail details = 1;
+}

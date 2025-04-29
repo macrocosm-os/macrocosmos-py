@@ -2,10 +2,10 @@
 # gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
 # Protobuf Version: 5.29.4 
 # Pydantic Version: 2.11.0 
-import typing
-
 from google.protobuf.message import Message  # type: ignore
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
+import typing
 
 
 class ChatMessage(BaseModel):
@@ -64,6 +64,8 @@ class ChatCompletionRequest(BaseModel):
     json_format: bool = Field(default=False)
 # stream: whether to stream the completion.
     stream: bool = Field(default=False)
+# timeout: the timeout for the completion in seconds.
+    timeout: int = Field(default=0)
 
 class TopLogprob(BaseModel):
     """
@@ -375,6 +377,8 @@ class WebRetrievalRequest(BaseModel):
     n_results: int = Field(default=0)
 # max_response_time: the max response time to allow for the miners to respond in seconds.
     max_response_time: int = Field(default=0)
+# timeout: the timeout for the web retrieval in seconds.
+    timeout: int = Field(default=0)
 
 class WebSearchResult(BaseModel):
     """

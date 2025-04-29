@@ -5,8 +5,6 @@ Example of using the async Apex Chat API to stream a chat completion using the M
 import asyncio
 import os
 
-import grpc
-
 import macrocosmos as mc
 
 
@@ -52,7 +50,7 @@ async def demo_chat_completion_stream():
                 full_content += content
                 print(content, end="", flush=True)
 
-    except grpc.RpcError as e:
+    except Exception as e:
         print(f"RPC error: {e.code()}: {e.details()}")
 
 

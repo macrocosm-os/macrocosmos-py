@@ -2,11 +2,11 @@
 # gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
 # Protobuf Version: 5.29.4 
 # Pydantic Version: 2.11.0 
-import typing
 from datetime import datetime
-
 from google.protobuf.message import Message  # type: ignore
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
+import typing
 
 
 class CrawlerNotification(BaseModel):
