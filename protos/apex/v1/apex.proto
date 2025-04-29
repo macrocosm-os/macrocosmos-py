@@ -40,6 +40,8 @@ message ChatCompletionRequest {
   bool json_format = 10;
   // stream: whether to stream the completion.
   bool stream = 11;
+  // timeout: the timeout for the completion in seconds.
+  int64 timeout = 12;
 }
 
 // The sampling parameters for the completion.
@@ -333,6 +335,8 @@ message WebRetrievalRequest {
   int64 n_results = 4;
   // max_response_time: the max response time to allow for the miners to respond in seconds.
   int64 max_response_time = 5;
+  // timeout: the timeout for the web retrieval in seconds.
+  int64 timeout = 6;
 }
 
 // A web search result from Apex
