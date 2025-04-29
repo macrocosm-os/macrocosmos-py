@@ -11,7 +11,7 @@ import os
 import grpc
 
 from macrocosmos import __package_name__, __version__
-from macrocosmos.client import DEFAULT_BASE_URL
+from macrocosmos.resources._client import DEFAULT_BASE_URL
 from macrocosmos.generated.apex.v1 import apex_pb2, apex_pb2_grpc
 
 

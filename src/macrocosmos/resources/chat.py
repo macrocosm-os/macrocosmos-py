@@ -87,6 +87,9 @@ class AsyncCompletions:
                 do_sample=True,
             )
 
+        if "timeout" not in kwargs and self._client.timeout:
+            kwargs["timeout"] = self._client.timeout
+
         request = apex_pb2.ChatCompletionRequest(
             messages=proto_messages,
             sampling_parameters=proto_sampling_params,
@@ -114,7 +117,7 @@ class AsyncCompletions:
                     response = await stub.ChatCompletion(
                         request,
                         metadata=metadata,
-                        timeout=self._client.timeout,
+                        timeout=kwargs.get("timeout", self._client.timeout),
                         compression=compression,
                     )
                     await channel.close()
@@ -123,7 +126,7 @@ class AsyncCompletions:
                     stream_response = stub.ChatCompletionStream(
                         request,
                         metadata=metadata,
-                        timeout=self._client.timeout,
+                        timeout=kwargs.get("timeout", self._client.timeout),
                         compression=compression,
                     )
 
@@ -187,6 +190,10 @@ class SyncCompletions:
         Returns:
             A completion response.
         """
+
+        if "timeout" not in kwargs and self._client.timeout:
+            kwargs["timeout"] = self._client.timeout
+
         return asyncio.run(
             self._async_completions.create(
                 messages=messages,

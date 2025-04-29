@@ -6,8 +6,6 @@ import os
 import time
 from typing import List
 
-import grpc
-
 import macrocosmos as mc
 
 
@@ -87,7 +85,7 @@ def process_chat_completion(
 
         return duration
 
-    except grpc.RpcError as e:
+    except Exception as e:
         duration = time.time() - start_time
         print(
             f"RPC error in request {index} (after {duration:.2f}s): {e.code()}: {e.details()}"

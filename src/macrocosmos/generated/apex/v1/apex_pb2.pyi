@@ -1,17 +1,12 @@
-from typing import ClassVar as _ClassVar
-from typing import Iterable as _Iterable
-from typing import Mapping as _Mapping
-from typing import Optional as _Optional
-from typing import Union as _Union
-
+from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ChatCompletionRequest(_message.Message):
-    __slots__ = ("uids", "messages", "seed", "task", "model", "test_time_inference", "mixture", "sampling_parameters", "inference_mode", "json_format", "stream")
+    __slots__ = ("uids", "messages", "seed", "task", "model", "test_time_inference", "mixture", "sampling_parameters", "inference_mode", "json_format", "stream", "timeout")
     UIDS_FIELD_NUMBER: _ClassVar[int]
     MESSAGES_FIELD_NUMBER: _ClassVar[int]
     SEED_FIELD_NUMBER: _ClassVar[int]
@@ -23,6 +18,7 @@ class ChatCompletionRequest(_message.Message):
     INFERENCE_MODE_FIELD_NUMBER: _ClassVar[int]
     JSON_FORMAT_FIELD_NUMBER: _ClassVar[int]
     STREAM_FIELD_NUMBER: _ClassVar[int]
+    TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     uids: _containers.RepeatedScalarFieldContainer[int]
     messages: _containers.RepeatedCompositeFieldContainer[ChatMessage]
     seed: int
@@ -34,7 +30,8 @@ class ChatCompletionRequest(_message.Message):
     inference_mode: str
     json_format: bool
     stream: bool
-    def __init__(self, uids: _Optional[_Iterable[int]] = ..., messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., seed: _Optional[int] = ..., task: _Optional[str] = ..., model: _Optional[str] = ..., test_time_inference: bool = ..., mixture: bool = ..., sampling_parameters: _Optional[_Union[SamplingParameters, _Mapping]] = ..., inference_mode: _Optional[str] = ..., json_format: bool = ..., stream: bool = ...) -> None: ...
+    timeout: int
+    def __init__(self, uids: _Optional[_Iterable[int]] = ..., messages: _Optional[_Iterable[_Union[ChatMessage, _Mapping]]] = ..., seed: _Optional[int] = ..., task: _Optional[str] = ..., model: _Optional[str] = ..., test_time_inference: bool = ..., mixture: bool = ..., sampling_parameters: _Optional[_Union[SamplingParameters, _Mapping]] = ..., inference_mode: _Optional[str] = ..., json_format: bool = ..., stream: bool = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class SamplingParameters(_message.Message):
     __slots__ = ("temperature", "top_p", "top_k", "max_new_tokens", "do_sample")
@@ -293,18 +290,20 @@ class PromptTokensDetails(_message.Message):
     def __init__(self, audio_tokens: _Optional[int] = ..., cached_tokens: _Optional[int] = ...) -> None: ...
 
 class WebRetrievalRequest(_message.Message):
-    __slots__ = ("uids", "search_query", "n_miners", "n_results", "max_response_time")
+    __slots__ = ("uids", "search_query", "n_miners", "n_results", "max_response_time", "timeout")
     UIDS_FIELD_NUMBER: _ClassVar[int]
     SEARCH_QUERY_FIELD_NUMBER: _ClassVar[int]
     N_MINERS_FIELD_NUMBER: _ClassVar[int]
     N_RESULTS_FIELD_NUMBER: _ClassVar[int]
     MAX_RESPONSE_TIME_FIELD_NUMBER: _ClassVar[int]
+    TIMEOUT_FIELD_NUMBER: _ClassVar[int]
     uids: _containers.RepeatedScalarFieldContainer[int]
     search_query: str
     n_miners: int
     n_results: int
     max_response_time: int
-    def __init__(self, uids: _Optional[_Iterable[int]] = ..., search_query: _Optional[str] = ..., n_miners: _Optional[int] = ..., n_results: _Optional[int] = ..., max_response_time: _Optional[int] = ...) -> None: ...
+    timeout: int
+    def __init__(self, uids: _Optional[_Iterable[int]] = ..., search_query: _Optional[str] = ..., n_miners: _Optional[int] = ..., n_results: _Optional[int] = ..., max_response_time: _Optional[int] = ..., timeout: _Optional[int] = ...) -> None: ...
 
 class WebSearchResult(_message.Message):
     __slots__ = ("url", "content", "relevant")
