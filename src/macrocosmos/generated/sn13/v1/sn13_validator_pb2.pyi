@@ -26,3 +26,23 @@ class ListTopicsResponse(_message.Message):
     DETAILS_FIELD_NUMBER: _ClassVar[int]
     details: _containers.RepeatedCompositeFieldContainer[ListTopicsResponseDetail]
     def __init__(self, details: _Optional[_Iterable[_Union[ListTopicsResponseDetail, _Mapping]]] = ...) -> None: ...
+
+class ValidateRedditTopicRequest(_message.Message):
+    __slots__ = ("topic",)
+    TOPIC_FIELD_NUMBER: _ClassVar[int]
+    topic: str
+    def __init__(self, topic: _Optional[str] = ...) -> None: ...
+
+class ValidateRedditTopicResponse(_message.Message):
+    __slots__ = ("platform", "topic", "exists", "over18", "quarantine")
+    PLATFORM_FIELD_NUMBER: _ClassVar[int]
+    TOPIC_FIELD_NUMBER: _ClassVar[int]
+    EXISTS_FIELD_NUMBER: _ClassVar[int]
+    OVER18_FIELD_NUMBER: _ClassVar[int]
+    QUARANTINE_FIELD_NUMBER: _ClassVar[int]
+    platform: str
+    topic: str
+    exists: bool
+    over18: bool
+    quarantine: bool
+    def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., exists: bool = ..., over18: bool = ..., quarantine: bool = ...) -> None: ...

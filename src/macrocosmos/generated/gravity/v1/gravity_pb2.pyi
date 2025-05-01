@@ -145,12 +145,14 @@ class CreateGravityTaskResponse(_message.Message):
     def __init__(self, gravity_task_id: _Optional[str] = ...) -> None: ...
 
 class BuildDatasetRequest(_message.Message):
-    __slots__ = ("crawler_id", "notification_requests")
+    __slots__ = ("crawler_id", "notification_requests", "max_rows")
     CRAWLER_ID_FIELD_NUMBER: _ClassVar[int]
     NOTIFICATION_REQUESTS_FIELD_NUMBER: _ClassVar[int]
+    MAX_ROWS_FIELD_NUMBER: _ClassVar[int]
     crawler_id: str
     notification_requests: _containers.RepeatedCompositeFieldContainer[NotificationRequest]
-    def __init__(self, crawler_id: _Optional[str] = ..., notification_requests: _Optional[_Iterable[_Union[NotificationRequest, _Mapping]]] = ...) -> None: ...
+    max_rows: int
+    def __init__(self, crawler_id: _Optional[str] = ..., notification_requests: _Optional[_Iterable[_Union[NotificationRequest, _Mapping]]] = ..., max_rows: _Optional[int] = ...) -> None: ...
 
 class BuildDatasetResponse(_message.Message):
     __slots__ = ("dataset_id", "dataset")

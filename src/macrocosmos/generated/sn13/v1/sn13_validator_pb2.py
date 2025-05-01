@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1csn13/v1/sn13_validator.proto\x12\x07sn13.v1\"#\n\x11ListTopicsRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\"k\n\x18ListTopicsResponseDetail\x12\x13\n\x0blabel_value\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontent_size_bytes\x18\x02 \x01(\x04\x12\x1e\n\x16\x61\x64j_content_size_bytes\x18\x03 \x01(\x04\"H\n\x12ListTopicsResponse\x12\x32\n\x07\x64\x65tails\x18\x01 \x03(\x0b\x32!.sn13.v1.ListTopicsResponseDetail2T\n\x0bSn13Service\x12\x45\n\nListTopics\x12\x1a.sn13.v1.ListTopicsRequest\x1a\x1b.sn13.v1.ListTopicsResponseB1Z/macrocosm-os/rift/constellation_api/gen/sn13/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1csn13/v1/sn13_validator.proto\x12\x07sn13.v1\"#\n\x11ListTopicsRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\"k\n\x18ListTopicsResponseDetail\x12\x13\n\x0blabel_value\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontent_size_bytes\x18\x02 \x01(\x04\x12\x1e\n\x16\x61\x64j_content_size_bytes\x18\x03 \x01(\x04\"H\n\x12ListTopicsResponse\x12\x32\n\x07\x64\x65tails\x18\x01 \x03(\x0b\x32!.sn13.v1.ListTopicsResponseDetail\"+\n\x1aValidateRedditTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\"r\n\x1bValidateRedditTopicResponse\x12\x10\n\x08platform\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06\x65xists\x18\x03 \x01(\x08\x12\x0e\n\x06over18\x18\x04 \x01(\x08\x12\x12\n\nquarantine\x18\x05 \x01(\x08\x32\xb6\x01\n\x0bSn13Service\x12\x45\n\nListTopics\x12\x1a.sn13.v1.ListTopicsRequest\x1a\x1b.sn13.v1.ListTopicsResponse\x12`\n\x13ValidateRedditTopic\x12#.sn13.v1.ValidateRedditTopicRequest\x1a$.sn13.v1.ValidateRedditTopicResponseB1Z/macrocosm-os/rift/constellation_api/gen/sn13/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -38,6 +38,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LISTTOPICSRESPONSEDETAIL']._serialized_end=185
   _globals['_LISTTOPICSRESPONSE']._serialized_start=187
   _globals['_LISTTOPICSRESPONSE']._serialized_end=259
-  _globals['_SN13SERVICE']._serialized_start=261
-  _globals['_SN13SERVICE']._serialized_end=345
+  _globals['_VALIDATEREDDITTOPICREQUEST']._serialized_start=261
+  _globals['_VALIDATEREDDITTOPICREQUEST']._serialized_end=304
+  _globals['_VALIDATEREDDITTOPICRESPONSE']._serialized_start=306
+  _globals['_VALIDATEREDDITTOPICRESPONSE']._serialized_end=420
+  _globals['_SN13SERVICE']._serialized_start=423
+  _globals['_SN13SERVICE']._serialized_end=605
 # @@protoc_insertion_point(module_scope)

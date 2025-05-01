@@ -18,7 +18,14 @@ except ImportError:
         __version__ = "unknown"
 
 # Import client and types
-from .client import ApexClient, AsyncApexClient, AsyncGravityClient, GravityClient
+from .client import (
+    ApexClient,
+    AsyncApexClient,
+    AsyncGravityClient,
+    GravityClient,
+    BillingClient,
+    AsyncBillingClient,
+)
 from .types import (
     ChatCompletionChunkResponse,
     ChatCompletionResponse,
@@ -33,6 +40,8 @@ __all__ = [
     "ApexClient",
     "AsyncGravityClient",
     "GravityClient",
+    "BillingClient",
+    "AsyncBillingClient",
     "ChatMessage",
     "ChatCompletionResponse",
     "ChatCompletionChunkResponse",

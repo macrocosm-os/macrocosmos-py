@@ -192,6 +192,8 @@ class BuildDatasetRequest(BaseModel):
     crawler_id: str = Field(default="")
 # notification_requests: the details of the notification to be sent to the user when the dataset is ready to download (optional)
     notification_requests: typing.List[NotificationRequest] = Field(default_factory=list)
+# max_rows: the maximum number of rows to include in the dataset (optional, defaults to 500)
+    max_rows: int = Field(default=0)
 
 class DatasetFile(BaseModel):
     """
