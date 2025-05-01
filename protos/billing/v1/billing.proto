@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package billing.v1;
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/billing/v1";
+
+service BillingService {
+  // Get the usage of the user's credits
+  rpc GetUsage(GetUsageRequest) returns (GetUsageResponse);
+}
+
+// GetUsageRequest is the request message for getting the usage of the user's credits
+message GetUsageRequest {
+  // product_type: the type of the product (i.e. "gravity")
+  string product_type = 1;
+}
+
+// ProductPlan is details of the subscription plan for a product
+message BillingRate {
+  // product_type: the type of the product (i.e. "gravity")
+  string rate_type = 1;
+  // unit_size: the size of the unit of the subscription (e.g. 1000, 10000, 100000)
+  int64 unit_size = 2;
+  // unit_type: the type of the unit of the subscription (i.e. "rows")
+  string unit_type = 3;
+  // price_per_unit: the price per unit of the subscription
+  float price_per_unit = 4;
+  // currency: the currency of the subscription
+  string currency = 5;
+}
+
+// GetUsageResponse is the response message for getting the usage of the user's credits
+message GetUsageResponse {
+  // available_credits: the number of credits available to the user
+  float available_credits = 1;
+  // used_credits: the number of credits used by the user
+  float used_credits = 2;
+  // remaining_credits: the number of credits remaining to the user
+  float remaining_credits = 3;
+  // subscription: the subscription that the user has
+  repeated BillingRate billing_rates = 4;
+}

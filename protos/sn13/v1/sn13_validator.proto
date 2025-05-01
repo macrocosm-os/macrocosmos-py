@@ -9,6 +9,7 @@ option go_package = "macrocosm-os/rift/constellation_api/gen/sn13/v1";
 service Sn13Service {
   // ListTopics is the RPC method for getting the top topics
   rpc ListTopics(ListTopicsRequest) returns (ListTopicsResponse);
+  rpc ValidateRedditTopic(ValidateRedditTopicRequest) returns (ValidateRedditTopicResponse);
 }
 
 // ListTopicsRequest is the request message for getting the top topics
@@ -31,4 +32,24 @@ message ListTopicsResponseDetail {
 message ListTopicsResponse {
   // message: the response message
   repeated ListTopicsResponseDetail details = 1;
+}
+
+// ValidateTopicRequest is the request message for validating a reddit topic
+message ValidateRedditTopicRequest {
+  // topic: the topic to validate
+  string topic = 1;
+}
+
+// ValidateTopicResponse is the response message for validating a topic
+message ValidateRedditTopicResponse {
+    // platform: i.e. reddit
+    string platform = 1;
+    // topic: the topic to validate
+    string topic = 2;
+    // exists: whether the topic exists
+    bool exists = 3;
+    // over18: whether the topic is NSFW
+    bool over18 = 4;
+    // quarantine: whether the topic is quarantined
+    bool quarantine = 5;
 }
