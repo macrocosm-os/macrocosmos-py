@@ -38,6 +38,11 @@ class Sn13ServiceStub(object):
                 request_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsRequest.SerializeToString,
                 response_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsResponse.FromString,
                 _registered_method=True)
+        self.ValidateRedditTopic = channel.unary_unary(
+                '/sn13.v1.Sn13Service/ValidateRedditTopic',
+                request_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.SerializeToString,
+                response_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.FromString,
+                _registered_method=True)
 
 
 class Sn13ServiceServicer(object):
@@ -50,6 +55,12 @@ class Sn13ServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateRedditTopic(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_Sn13ServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -57,6 +68,11 @@ def add_Sn13ServiceServicer_to_server(servicer, server):
                     servicer.ListTopics,
                     request_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsRequest.FromString,
                     response_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsResponse.SerializeToString,
+            ),
+            'ValidateRedditTopic': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateRedditTopic,
+                    request_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.FromString,
+                    response_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class Sn13Service(object):
             '/sn13.v1.Sn13Service/ListTopics',
             sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsRequest.SerializeToString,
             sn13_dot_v1_dot_sn13__validator__pb2.ListTopicsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ValidateRedditTopic(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/sn13.v1.Sn13Service/ValidateRedditTopic',
+            sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.SerializeToString,
+            sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -35,3 +35,27 @@ class ListTopicsResponse(BaseModel):
 
 # message: the response message
     details: typing.List[ListTopicsResponseDetail] = Field(default_factory=list)
+
+class ValidateRedditTopicRequest(BaseModel):
+    """
+     ValidateTopicRequest is the request message for validating a reddit topic
+    """
+
+# topic: the topic to validate
+    topic: str = Field(default="")
+
+class ValidateRedditTopicResponse(BaseModel):
+    """
+     ValidateTopicResponse is the response message for validating a topic
+    """
+
+# platform: i.e. reddit
+    platform: str = Field(default="")
+# topic: the topic to validate
+    topic: str = Field(default="")
+# exists: whether the topic exists
+    exists: bool = Field(default=False)
+# over18: whether the topic is NSFW
+    over18: bool = Field(default=False)
+# quarantine: whether the topic is quarantined
+    quarantine: bool = Field(default=False)
