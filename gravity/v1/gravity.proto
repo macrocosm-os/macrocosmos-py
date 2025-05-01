@@ -181,6 +181,8 @@ message BuildDatasetRequest {
   string crawler_id = 1;
   // notification_requests: the details of the notification to be sent to the user when the dataset is ready to download (optional)
   repeated NotificationRequest notification_requests = 2;
+  // max_rows: the maximum number of rows to include in the dataset (optional, defaults to 500)
+  int64 max_rows = 3;
 }
 
 // BuildDatasetResponse is the response message for manually requesting the building of a dataset for a single crawler
