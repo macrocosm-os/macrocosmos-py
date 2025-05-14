@@ -14,7 +14,7 @@ class GetUsageRequest(BaseModel):
     """
 
 # product_type: the type of the product (i.e. "gravity")
-    product_type: str = Field(default="")
+    product_type: typing.Optional[str] = Field(default="")
 
 class BillingRate(BaseModel):
     """
