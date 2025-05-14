@@ -20,12 +20,18 @@ from macrocosmos.generated.gravity.v1 import gravity_pb2
 
 class GravityWorkflow:
     def __init__(
-        self, task_name: str, email: str, reddit_subreddit: str, x_hashtag: str
+        self,
+        task_name: str,
+        email: str,
+        reddit_subreddit: str,
+        x_hashtag: str,
+        max_rows,
     ):
         self.task_name = task_name
         self.email = email
         self.reddit_subreddit = reddit_subreddit
         self.x_hashtag = x_hashtag
+        self.max_rows = max_rows
         self.api_key = os.environ.get(
             "GRAVITY_API_KEY", os.environ.get("MACROCOSMOS_API_KEY")
         )
@@ -262,7 +268,7 @@ class GravityWorkflow:
                 # Build dataset
                 response = await self.client.gravity.BuildDataset(
                     crawler_id=crawler_id,
-                    max_rows=1000,
+                    max_rows=self.max_rows,
                     notification_requests=[notification],
                 )
 
@@ -479,7 +485,22 @@ def get_user_input():
     if not task_name:
         task_name = "MyTestTask"
 
-    return email, reddit, x_hashtag, task_name
+    # Get max rows with default
+    while True:
+        max_rows_input = input("Max rows per dataset [1000]: ").strip()
+        if not max_rows_input:
+            max_rows = 1000
+            break
+        try:
+            max_rows = int(max_rows_input)
+            if max_rows <= 0:
+                print("Please enter a positive number.")
+                continue
+            break
+        except ValueError:
+            print("Please enter a valid number.")
+
+    return email, reddit, x_hashtag, task_name, max_rows
 
 
 async def main():
@@ -488,12 +509,12 @@ async def main():
     print("════════════════════════════════════════════════════")
 
     # Get user input with defaults
-    email, reddit, x_hashtag, task_name = get_user_input()
+    email, reddit, x_hashtag, task_name, max_rows = get_user_input()
 
     # Set up signal handlers for graceful shutdown
     loop = asyncio.get_running_loop()
 
-    workflow = GravityWorkflow(task_name, email, reddit, x_hashtag)
+    workflow = GravityWorkflow(task_name, email, reddit, x_hashtag, max_rows)
 
     # Register signal handlers
     for sig in (signal.SIGINT, signal.SIGTERM):
