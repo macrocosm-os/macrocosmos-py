@@ -110,9 +110,9 @@ class GetGravityTasksRequest(BaseModel):
     """
 
 # gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
-    gravity_task_id: str = Field(default="")
+    gravity_task_id: typing.Optional[str] = Field(default="")
 # include_crawlers: whether to include the crawler states in the response
-    include_crawlers: bool = Field(default=False)
+    include_crawlers: typing.Optional[bool] = Field(default=False)
 
 class GetGravityTasksResponse(BaseModel):
     """
@@ -142,7 +142,7 @@ class NotificationRequest(BaseModel):
 # address: the address to send the notification to (only email addresses are supported currently)
     address: str = Field(default="")
 # redirect_url: the URL to include in the notication message that redirects the user to any built datasets
-    redirect_url: str = Field(default="")
+    redirect_url: typing.Optional[str] = Field(default="")
 
 class GetCrawlerRequest(BaseModel):
     """
@@ -173,7 +173,7 @@ class CreateGravityTaskRequest(BaseModel):
 #   that is automatically generated upon completion of the crawler is ready to download (optional)
     notification_requests: typing.List[NotificationRequest] = Field(default_factory=list)
 # gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
-    gravity_task_id: str = Field(default="")
+    gravity_task_id: typing.Optional[str] = Field(default="")
 
 class CreateGravityTaskResponse(BaseModel):
     """
@@ -226,6 +226,14 @@ class DatasetStep(BaseModel):
 # step_name: description of what is happening in the step
     step_name: str = Field(default="")
 
+class Nebula(BaseModel):
+# error: nebula build error message
+    error: str = Field(default="")
+# file_size_bytes: the size of the file in bytes
+    file_size_bytes: int = Field(default=0)
+# url: the URL of the file
+    url: str = Field(default="")
+
 class Dataset(BaseModel):
     """
      Dataset contains the progress and results of a dataset build
@@ -247,6 +255,8 @@ class Dataset(BaseModel):
     steps: typing.List[DatasetStep] = Field(default_factory=list)
 # total_steps: the total number of steps in the dataset build
     total_steps: int = Field(default=0)
+# nebula: the details about the nebula that was built
+    nebula: Nebula = Field(default_factory=Nebula)
 
 class BuildDatasetResponse(BaseModel):
     """
