@@ -23,25 +23,25 @@ message ChatCompletionRequest {
   // messages: the messages to generate completions for.
   repeated ChatMessage messages = 2;
   // seed: the seed to use for the completion.
-  int64 seed = 3;
+  optional int64 seed = 3;
   // task: the task to generate completions for (e.g. "InferenceTask").
-  string task = 4;
+  optional string task = 4;
   // model: the LLM name to use for the completion. (optional, suggest leaving this empty as not all LLMs are supported)
-  string model = 5;
+  optional string model = 5;
   // test_time_inference: whether to use test time inference.
-  bool test_time_inference = 6;
+  optional bool test_time_inference = 6;
   // mixture: whether to use a mixture of miners to create a slower but better answer.
-  bool mixture = 7;
+  optional bool mixture = 7;
   // sampling_parameters: the sampling parameters to use for the completion.
-  SamplingParameters sampling_parameters = 8;
+  optional SamplingParameters sampling_parameters = 8;
   // inference_mode: the inference mode to use for the completion.
-  string inference_mode = 9;
+  optional string inference_mode = 9;
   // json_format: whether to use JSON format for the completion.
-  bool json_format = 10;
+  optional bool json_format = 10;
   // stream: whether to stream the completion.
-  bool stream = 11;
+  optional bool stream = 11;
   // timeout: the timeout for the completion in seconds.
-  int64 timeout = 12;
+  optional int64 timeout = 12;
 }
 
 // The sampling parameters for the completion.
@@ -52,7 +52,7 @@ message SamplingParameters {
   // top_p: the top_p to use for the completion.
   double top_p = 2;
   // top_k: the top_k to use for the completion.
-  double top_k = 3;
+  optional double top_k = 3;
   // max_new_tokens: the max_new_tokens to use for the completion.
   int64 max_new_tokens = 4;
   // do_sample: whether to do sample for the completion.
@@ -330,13 +330,13 @@ message WebRetrievalRequest {
   // search_query: the search query.
   string search_query = 2;
   // n_miners: the number of miners to use for the query.
-  int64 n_miners = 3;
+  optional int64 n_miners = 3;
   // n_results: the number of results to return.
-  int64 n_results = 4;
+  optional int64 n_results = 4;
   // max_response_time: the max response time to allow for the miners to respond in seconds.
-  int64 max_response_time = 5;
+  optional int64 max_response_time = 5;
   // timeout: the timeout for the web retrieval in seconds.
-  int64 timeout = 6;
+  optional int64 timeout = 6;
 }
 
 // A web search result from Apex
