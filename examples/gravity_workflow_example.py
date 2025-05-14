@@ -25,7 +25,7 @@ class GravityWorkflow:
         email: str,
         reddit_subreddit: str,
         x_hashtag: str,
-        max_rows,
+        max_rows: int,
     ):
         self.task_name = task_name
         self.email = email
