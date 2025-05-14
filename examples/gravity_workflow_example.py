@@ -261,7 +261,9 @@ class GravityWorkflow:
 
                 # Build dataset
                 response = await self.client.gravity.BuildDataset(
-                    crawler_id=crawler_id, notification_requests=[notification]
+                    crawler_id=crawler_id,
+                    max_rows=1000,
+                    notification_requests=[notification],
                 )
 
                 if response and response.dataset_id:

@@ -126,6 +126,7 @@ class AsyncGravity:
     async def BuildDataset(
         self,
         crawler_id: str,
+        max_rows: int,
         notification_requests: List[
             Union[gravity_p2p.NotificationRequest, Dict]
         ] = None,
@@ -135,8 +136,8 @@ class AsyncGravity:
 
         Args:
             crawler_id: The ID of the crawler to build a dataset for.
+            max_rows: The maximum number of rows to include in the dataset.
             notification_requests: The details of the notifications to be sent (optional).
-
         Returns:
             A response containing the dataset that was built.
         """
@@ -161,6 +162,7 @@ class AsyncGravity:
 
         request = gravity_pb2.BuildDatasetRequest(
             crawler_id=crawler_id,
+            max_rows=max_rows,
             notification_requests=proto_notification_requests,
         )
 
