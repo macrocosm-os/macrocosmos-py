@@ -115,9 +115,9 @@ message GravityTaskState {
 // GetGravityTasksRequest is the request message for listing gravity tasks for a user
 message GetGravityTasksRequest {
   // gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
-  string gravity_task_id = 1;
+  optional string gravity_task_id = 1;
   // include_crawlers: whether to include the crawler states in the response
-  bool include_crawlers = 2;
+  optional bool include_crawlers = 2;
 }
 
 // GetGravityTasksResponse is the response message for listing gravity tasks for a user
@@ -141,7 +141,7 @@ message NotificationRequest {
   // address: the address to send the notification to (only email addresses are supported currently)
   string address = 2;
   // redirect_url: the URL to include in the notication message that redirects the user to any built datasets
-  string redirect_url = 3;
+  optional string redirect_url = 3;
 }
 
 // GetCrawlerRequest is the request message for getting a crawler
@@ -166,7 +166,7 @@ message CreateGravityTaskRequest {
   //   that is automatically generated upon completion of the crawler is ready to download (optional)
   repeated NotificationRequest notification_requests = 3;
   // gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
-  string gravity_task_id = 4;
+  optional string gravity_task_id = 4;
 }
 
 // CreateGravityTaskResponse is the response message for creating a new gravity task
@@ -194,6 +194,15 @@ message BuildDatasetResponse {
   Dataset dataset = 2;
 }
 
+message Nebula {
+  // error: nebula build error message
+  string error = 1;
+  // file_size_bytes: the size of the file in bytes
+  int64 file_size_bytes = 2;
+  // url: the URL of the file
+  string url = 3;
+}
+
 // Dataset contains the progress and results of a dataset build
 message Dataset {
   // crawler_workflow_id: the ID of the parent crawler for this dataset
@@ -212,6 +221,8 @@ message Dataset {
   repeated DatasetStep steps = 7;
   // total_steps: the total number of steps in the dataset build
   int64 total_steps = 8;
+  // nebula: the details about the nebula that was built
+  Nebula nebula = 9;
 }
 
 // DatasetFile contains the details about a dataset file
