@@ -1,7 +1,9 @@
 # Macrocosmos Protobufs
+
 Protobufs used by Macrocosmos products
 
-# Usage
+## Usage
+
 Here are instructions on how to add and update the protos from your own project repo.
 
 > ⚠️ These commands must be run from the target repo's root directory

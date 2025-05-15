@@ -12,7 +12,7 @@ service BillingService {
 // GetUsageRequest is the request message for getting the usage of the user's credits
 message GetUsageRequest {
   // product_type: the type of the product (i.e. "gravity")
-  string product_type = 1;
+  optional string product_type = 1;
 }
 
 // ProductPlan is details of the subscription plan for a product
