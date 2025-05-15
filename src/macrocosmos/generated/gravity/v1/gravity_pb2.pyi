@@ -162,8 +162,18 @@ class BuildDatasetResponse(_message.Message):
     dataset: Dataset
     def __init__(self, dataset_id: _Optional[str] = ..., dataset: _Optional[_Union[Dataset, _Mapping]] = ...) -> None: ...
 
+class Nebula(_message.Message):
+    __slots__ = ("error", "file_size_bytes", "url")
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    FILE_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    error: str
+    file_size_bytes: int
+    url: str
+    def __init__(self, error: _Optional[str] = ..., file_size_bytes: _Optional[int] = ..., url: _Optional[str] = ...) -> None: ...
+
 class Dataset(_message.Message):
-    __slots__ = ("crawler_workflow_id", "create_date", "expire_date", "files", "status", "status_message", "steps", "total_steps")
+    __slots__ = ("crawler_workflow_id", "create_date", "expire_date", "files", "status", "status_message", "steps", "total_steps", "nebula")
     CRAWLER_WORKFLOW_ID_FIELD_NUMBER: _ClassVar[int]
     CREATE_DATE_FIELD_NUMBER: _ClassVar[int]
     EXPIRE_DATE_FIELD_NUMBER: _ClassVar[int]
@@ -172,6 +182,7 @@ class Dataset(_message.Message):
     STATUS_MESSAGE_FIELD_NUMBER: _ClassVar[int]
     STEPS_FIELD_NUMBER: _ClassVar[int]
     TOTAL_STEPS_FIELD_NUMBER: _ClassVar[int]
+    NEBULA_FIELD_NUMBER: _ClassVar[int]
     crawler_workflow_id: str
     create_date: _timestamp_pb2.Timestamp
     expire_date: _timestamp_pb2.Timestamp
@@ -180,7 +191,8 @@ class Dataset(_message.Message):
     status_message: str
     steps: _containers.RepeatedCompositeFieldContainer[DatasetStep]
     total_steps: int
-    def __init__(self, crawler_workflow_id: _Optional[str] = ..., create_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expire_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ..., status: _Optional[str] = ..., status_message: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[DatasetStep, _Mapping]]] = ..., total_steps: _Optional[int] = ...) -> None: ...
+    nebula: Nebula
+    def __init__(self, crawler_workflow_id: _Optional[str] = ..., create_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expire_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ..., status: _Optional[str] = ..., status_message: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[DatasetStep, _Mapping]]] = ..., total_steps: _Optional[int] = ..., nebula: _Optional[_Union[Nebula, _Mapping]] = ...) -> None: ...
 
 class DatasetFile(_message.Message):
     __slots__ = ("file_name", "file_size_bytes", "last_modified", "num_rows", "s3_key", "url")

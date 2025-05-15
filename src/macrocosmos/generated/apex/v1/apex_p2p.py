@@ -1,7 +1,7 @@
 # This is an automatically generated file, please do not change
-# gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
+# gen by protobuf_to_pydantic[v0.3.3.0](https://github.com/so1n/protobuf_to_pydantic)
 # Protobuf Version: 5.29.4 
-# Pydantic Version: 2.11.0 
+# Pydantic Version: 2.10.6 
 from google.protobuf.message import Message  # type: ignore
 from pydantic import BaseModel
 from pydantic import Field
@@ -30,7 +30,7 @@ class SamplingParameters(BaseModel):
 # top_p: the top_p to use for the completion.
     top_p: float = Field(default=0.0)
 # top_k: the top_k to use for the completion.
-    top_k: float = Field(default=0.0)
+    top_k: typing.Optional[float] = Field(default=0.0)
 # max_new_tokens: the max_new_tokens to use for the completion.
     max_new_tokens: int = Field(default=0)
 # do_sample: whether to do sample for the completion.
@@ -47,25 +47,25 @@ class ChatCompletionRequest(BaseModel):
 # messages: the messages to generate completions for.
     messages: typing.List[ChatMessage] = Field(default_factory=list)
 # seed: the seed to use for the completion.
-    seed: int = Field(default=0)
+    seed: typing.Optional[int] = Field(default=0)
 # task: the task to generate completions for (e.g. "InferenceTask").
-    task: str = Field(default="")
+    task: typing.Optional[str] = Field(default="")
 # model: the LLM name to use for the completion. (optional, suggest leaving this empty as not all LLMs are supported)
-    model: str = Field(default="")
+    model: typing.Optional[str] = Field(default="")
 # test_time_inference: whether to use test time inference.
-    test_time_inference: bool = Field(default=False)
+    test_time_inference: typing.Optional[bool] = Field(default=False)
 # mixture: whether to use a mixture of miners to create a slower but better answer.
-    mixture: bool = Field(default=False)
+    mixture: typing.Optional[bool] = Field(default=False)
 # sampling_parameters: the sampling parameters to use for the completion.
-    sampling_parameters: SamplingParameters = Field(default_factory=SamplingParameters)
+    sampling_parameters: typing.Optional[SamplingParameters] = Field(default_factory=SamplingParameters)
 # inference_mode: the inference mode to use for the completion.
-    inference_mode: str = Field(default="")
+    inference_mode: typing.Optional[str] = Field(default="")
 # json_format: whether to use JSON format for the completion.
-    json_format: bool = Field(default=False)
+    json_format: typing.Optional[bool] = Field(default=False)
 # stream: whether to stream the completion.
-    stream: bool = Field(default=False)
+    stream: typing.Optional[bool] = Field(default=False)
 # timeout: the timeout for the completion in seconds.
-    timeout: int = Field(default=0)
+    timeout: typing.Optional[int] = Field(default=0)
 
 class TopLogprob(BaseModel):
     """
@@ -372,13 +372,13 @@ class WebRetrievalRequest(BaseModel):
 # search_query: the search query.
     search_query: str = Field(default="")
 # n_miners: the number of miners to use for the query.
-    n_miners: int = Field(default=0)
+    n_miners: typing.Optional[int] = Field(default=0)
 # n_results: the number of results to return.
-    n_results: int = Field(default=0)
+    n_results: typing.Optional[int] = Field(default=0)
 # max_response_time: the max response time to allow for the miners to respond in seconds.
-    max_response_time: int = Field(default=0)
+    max_response_time: typing.Optional[int] = Field(default=0)
 # timeout: the timeout for the web retrieval in seconds.
-    timeout: int = Field(default=0)
+    timeout: typing.Optional[int] = Field(default=0)
 
 class WebSearchResult(BaseModel):
     """

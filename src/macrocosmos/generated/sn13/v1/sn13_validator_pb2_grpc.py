@@ -4,7 +4,7 @@ import grpc
 import warnings
 from macrocosmos.generated.sn13.v1 import sn13_validator_pb2 as sn13_dot_v1_dot_sn13__validator__pb2
 
-GRPC_GENERATED_VERSION = '1.71.0'
+GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -43,6 +43,11 @@ class Sn13ServiceStub(object):
                 request_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.SerializeToString,
                 response_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.FromString,
                 _registered_method=True)
+        self.OnDemandData = channel.unary_unary(
+                '/sn13.v1.Sn13Service/OnDemandData',
+                request_serializer=sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataRequest.SerializeToString,
+                response_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataResponse.FromString,
+                _registered_method=True)
 
 
 class Sn13ServiceServicer(object):
@@ -61,6 +66,13 @@ class Sn13ServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def OnDemandData(self, request, context):
+        """Access the SN13 API endpoint on_demand_data_request via Constellation
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_Sn13ServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +85,11 @@ def add_Sn13ServiceServicer_to_server(servicer, server):
                     servicer.ValidateRedditTopic,
                     request_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.FromString,
                     response_serializer=sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.SerializeToString,
+            ),
+            'OnDemandData': grpc.unary_unary_rpc_method_handler(
+                    servicer.OnDemandData,
+                    request_deserializer=sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataRequest.FromString,
+                    response_serializer=sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +146,33 @@ class Sn13Service(object):
             '/sn13.v1.Sn13Service/ValidateRedditTopic',
             sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicRequest.SerializeToString,
             sn13_dot_v1_dot_sn13__validator__pb2.ValidateRedditTopicResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def OnDemandData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/sn13.v1.Sn13Service/OnDemandData',
+            sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataRequest.SerializeToString,
+            sn13_dot_v1_dot_sn13__validator__pb2.OnDemandDataResponse.FromString,
             options,
             channel_credentials,
             insecure,
