@@ -44,7 +44,7 @@ class AsyncSn13:
         Returns:
             dict: 
                 - status (str): The request status
-                - data (dict): The data object returned by the miners
+                - data (List[dict]): The data object returned by the miners
                 - meta (dict): Additional metadata about the request
         """
         request = sn13_validator_pb2.OnDemandDataRequest(
@@ -146,7 +146,7 @@ class SyncSn13:
         Returns:
             dict: 
                 - status (str): The request status
-                - data (dict): The data object returned by the miners
+                - data (List[dict]): The data object returned by the miners
                 - meta (dict): Additional metadata about the request
         """
         return asyncio.run(
