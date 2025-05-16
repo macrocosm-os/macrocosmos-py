@@ -267,6 +267,7 @@ class BillingClient(BaseClient):
 
         self.billing = SyncBilling(self)
 
+
 class AsyncSn13Client(BaseClient):
     """
     Asynchronous client for the SN13 API service.
@@ -309,6 +310,7 @@ class AsyncSn13Client(BaseClient):
         )
 
         self.sn13 = AsyncSn13(self)
+
 
 class Sn13Client(BaseClient):
     """

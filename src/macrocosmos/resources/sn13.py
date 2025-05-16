@@ -1,9 +1,9 @@
 import asyncio
-from typing import Dict, List, Optional
+from typing import List, Optional
 import grpc
 from google.protobuf.json_format import MessageToDict
 from macrocosmos import __package_name__, __version__
-from macrocosmos.generated.sn13.v1 import sn13_validator_pb2, sn13_validator_pb2_grpc, sn13_validator_p2p
+from macrocosmos.generated.sn13.v1 import sn13_validator_pb2, sn13_validator_pb2_grpc
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.types import MacrocosmosError
 
@@ -41,7 +41,7 @@ class AsyncSn13:
             limit (int): Maximum number of results to return
 
         Returns:
-            dict: 
+            dict:
                 - status (str): The request status
                 - data (List[dict]): The data object returned by the miners
                 - meta (dict): Additional metadata about the request
@@ -56,7 +56,6 @@ class AsyncSn13:
         )
 
         return await self._make_request("OnDemandData", request)
-
 
     async def _make_request(self, method_name, request):
         """
@@ -143,7 +142,7 @@ class SyncSn13:
             limit (int): Maximum number of results to return
 
         Returns:
-            dict: 
+            dict:
                 - status (str): The request status
                 - data (List[dict]): The data object returned by the miners
                 - meta (dict): Additional metadata about the request
@@ -158,4 +157,3 @@ class SyncSn13:
                 limit=limit,
             )
         )
-
