@@ -1,6 +1,5 @@
 import asyncio
 from typing import Dict, List, Optional
-
 import grpc
 from google.protobuf.json_format import MessageToDict
 from macrocosmos import __package_name__, __version__
@@ -98,7 +97,7 @@ class AsyncSn13:
                 )
                 await channel.close()
                 # Unpack the response into a dictionary
-                return MessageToDict(response, preserving_proto_field_name=True)
+                return MessageToDict(response)
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
