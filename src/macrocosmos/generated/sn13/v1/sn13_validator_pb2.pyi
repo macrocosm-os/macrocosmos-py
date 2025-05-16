@@ -1,3 +1,4 @@
+from google.protobuf import struct_pb2 as _struct_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -46,3 +47,29 @@ class ValidateRedditTopicResponse(_message.Message):
     over18: bool
     quarantine: bool
     def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., exists: bool = ..., over18: bool = ..., quarantine: bool = ...) -> None: ...
+
+class OnDemandDataRequest(_message.Message):
+    __slots__ = ("source", "usernames", "keywords", "start_date", "end_date", "limit")
+    SOURCE_FIELD_NUMBER: _ClassVar[int]
+    USERNAMES_FIELD_NUMBER: _ClassVar[int]
+    KEYWORDS_FIELD_NUMBER: _ClassVar[int]
+    START_DATE_FIELD_NUMBER: _ClassVar[int]
+    END_DATE_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_FIELD_NUMBER: _ClassVar[int]
+    source: str
+    usernames: _containers.RepeatedScalarFieldContainer[str]
+    keywords: _containers.RepeatedScalarFieldContainer[str]
+    start_date: str
+    end_date: str
+    limit: int
+    def __init__(self, source: _Optional[str] = ..., usernames: _Optional[_Iterable[str]] = ..., keywords: _Optional[_Iterable[str]] = ..., start_date: _Optional[str] = ..., end_date: _Optional[str] = ..., limit: _Optional[int] = ...) -> None: ...
+
+class OnDemandDataResponse(_message.Message):
+    __slots__ = ("status", "data", "meta")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    META_FIELD_NUMBER: _ClassVar[int]
+    status: str
+    data: _containers.RepeatedCompositeFieldContainer[_struct_pb2.Struct]
+    meta: _struct_pb2.Struct
+    def __init__(self, status: _Optional[str] = ..., data: _Optional[_Iterable[_Union[_struct_pb2.Struct, _Mapping]]] = ..., meta: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...

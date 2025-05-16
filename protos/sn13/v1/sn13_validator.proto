@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package sn13.v1;
-
+import "google/protobuf/struct.proto";
 
 option go_package = "macrocosm-os/rift/constellation_api/gen/sn13/v1";
 
@@ -10,6 +10,9 @@ service Sn13Service {
   // ListTopics is the RPC method for getting the top topics
   rpc ListTopics(ListTopicsRequest) returns (ListTopicsResponse);
   rpc ValidateRedditTopic(ValidateRedditTopicRequest) returns (ValidateRedditTopicResponse);
+  
+  // Access the SN13 API endpoint on_demand_data_request via Constellation
+  rpc OnDemandData(OnDemandDataRequest) returns (OnDemandDataResponse);
 }
 
 // ListTopicsRequest is the request message for getting the top topics
@@ -52,4 +55,30 @@ message ValidateRedditTopicResponse {
     bool over18 = 4;
     // quarantine: whether the topic is quarantined
     bool quarantine = 5;
+}
+
+// OnDemandDataRequest is a request to SN13 to retrieve data
+message OnDemandDataRequest {
+  // source: the data source (X or Reddit)
+  string source = 1;
+  // usernames: list of usernames to fetch data from
+  repeated string usernames = 2;
+  // keywords: list of keywords to search for
+  repeated string keywords = 3;
+  // start_date: ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
+  optional string start_date = 4;
+  // end_date: ISO 8601 formatted date string (e.g. "2024-01-31T23:59:59Z")
+  optional string end_date = 5;
+  // limit: maximum number of results to return
+  optional int64 limit = 6;
+}
+
+// OnDemandDataResponse is the response from SN13 for an on-demand data request
+message OnDemandDataResponse {
+  // status: the request status, either success/error
+  string status = 1;
+  // data: the data object returned
+  repeated google.protobuf.Struct data = 2;
+  // meta: additional metadata about the request
+  google.protobuf.Struct meta = 3;
 }

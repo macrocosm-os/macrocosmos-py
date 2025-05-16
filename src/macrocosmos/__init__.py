@@ -25,6 +25,8 @@ from .client import (
     GravityClient,
     BillingClient,
     AsyncBillingClient,
+    Sn13Client,
+    AsyncSn13Client,
 )
 from .types import (
     ChatCompletionChunkResponse,
@@ -47,4 +49,6 @@ __all__ = [
     "ChatCompletionChunkResponse",
     "SamplingParameters",
     "WebRetrievalResponse",
+    "Sn13Client",
+    "AsyncSn13Client",
 ]
