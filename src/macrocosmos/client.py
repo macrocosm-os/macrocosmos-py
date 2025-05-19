@@ -11,6 +11,7 @@ from macrocosmos.resources.gravity import AsyncGravity, SyncGravity
 from macrocosmos.resources.sn13 import AsyncSn13, SyncSn13
 from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
 from macrocosmos.resources.billing import AsyncBilling, SyncBilling
+from macrocosmos.resources.deep_research import SyncDeepResearch, AsyncDeepResearch
 from macrocosmos.resources._client import BaseClient
 
 
@@ -57,6 +58,7 @@ class AsyncApexClient(BaseClient):
         self.chat = AsyncChat(self)
         self.completions = AsyncCompletions(self)
         self.web_search = AsyncWebSearch(self)
+        self.deep_research = AsyncDeepResearch(self)
 
 
 class ApexClient(BaseClient):
@@ -99,6 +101,7 @@ class ApexClient(BaseClient):
         self.chat = SyncChat(self)
         self.completions = SyncCompletions(self)
         self.web_search = SyncWebSearch(self)
+        self.deep_research = SyncDeepResearch(self)
 
 
 class AsyncGravityClient(BaseClient):

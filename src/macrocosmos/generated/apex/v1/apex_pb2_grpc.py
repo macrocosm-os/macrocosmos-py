@@ -48,6 +48,16 @@ class ApexServiceStub(object):
                 request_serializer=apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.SerializeToString,
                 response_deserializer=apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.FromString,
                 _registered_method=True)
+        self.SubmitDeepResearcherJob = channel.unary_unary(
+                '/apex.v1.ApexService/SubmitDeepResearcherJob',
+                request_serializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.FromString,
+                _registered_method=True)
+        self.GetDeepResearcherJob = channel.unary_unary(
+                '/apex.v1.ApexService/GetDeepResearcherJob',
+                request_serializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.FromString,
+                _registered_method=True)
 
 
 class ApexServiceServicer(object):
@@ -74,6 +84,20 @@ class ApexServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SubmitDeepResearcherJob(self, request, context):
+        """SubmitDeepResearcherJob submits a new deep researcher job for processing.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDeepResearcherJob(self, request, context):
+        """GetDeepResearcherJob retrieves the status and results of a deep researcher job.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ApexServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -91,6 +115,16 @@ def add_ApexServiceServicer_to_server(servicer, server):
                     servicer.WebRetrieval,
                     request_deserializer=apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.FromString,
                     response_serializer=apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.SerializeToString,
+            ),
+            'SubmitDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitDeepResearcherJob,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.SerializeToString,
+            ),
+            'GetDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDeepResearcherJob,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -174,6 +208,60 @@ class ApexService(object):
             '/apex.v1.ApexService/WebRetrieval',
             apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.SerializeToString,
             apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SubmitDeepResearcherJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/SubmitDeepResearcherJob',
+            apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDeepResearcherJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/GetDeepResearcherJob',
+            apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.FromString,
             options,
             channel_credentials,
             insecure,

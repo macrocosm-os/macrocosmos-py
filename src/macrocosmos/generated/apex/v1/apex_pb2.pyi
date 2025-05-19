@@ -320,3 +320,45 @@ class WebRetrievalResponse(_message.Message):
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     results: _containers.RepeatedCompositeFieldContainer[WebSearchResult]
     def __init__(self, results: _Optional[_Iterable[_Union[WebSearchResult, _Mapping]]] = ...) -> None: ...
+
+class DeepResearcherJobSubmitResponse(_message.Message):
+    __slots__ = ("job_id", "status", "created_at", "updated_at")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    status: str
+    created_at: str
+    updated_at: str
+    def __init__(self, job_id: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[str] = ..., updated_at: _Optional[str] = ...) -> None: ...
+
+class DeepResearcherJobStatusResponse(_message.Message):
+    __slots__ = ("job_id", "status", "created_at", "updated_at", "result", "error")
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    ERROR_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    status: str
+    created_at: str
+    updated_at: str
+    result: _containers.RepeatedCompositeFieldContainer[DeepResearcherResultChunk]
+    error: str
+    def __init__(self, job_id: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[str] = ..., updated_at: _Optional[str] = ..., result: _Optional[_Iterable[_Union[DeepResearcherResultChunk, _Mapping]]] = ..., error: _Optional[str] = ...) -> None: ...
+
+class DeepResearcherResultChunk(_message.Message):
+    __slots__ = ("seq_id", "chunk")
+    SEQ_ID_FIELD_NUMBER: _ClassVar[int]
+    CHUNK_FIELD_NUMBER: _ClassVar[int]
+    seq_id: int
+    chunk: str
+    def __init__(self, seq_id: _Optional[int] = ..., chunk: _Optional[str] = ...) -> None: ...
+
+class GetDeepResearcherJobRequest(_message.Message):
+    __slots__ = ("job_id",)
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    def __init__(self, job_id: _Optional[str] = ...) -> None: ...

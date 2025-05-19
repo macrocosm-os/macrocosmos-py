@@ -401,3 +401,53 @@ class WebRetrievalResponse(BaseModel):
 
 # results: the results of the web retrieval.
     results: typing.List[WebSearchResult] = Field(default_factory=list)
+
+class DeepResearcherJobSubmitResponse(BaseModel):
+    """
+     A response containing the deep researcher job submission details
+    """
+
+# job_id: unique identifier for the submitted job
+    job_id: str = Field(default="")
+# status: current status of the job
+    status: str = Field(default="")
+# created_at: timestamp when the job was created
+    created_at: str = Field(default="")
+# updated_at: timestamp when the job was last updated
+    updated_at: str = Field(default="")
+
+class DeepResearcherResultChunk(BaseModel):
+    """
+     A chunk of the deep researcher result
+    """
+
+# seq_id: sequence identifier for the chunk
+    seq_id: int = Field(default=0)
+# chunk: the content of the chunk
+    chunk: str = Field(default="")
+
+class DeepResearcherJobStatusResponse(BaseModel):
+    """
+     A response containing the deep researcher job status and results
+    """
+
+# job_id: unique identifier for the job
+    job_id: str = Field(default="")
+# status: current status of the job
+    status: str = Field(default="")
+# created_at: timestamp when the job was created
+    created_at: str = Field(default="")
+# updated_at: timestamp when the job was last updated
+    updated_at: str = Field(default="")
+# result: array of result chunks if the job is completed
+    result: typing.List[DeepResearcherResultChunk] = Field(default_factory=list)
+# error: error message if the job failed
+    error: typing.Optional[str] = Field(default="")
+
+class GetDeepResearcherJobRequest(BaseModel):
+    """
+     A request to get the status of a deep researcher job
+    """
+
+# job_id: the ID of the job to retrieve
+    job_id: str = Field(default="")

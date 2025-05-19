@@ -13,6 +13,12 @@ service ApexService {
 
   // WebRetrieval retrieves web search results for a given request.
   rpc WebRetrieval(WebRetrievalRequest) returns (WebRetrievalResponse);
+
+  // SubmitDeepResearcherJob submits a new deep researcher job for processing.
+  rpc SubmitDeepResearcherJob(ChatCompletionRequest) returns (DeepResearcherJobSubmitResponse);
+
+  // GetDeepResearcherJob retrieves the status and results of a deep researcher job.
+  rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (DeepResearcherJobStatusResponse);
 }
 
 // A request to generate completions following Apex CompletionsRequest format.
@@ -355,4 +361,47 @@ message WebSearchResult {
 message WebRetrievalResponse {
   // results: the results of the web retrieval.
   repeated WebSearchResult results = 1;
+}
+
+
+// A response containing the deep researcher job submission details
+message DeepResearcherJobSubmitResponse {
+  // job_id: unique identifier for the submitted job
+  string job_id = 1;
+  // status: current status of the job
+  string status = 2;
+  // created_at: timestamp when the job was created
+  string created_at = 3;
+  // updated_at: timestamp when the job was last updated
+  string updated_at = 4;
+}
+
+// A response containing the deep researcher job status and results
+message DeepResearcherJobStatusResponse {
+  // job_id: unique identifier for the job
+  string job_id = 1;
+  // status: current status of the job
+  string status = 2;
+  // created_at: timestamp when the job was created
+  string created_at = 3;
+  // updated_at: timestamp when the job was last updated
+  string updated_at = 4;
+  // result: array of result chunks if the job is completed
+  repeated DeepResearcherResultChunk result = 5;
+  // error: error message if the job failed
+  optional string error = 6;
+}
+
+// A chunk of the deep researcher result
+message DeepResearcherResultChunk {
+  // seq_id: sequence identifier for the chunk
+  int64 seq_id = 1;
+  // chunk: the content of the chunk
+  string chunk = 2;
+}
+
+// A request to get the status of a deep researcher job
+message GetDeepResearcherJobRequest {
+  // job_id: the ID of the job to retrieve
+  string job_id = 1;
 }
