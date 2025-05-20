@@ -96,7 +96,7 @@ class AsyncSn13:
                 )
                 await channel.close()
                 # Unpack the response into a dictionary
-                return MessageToDict(response)
+                return MessageToDict(response, preserving_proto_field_name=True)
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
