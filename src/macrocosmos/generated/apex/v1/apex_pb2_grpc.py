@@ -51,12 +51,12 @@ class ApexServiceStub(object):
         self.SubmitDeepResearcherJob = channel.unary_unary(
                 '/apex.v1.ApexService/SubmitDeepResearcherJob',
                 request_serializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
-                response_deserializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.FromString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.FromString,
                 _registered_method=True)
         self.GetDeepResearcherJob = channel.unary_unary(
                 '/apex.v1.ApexService/GetDeepResearcherJob',
                 request_serializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
-                response_deserializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.FromString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.FromString,
                 _registered_method=True)
 
 
@@ -119,12 +119,12 @@ def add_ApexServiceServicer_to_server(servicer, server):
             'SubmitDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
                     servicer.SubmitDeepResearcherJob,
                     request_deserializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.FromString,
-                    response_serializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.SerializeToString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.SerializeToString,
             ),
             'GetDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
                     servicer.GetDeepResearcherJob,
                     request_deserializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.FromString,
-                    response_serializer=apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.SerializeToString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -234,7 +234,7 @@ class ApexService(object):
             target,
             '/apex.v1.ApexService/SubmitDeepResearcherJob',
             apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
-            apex_dot_v1_dot_apex__pb2.DeepResearcherJobSubmitResponse.FromString,
+            apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -261,7 +261,7 @@ class ApexService(object):
             target,
             '/apex.v1.ApexService/GetDeepResearcherJob',
             apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
-            apex_dot_v1_dot_apex__pb2.DeepResearcherJobStatusResponse.FromString,
+            apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.FromString,
             options,
             channel_credentials,
             insecure,

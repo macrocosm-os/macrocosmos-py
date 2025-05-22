@@ -402,7 +402,7 @@ class WebRetrievalResponse(BaseModel):
 # results: the results of the web retrieval.
     results: typing.List[WebSearchResult] = Field(default_factory=list)
 
-class DeepResearcherJobSubmitResponse(BaseModel):
+class SubmitDeepResearcherJobResponse(BaseModel):
     """
      A response containing the deep researcher job submission details
     """
@@ -426,7 +426,7 @@ class DeepResearcherResultChunk(BaseModel):
 # chunk: the content of the chunk
     chunk: str = Field(default="")
 
-class DeepResearcherJobStatusResponse(BaseModel):
+class GetDeepResearcherJobResponse(BaseModel):
     """
      A response containing the deep researcher job status and results
     """
@@ -439,7 +439,7 @@ class DeepResearcherJobStatusResponse(BaseModel):
     created_at: str = Field(default="")
 # updated_at: timestamp when the job was last updated
     updated_at: str = Field(default="")
-# result: array of result chunks if the job is completed
+# result: array of result chunks
     result: typing.List[DeepResearcherResultChunk] = Field(default_factory=list)
 # error: error message if the job failed
     error: typing.Optional[str] = Field(default="")

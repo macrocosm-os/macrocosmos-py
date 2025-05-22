@@ -43,12 +43,20 @@ async def demo_deep_research_async():
             )
             current_status = polled_response["status"]
             current_updated = polled_response["updated_at"]
-
+            
+            # Handle completion or failure first
+            if current_status == "completed":
+                print("\nJob completed successfully!")
+                break
+            elif current_status == "failed":
+                print(f"\nJob failed: {polled_response.get('error', 'Unknown error')}")
+                break
+            
             # Check if we have new content by comparing update times
             if current_updated != last_updated:
                 print(f"\nNew update at {current_updated}")
                 print(f"Status: {current_status}")
-
+                
                 # Process new content
                 if "result" in polled_response and polled_response["result"]:
                     for item in polled_response["result"]:
@@ -76,17 +84,9 @@ async def demo_deep_research_async():
                                     )
                         except (ValueError, KeyError) as e:
                             print(f"Error processing sequence: {e}")
-
+                
                 last_updated = current_updated
-
-            # Handle completion or failure
-            if current_status == "completed":
-                print("\nJob completed successfully!")
-                break
-            elif current_status == "failed":
-                print(f"\nJob failed: {polled_response.get('error', 'Unknown error')}")
-                break
-
+                
         except Exception as e:
             print(f"Error during polling: {e}")
 

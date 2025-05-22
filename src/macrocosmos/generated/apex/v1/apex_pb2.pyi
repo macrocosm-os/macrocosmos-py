@@ -321,7 +321,7 @@ class WebRetrievalResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[WebSearchResult]
     def __init__(self, results: _Optional[_Iterable[_Union[WebSearchResult, _Mapping]]] = ...) -> None: ...
 
-class DeepResearcherJobSubmitResponse(_message.Message):
+class SubmitDeepResearcherJobResponse(_message.Message):
     __slots__ = ("job_id", "status", "created_at", "updated_at")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
@@ -333,7 +333,7 @@ class DeepResearcherJobSubmitResponse(_message.Message):
     updated_at: str
     def __init__(self, job_id: _Optional[str] = ..., status: _Optional[str] = ..., created_at: _Optional[str] = ..., updated_at: _Optional[str] = ...) -> None: ...
 
-class DeepResearcherJobStatusResponse(_message.Message):
+class GetDeepResearcherJobResponse(_message.Message):
     __slots__ = ("job_id", "status", "created_at", "updated_at", "result", "error")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]

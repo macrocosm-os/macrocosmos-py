@@ -15,10 +15,10 @@ service ApexService {
   rpc WebRetrieval(WebRetrievalRequest) returns (WebRetrievalResponse);
 
   // SubmitDeepResearcherJob submits a new deep researcher job for processing.
-  rpc SubmitDeepResearcherJob(ChatCompletionRequest) returns (DeepResearcherJobSubmitResponse);
+  rpc SubmitDeepResearcherJob(ChatCompletionRequest) returns (SubmitDeepResearcherJobResponse);
 
   // GetDeepResearcherJob retrieves the status and results of a deep researcher job.
-  rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (DeepResearcherJobStatusResponse);
+  rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (GetDeepResearcherJobResponse);
 }
 
 // A request to generate completions following Apex CompletionsRequest format.
@@ -363,9 +363,8 @@ message WebRetrievalResponse {
   repeated WebSearchResult results = 1;
 }
 
-
 // A response containing the deep researcher job submission details
-message DeepResearcherJobSubmitResponse {
+message SubmitDeepResearcherJobResponse {
   // job_id: unique identifier for the submitted job
   string job_id = 1;
   // status: current status of the job
@@ -377,7 +376,7 @@ message DeepResearcherJobSubmitResponse {
 }
 
 // A response containing the deep researcher job status and results
-message DeepResearcherJobStatusResponse {
+message GetDeepResearcherJobResponse {
   // job_id: unique identifier for the job
   string job_id = 1;
   // status: current status of the job
@@ -386,7 +385,7 @@ message DeepResearcherJobStatusResponse {
   string created_at = 3;
   // updated_at: timestamp when the job was last updated
   string updated_at = 4;
-  // result: array of result chunks if the job is completed
+  // result: array of result chunks
   repeated DeepResearcherResultChunk result = 5;
   // error: error message if the job failed
   optional string error = 6;
