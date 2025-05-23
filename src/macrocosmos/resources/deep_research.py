@@ -30,7 +30,7 @@ class AsyncDeepResearch:
         stream: bool = True,
         seed: Optional[int] = None,
         **kwargs,
-    ) -> apex_pb2.DeepResearcherJobSubmitResponse:
+    ) -> apex_pb2.SubmitDeepResearcherJobResponse:
         """
         Create a new deep research job.
 
@@ -146,7 +146,7 @@ class AsyncDeepResearch:
         self,
         job_id: str,
         **kwargs,
-    ) -> apex_pb2.DeepResearcherJobStatusResponse:
+    ) -> apex_pb2.GetDeepResearcherJobResponse:
         """
         Get the status and current result of a deep research job.
 
@@ -223,7 +223,7 @@ class SyncDeepResearch:
         stream: bool = True,
         seed: Optional[int] = None,
         **kwargs,
-    ) -> apex_pb2.DeepResearcherJobSubmitResponse:
+    ) -> apex_pb2.SubmitDeepResearcherJobResponse:
         """
         Create a new deep research job synchronously.
 
@@ -251,7 +251,7 @@ class SyncDeepResearch:
         self,
         job_id: str,
         **kwargs,
-    ) -> apex_pb2.DeepResearcherJobStatusResponse:
+    ) -> apex_pb2.GetDeepResearcherJobResponse:
         """
         Get the status and results of a deep research job synchronously.
 
