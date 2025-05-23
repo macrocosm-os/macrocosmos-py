@@ -1,3 +1,5 @@
+from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -362,3 +364,46 @@ class GetDeepResearcherJobRequest(_message.Message):
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     def __init__(self, job_id: _Optional[str] = ...) -> None: ...
+
+class ChatSession(_message.Message):
+    __slots__ = ("id", "user_id", "title", "chat_type", "created_at", "updated_at")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    user_id: str
+    title: str
+    chat_type: str
+    created_at: _timestamp_pb2.Timestamp
+    updated_at: _timestamp_pb2.Timestamp
+    def __init__(self, id: _Optional[str] = ..., user_id: _Optional[str] = ..., title: _Optional[str] = ..., chat_type: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+
+class GetChatSessionsResponse(_message.Message):
+    __slots__ = ("chat_sessions",)
+    CHAT_SESSIONS_FIELD_NUMBER: _ClassVar[int]
+    chat_sessions: _containers.RepeatedCompositeFieldContainer[ChatSession]
+    def __init__(self, chat_sessions: _Optional[_Iterable[_Union[ChatSession, _Mapping]]] = ...) -> None: ...
+
+class UpdateChatAttributeRequest(_message.Message):
+    __slots__ = ("chat_id", "attributes")
+    class AttributesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
+    chat_id: str
+    attributes: _containers.ScalarMap[str, str]
+    def __init__(self, chat_id: _Optional[str] = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class UpdateChatAttributeResponse(_message.Message):
+    __slots__ = ("success",)
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    def __init__(self, success: bool = ...) -> None: ...

@@ -44,8 +44,7 @@ async def demo_deep_research_polling():
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
 
     client = mc.AsyncApexClient(
-        api_key=api_key,
-        app_name="examples/apex_deep_research_async.py"
+        api_key=api_key, app_name="examples/apex_deep_research_async.py"
     )
 
     # Create a deep research job with create_job
@@ -81,8 +80,12 @@ async def demo_deep_research_polling():
             if current_status == "completed":
                 print("\nJob completed successfully!")
                 if "result" in polled_response and polled_response["result"]:
-                    if content := extract_content_from_chunk(polled_response["result"][-1]["chunk"]):
-                        print(f"\nFinal answer (seq_id {polled_response['result'][-1]['seq_id']}):\n{content}")
+                    if content := extract_content_from_chunk(
+                        polled_response["result"][-1]["chunk"]
+                    ):
+                        print(
+                            f"\nFinal answer (seq_id {polled_response['result'][-1]['seq_id']}):\n{content}"
+                        )
                 break
 
             elif current_status == "failed":
@@ -96,7 +99,9 @@ async def demo_deep_research_polling():
 
                 # Process new content
                 if "result" in polled_response and polled_response["result"]:
-                    last_seq_id = await process_result_chunks(polled_response["result"], last_seq_id)
+                    last_seq_id = await process_result_chunks(
+                        polled_response["result"], last_seq_id
+                    )
                 last_updated = current_updated
 
         except Exception as e:
