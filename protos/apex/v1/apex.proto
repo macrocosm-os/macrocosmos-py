@@ -3,6 +3,9 @@ syntax = "proto3";
 package apex.v1;
 
 option go_package = "macrocosm-os/rift/constellation_api/gen/apex/v1";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
 
 service ApexService {
   // ChatCompletion generates a completion for a given request.
@@ -19,6 +22,12 @@ service ApexService {
 
   // GetDeepResearcherJob retrieves the status and results of a deep researcher job.
   rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (GetDeepResearcherJobResponse);
+
+  // GetChatSessions retrieves a user's chats
+  rpc GetChatSessions(google.protobuf.Empty) returns (GetChatSessionsResponse);
+
+  // UpdateChatAttribute updates attribute after asking LLM for one
+  rpc UpdateChatAttribute(UpdateChatAttributeRequest) returns (UpdateChatAttributeResponse); 
 }
 
 // A request to generate completions following Apex CompletionsRequest format.
@@ -328,7 +337,7 @@ message PromptTokensDetails {
   int64 cached_tokens = 2;
 }
 
-// A web retrival request from Apex
+// A web retrieval request from Apex
 // Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
 message WebRetrievalRequest {
   // uids: the miner UIDs that will be used to generate the completion (optional).
@@ -403,4 +412,39 @@ message DeepResearcherResultChunk {
 message GetDeepResearcherJobRequest {
   // job_id: the ID of the job to retrieve
   string job_id = 1;
+}
+
+// A GetChatSession message repeated in GetChatSessionsResponse
+message ChatSession {
+  // id: chat id
+  string id = 1;
+  // user_id: user id
+  string user_id = 2;
+  // title: title of chat
+  string title = 3;
+  // chat_type: e.g. apex
+  string chat_type = 4;
+  // created_at: when the chat was created
+  google.protobuf.Timestamp created_at = 5;
+  // updated_at: when the chat was updated
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// A GetChatSessionsResponse response
+message GetChatSessionsResponse {
+  // chat_sessions: the chat sessions
+  repeated ChatSession chat_sessions = 1;
+}
+
+// Directly model the attributes as a map
+message UpdateChatAttributeRequest {
+  // chat_id: the unique id associated to a users chat message
+  string chat_id = 1;
+  // attributes: the data attributes captured in the chat logging process
+  map<string, string> attributes = 2;
+}
+
+message UpdateChatAttributeResponse {
+  // success: indicates if an attribute update was successful
+  bool success = 1;
 }
