@@ -3,6 +3,7 @@
 import grpc
 import warnings
 from macrocosmos.generated.apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 GRPC_GENERATED_VERSION = '1.71.0'
 GRPC_VERSION = grpc.__version__
@@ -48,6 +49,26 @@ class ApexServiceStub(object):
                 request_serializer=apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.SerializeToString,
                 response_deserializer=apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.FromString,
                 _registered_method=True)
+        self.SubmitDeepResearcherJob = channel.unary_unary(
+                '/apex.v1.ApexService/SubmitDeepResearcherJob',
+                request_serializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.FromString,
+                _registered_method=True)
+        self.GetDeepResearcherJob = channel.unary_unary(
+                '/apex.v1.ApexService/GetDeepResearcherJob',
+                request_serializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.FromString,
+                _registered_method=True)
+        self.GetChatSessions = channel.unary_unary(
+                '/apex.v1.ApexService/GetChatSessions',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.FromString,
+                _registered_method=True)
+        self.UpdateChatAttribute = channel.unary_unary(
+                '/apex.v1.ApexService/UpdateChatAttribute',
+                request_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.FromString,
+                _registered_method=True)
 
 
 class ApexServiceServicer(object):
@@ -74,6 +95,34 @@ class ApexServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SubmitDeepResearcherJob(self, request, context):
+        """SubmitDeepResearcherJob submits a new deep researcher job for processing.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDeepResearcherJob(self, request, context):
+        """GetDeepResearcherJob retrieves the status and results of a deep researcher job.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetChatSessions(self, request, context):
+        """GetChatSessions retrieves a user's chats
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateChatAttribute(self, request, context):
+        """UpdateChatAttribute updates attribute after asking LLM for one
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ApexServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -91,6 +140,26 @@ def add_ApexServiceServicer_to_server(servicer, server):
                     servicer.WebRetrieval,
                     request_deserializer=apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.FromString,
                     response_serializer=apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.SerializeToString,
+            ),
+            'SubmitDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitDeepResearcherJob,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.SerializeToString,
+            ),
+            'GetDeepResearcherJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetDeepResearcherJob,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.SerializeToString,
+            ),
+            'GetChatSessions': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetChatSessions,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.SerializeToString,
+            ),
+            'UpdateChatAttribute': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateChatAttribute,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -174,6 +243,114 @@ class ApexService(object):
             '/apex.v1.ApexService/WebRetrieval',
             apex_dot_v1_dot_apex__pb2.WebRetrievalRequest.SerializeToString,
             apex_dot_v1_dot_apex__pb2.WebRetrievalResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SubmitDeepResearcherJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/SubmitDeepResearcherJob',
+            apex_dot_v1_dot_apex__pb2.ChatCompletionRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.SubmitDeepResearcherJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDeepResearcherJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/GetDeepResearcherJob',
+            apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.GetDeepResearcherJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetChatSessions(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/GetChatSessions',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateChatAttribute(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/UpdateChatAttribute',
+            apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.FromString,
             options,
             channel_credentials,
             insecure,

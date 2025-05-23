@@ -11,6 +11,7 @@ from macrocosmos.resources.gravity import AsyncGravity, SyncGravity
 from macrocosmos.resources.sn13 import AsyncSn13, SyncSn13
 from macrocosmos.resources.web_search import AsyncWebSearch, SyncWebSearch
 from macrocosmos.resources.billing import AsyncBilling, SyncBilling
+from macrocosmos.resources.deep_research import SyncDeepResearch, AsyncDeepResearch
 from macrocosmos.resources._client import BaseClient
 
 
@@ -26,7 +27,7 @@ class AsyncApexClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -57,6 +58,7 @@ class AsyncApexClient(BaseClient):
         self.chat = AsyncChat(self)
         self.completions = AsyncCompletions(self)
         self.web_search = AsyncWebSearch(self)
+        self.deep_research = AsyncDeepResearch(self)
 
 
 class ApexClient(BaseClient):
@@ -70,7 +72,7 @@ class ApexClient(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -99,6 +101,7 @@ class ApexClient(BaseClient):
         self.chat = SyncChat(self)
         self.completions = SyncCompletions(self)
         self.web_search = SyncWebSearch(self)
+        self.deep_research = SyncDeepResearch(self)
 
 
 class AsyncGravityClient(BaseClient):
@@ -113,7 +116,7 @@ class AsyncGravityClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -156,7 +159,7 @@ class GravityClient:
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -197,7 +200,7 @@ class AsyncBillingClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -239,7 +242,7 @@ class BillingClient(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -280,7 +283,7 @@ class AsyncSn13Client(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -323,7 +326,7 @@ class Sn13Client(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         compress: bool = True,
         app_name: Optional[str] = None,
     ):

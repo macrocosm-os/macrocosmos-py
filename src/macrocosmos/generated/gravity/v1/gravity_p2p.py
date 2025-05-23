@@ -316,3 +316,21 @@ class CancelDatasetResponse(BaseModel):
 
 # message: the message of the cancellation of the dataset build (currently hardcoded to "success")
     message: str = Field(default="")
+
+class DatasetBillingCorrectionRequest(BaseModel):
+    """
+     DatasetBillingCorrectionRequest is the request message for refunding a user
+    """
+
+# requested_row_count: number of rows expected by the user
+    requested_row_count: int = Field(default=0)
+# actual_row_count: number of rows returned by gravity
+    actual_row_count: int = Field(default=0)
+
+class DatasetBillingCorrectionResponse(BaseModel):
+    """
+     DatasetBillingCorrectionResponse is the response message for refunding a user
+    """
+
+# refund_amount
+    refund_amount: float = Field(default=0.0)

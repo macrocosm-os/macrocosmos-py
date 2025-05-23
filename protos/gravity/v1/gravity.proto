@@ -27,6 +27,9 @@ service GravityService {
 
   // Cancel dataset build if it is in progress and purges the dataset
   rpc CancelDataset(CancelDatasetRequest) returns (CancelDatasetResponse);
+
+  // Refund user if fewer rows are returned
+  rpc DatasetBillingCorrection(DatasetBillingCorrectionRequest) returns (DatasetBillingCorrectionResponse);  
 }
 
 // Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
@@ -286,4 +289,18 @@ message CancelDatasetRequest {
 message CancelDatasetResponse {
   // message: the message of the cancellation of the dataset build (currently hardcoded to "success")
   string message = 1;
+}
+
+// DatasetBillingCorrectionRequest is the request message for refunding a user
+message DatasetBillingCorrectionRequest {
+  // requested_row_count: number of rows expected by the user
+  int64 requested_row_count = 1;
+  // actual_row_count: number of rows returned by gravity
+  int64 actual_row_count = 2;
+}
+
+// DatasetBillingCorrectionResponse is the response message for refunding a user
+message DatasetBillingCorrectionResponse {
+  // refund_amount
+  double refund_amount = 1;
 }

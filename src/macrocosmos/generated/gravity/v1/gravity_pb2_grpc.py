@@ -68,6 +68,11 @@ class GravityServiceStub(object):
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.SerializeToString,
                 response_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.FromString,
                 _registered_method=True)
+        self.DatasetBillingCorrection = channel.unary_unary(
+                '/gravity.v1.GravityService/DatasetBillingCorrection',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.FromString,
+                _registered_method=True)
 
 
 class GravityServiceServicer(object):
@@ -122,6 +127,13 @@ class GravityServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DatasetBillingCorrection(self, request, context):
+        """Refund user if fewer rows are returned
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_GravityServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -159,6 +171,11 @@ def add_GravityServiceServicer_to_server(servicer, server):
                     servicer.CancelDataset,
                     request_deserializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.FromString,
                     response_serializer=gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.SerializeToString,
+            ),
+            'DatasetBillingCorrection': grpc.unary_unary_rpc_method_handler(
+                    servicer.DatasetBillingCorrection,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -350,6 +367,33 @@ class GravityService(object):
             '/gravity.v1.GravityService/CancelDataset',
             gravity_dot_v1_dot_gravity__pb2.CancelDatasetRequest.SerializeToString,
             gravity_dot_v1_dot_gravity__pb2.CancelDatasetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DatasetBillingCorrection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/DatasetBillingCorrection',
+            gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.FromString,
             options,
             channel_credentials,
             insecure,
