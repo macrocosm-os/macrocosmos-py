@@ -27,7 +27,7 @@ class AsyncApexClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -72,7 +72,7 @@ class ApexClient(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -116,7 +116,7 @@ class AsyncGravityClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -159,7 +159,7 @@ class GravityClient:
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -200,7 +200,7 @@ class AsyncBillingClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -242,7 +242,7 @@ class BillingClient(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -283,7 +283,7 @@ class AsyncSn13Client(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         compress: bool = True,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -326,7 +326,7 @@ class Sn13Client(BaseClient):
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
-        secure: Optional[bool] = None,
+        secure: Optional[bool] = True,
         compress: bool = True,
         app_name: Optional[str] = None,
     ):

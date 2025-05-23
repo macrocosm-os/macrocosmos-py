@@ -1,7 +1,7 @@
 """
 Example of using the Apex DeepResearch API asynchronously with Macrocosmos SDK.
-This script demonstrates how you can poll the deep researcher job at regular intervals
-to check on its current status and retrieve the latest results that have been generated.
+Demonstrates how a deep researcher job can be polled at regular intervals
+to check its current status and retrieve the latest results generated.
 """
 
 import asyncio
@@ -44,7 +44,7 @@ async def demo_deep_research_polling():
     api_key = os.environ.get("APEX_API_KEY", os.environ.get("MACROCOSMOS_API_KEY"))
 
     client = mc.AsyncApexClient(
-        api_key=api_key, app_name="examples/apex_deep_research_async.py"
+        api_key=api_key, app_name="examples/apex_deep_research_polling.py"
     )
 
     # Create a deep research job with create_job
