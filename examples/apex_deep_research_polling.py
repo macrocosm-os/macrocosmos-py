@@ -79,6 +79,7 @@ async def demo_deep_research_polling():
             # On completion, print the final answer and its sequence ID
             if current_status == "completed":
                 print("\nJob completed successfully!")
+                print(f"\nLast update at: {current_updated}")
                 if "result" in polled_response and polled_response["result"]:
                     if content := extract_content_from_chunk(
                         polled_response["result"][-1]["chunk"]
@@ -90,6 +91,7 @@ async def demo_deep_research_polling():
 
             elif current_status == "failed":
                 print(f"\nJob failed: {polled_response.get('error', 'Unknown error')}")
+                print(f"\nLast update at: {current_updated}")
                 break
 
             # Check if we have new content by comparing update times

@@ -25,28 +25,25 @@ class AsyncDeepResearch:
 
     async def create_job(
         self,
-        messages: List[Union[ChatMessage, Dict]] = None,
-        sampling_parameters: Union[SamplingParameters, Dict] = None,
-        stream: bool = True,
+        messages: List[Union[ChatMessage, Dict]],
+        uids: Optional[List[int]] = None,
+        model: Optional[str] = None,
+        sampling_parameters: Optional[Union[SamplingParameters, Dict]] = None,
         seed: Optional[int] = None,
-        **kwargs,
     ) -> apex_pb2.SubmitDeepResearcherJobResponse:
         """
         Create a new deep research job.
 
         Args:
             messages: A list of messages comprising the research query and context.
-            sampling_parameters: The sampling parameters to use for the completion.
-            stream: Whether to stream the response (default: True).
-            seed: The seed to use for the completion.
-            **kwargs: Additional parameters to include in the request.
+            uids: Optional list of specific miner UIDs to use. If not provided, the validator will select available miners.
+            model: Optional model to use. If not provided, Apex will use the default model.
+            sampling_parameters: Optional sampling parameters for the completion.
+            seed: Optional seed for reproducibility. If not provided, a random seed will be used.
 
         Returns:
             A deep researcher job submit response containing the job ID, initial status created_at and updated_at info.
         """
-        if seed is None:
-            seed = random.randint(0, 2**16 - 1)
-
         proto_messages = []
         if messages:
             for msg in messages:
@@ -82,27 +79,16 @@ class AsyncDeepResearch:
                 do_sample=False,
             )
 
-        # Set default parameters if not provided
-        if "inference_mode" not in kwargs:
-            kwargs["inference_mode"] = "Chain-of-Thought"
-        elif kwargs["inference_mode"] != "Chain-of-Thought":
-            raise ValueError("inference_mode must be 'Chain-of-Thought'")
-
-        if "task" not in kwargs:
-            kwargs["task"] = "InferenceTask"
-
-        if "mixture" not in kwargs:
-            kwargs["mixture"] = False
-
-        if "timeout" not in kwargs:
-            kwargs["timeout"] = 2100
-
         request = apex_pb2.ChatCompletionRequest(
+            uids=uids,
             messages=proto_messages,
-            sampling_parameters=proto_sampling_params,
-            stream=stream,
             seed=seed,
-            **kwargs,
+            task="InferenceTask",
+            model=model,
+            mixture=False,
+            sampling_parameters=proto_sampling_params,
+            inference_mode="Chain-of-Thought",
+            stream=True,
         )
 
         metadata = [
@@ -123,7 +109,7 @@ class AsyncDeepResearch:
                 response = await stub.SubmitDeepResearcherJob(
                     request,
                     metadata=metadata,
-                    timeout=kwargs.get("timeout", self._client.timeout),
+                    timeout=self._client.timeout,
                     compression=compression,
                 )
                 await channel.close()
@@ -145,14 +131,12 @@ class AsyncDeepResearch:
     async def get_job_results(
         self,
         job_id: str,
-        **kwargs,
     ) -> apex_pb2.GetDeepResearcherJobResponse:
         """
         Get the status and current result of a deep research job.
 
         Args:
             job_id: The ID of the research job to check.
-            **kwargs: Additional parameters to include in the request.
 
         Returns:
             A deep researcher job status response containing the current status and results.
@@ -162,7 +146,6 @@ class AsyncDeepResearch:
 
         request = apex_pb2.GetDeepResearcherJobRequest(
             job_id=job_id,
-            **kwargs,
         )
 
         metadata = [
@@ -183,7 +166,7 @@ class AsyncDeepResearch:
                 response = await stub.GetDeepResearcherJob(
                     request,
                     metadata=metadata,
-                    timeout=kwargs.get("timeout", self._client.timeout),
+                    timeout=self._client.timeout,
                     compression=compression,
                 )
                 await channel.close()
@@ -219,20 +202,20 @@ class SyncDeepResearch:
     def create_job(
         self,
         messages: List[Union[ChatMessage, Dict]] = None,
-        sampling_parameters: Union[SamplingParameters, Dict] = None,
-        stream: bool = True,
+        uids: Optional[List[int]] = None,
+        model: Optional[str] = None,
+        sampling_parameters: Optional[Union[SamplingParameters, Dict]] = None,
         seed: Optional[int] = None,
-        **kwargs,
     ) -> apex_pb2.SubmitDeepResearcherJobResponse:
         """
         Create a new deep research job synchronously.
 
         Args:
             messages: A list of messages comprising the research query and context.
-            sampling_parameters: The sampling parameters to use for the completion.
-            stream: Whether to stream the response (default: True).
-            seed: The seed to use for the completion.
-            **kwargs: Additional parameters to include in the request.
+            uids: Optional list of specific miner UIDs to use. If not provided, the validator will select available miners.
+            model: Optional model to use. If not provided, Apex will use the default model.
+            sampling_parameters: Optional sampling parameters for the completion.
+            seed: Optional seed for reproducibility. If not provided, a random seed will be used.
 
         Returns:
             A deep researcher job submit response containing the job ID, initial status created_at and updated_at info.
@@ -240,24 +223,22 @@ class SyncDeepResearch:
         return asyncio.run(
             self._async_deep_research.create_job(
                 messages=messages,
+                uids=uids,
+                model=model,
                 sampling_parameters=sampling_parameters,
-                stream=stream,
                 seed=seed,
-                **kwargs,
             )
         )
 
     def get_job_results(
         self,
         job_id: str,
-        **kwargs,
     ) -> apex_pb2.GetDeepResearcherJobResponse:
         """
         Get the status and results of a deep research job synchronously.
 
         Args:
             job_id: The ID of the research job to check.
-            **kwargs: Additional parameters to include in the request.
 
         Returns:
             A deep researcher job status response containing the current status and results.
@@ -265,6 +246,5 @@ class SyncDeepResearch:
         return asyncio.run(
             self._async_deep_research.get_job_results(
                 job_id=job_id,
-                **kwargs,
             )
         )
