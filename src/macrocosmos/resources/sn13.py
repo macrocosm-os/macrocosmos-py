@@ -95,8 +95,10 @@ class AsyncSn13:
                     compression=compression,
                 )
                 await channel.close()
-                # Unpack the response into a dictionary
-                return MessageToDict(response)
+                # MessageToDict removes verbosity due to data and meta fields being google.protobuf.Struct types
+                return MessageToDict(
+                    response, preserving_proto_field_name=True
+                )  # preserving_proto_field_name=True removes lowerCamelCase formatting
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1

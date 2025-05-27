@@ -2,6 +2,7 @@
 # gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
 # Protobuf Version: 5.29.4 
 # Pydantic Version: 2.11.0 
+from datetime import datetime
 from google.protobuf.message import Message  # type: ignore
 from pydantic import BaseModel
 from pydantic import Field
@@ -363,7 +364,7 @@ class ChatCompletionChunkResponse(BaseModel):
 
 class WebRetrievalRequest(BaseModel):
     """
-     A web retrival request from Apex
+     A web retrieval request from Apex
  Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
     """
 
@@ -401,3 +402,93 @@ class WebRetrievalResponse(BaseModel):
 
 # results: the results of the web retrieval.
     results: typing.List[WebSearchResult] = Field(default_factory=list)
+
+class SubmitDeepResearcherJobResponse(BaseModel):
+    """
+     A response containing the deep researcher job submission details
+    """
+
+# job_id: unique identifier for the submitted job
+    job_id: str = Field(default="")
+# status: current status of the job
+    status: str = Field(default="")
+# created_at: timestamp when the job was created
+    created_at: str = Field(default="")
+# updated_at: timestamp when the job was last updated
+    updated_at: str = Field(default="")
+
+class DeepResearcherResultChunk(BaseModel):
+    """
+     A chunk of the deep researcher result
+    """
+
+# seq_id: sequence identifier for the chunk
+    seq_id: int = Field(default=0)
+# chunk: the content of the chunk
+    chunk: str = Field(default="")
+
+class GetDeepResearcherJobResponse(BaseModel):
+    """
+     A response containing the deep researcher job status and results
+    """
+
+# job_id: unique identifier for the job
+    job_id: str = Field(default="")
+# status: current status of the job
+    status: str = Field(default="")
+# created_at: timestamp when the job was created
+    created_at: str = Field(default="")
+# updated_at: timestamp when the job was last updated
+    updated_at: str = Field(default="")
+# result: array of result chunks
+    result: typing.List[DeepResearcherResultChunk] = Field(default_factory=list)
+# error: error message if the job failed
+    error: typing.Optional[str] = Field(default="")
+
+class GetDeepResearcherJobRequest(BaseModel):
+    """
+     A request to get the status of a deep researcher job
+    """
+
+# job_id: the ID of the job to retrieve
+    job_id: str = Field(default="")
+
+class ChatSession(BaseModel):
+    """
+     A GetChatSession message repeated in GetChatSessionsResponse
+    """
+
+# id: chat id
+    id: str = Field(default="")
+# user_id: user id
+    user_id: str = Field(default="")
+# title: title of chat
+    title: str = Field(default="")
+# chat_type: e.g. apex
+    chat_type: str = Field(default="")
+# created_at: when the chat was created
+    created_at: datetime = Field(default_factory=datetime.now)
+# updated_at: when the chat was updated
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+class GetChatSessionsResponse(BaseModel):
+    """
+     A GetChatSessionsResponse response
+    """
+
+# chat_sessions: the chat sessions
+    chat_sessions: typing.List[ChatSession] = Field(default_factory=list)
+
+class UpdateChatAttributeRequest(BaseModel):
+    """
+     Directly model the attributes as a map
+    """
+
+# chat_id: the unique id associated to a users chat message
+    chat_id: str = Field(default="")
+# attributes: the data attributes captured in the chat logging process
+    attributes: typing.Dict[str, str] = Field(default_factory=dict)
+
+class UpdateChatAttributeResponse(BaseModel):
+# success: indicates if an attribute update was successful
+    success: bool = Field(default=False)

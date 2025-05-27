@@ -255,3 +255,17 @@ class CancelDatasetResponse(_message.Message):
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     message: str
     def __init__(self, message: _Optional[str] = ...) -> None: ...
+
+class DatasetBillingCorrectionRequest(_message.Message):
+    __slots__ = ("requested_row_count", "actual_row_count")
+    REQUESTED_ROW_COUNT_FIELD_NUMBER: _ClassVar[int]
+    ACTUAL_ROW_COUNT_FIELD_NUMBER: _ClassVar[int]
+    requested_row_count: int
+    actual_row_count: int
+    def __init__(self, requested_row_count: _Optional[int] = ..., actual_row_count: _Optional[int] = ...) -> None: ...
+
+class DatasetBillingCorrectionResponse(_message.Message):
+    __slots__ = ("refund_amount",)
+    REFUND_AMOUNT_FIELD_NUMBER: _ClassVar[int]
+    refund_amount: float
+    def __init__(self, refund_amount: _Optional[float] = ...) -> None: ...
