@@ -106,6 +106,8 @@ async def demo_deep_research_polling():
                     last_seq_id = await process_result_chunks(
                         polled_response.result, last_seq_id
                     )
+                else:
+                    print("No results available yet. Waiting for Deep Researcher to generate data...")
                 last_updated = current_updated
 
         except Exception as e:
