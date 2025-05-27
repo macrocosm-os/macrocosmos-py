@@ -7,7 +7,7 @@ to check its current status and retrieve the latest results generated.
 import asyncio
 import os
 import json
-from typing import Optional, Dict, Any, List
+from typing import Optional, Any, List
 
 import macrocosmos as mc
 
@@ -23,16 +23,16 @@ def extract_content_from_chunk(chunk_str: str) -> Optional[str]:
     return None
 
 
-async def process_result_chunks(results: List[Dict[str, Any]], last_seq_id: int) -> int:
+async def process_result_chunks(results: List[Any], last_seq_id: int) -> int:
     """Process result chunks and return the new last sequence ID."""
     for item in results:
         try:
-            seq_id = int(item["seq_id"])
+            seq_id = int(item.seq_id)
             if seq_id > last_seq_id:
-                if content := extract_content_from_chunk(item["chunk"]):
+                if content := extract_content_from_chunk(item.chunk):
                     print(f"\nseq_id {seq_id}:\n{content}")
                     last_seq_id = seq_id
-        except (ValueError, KeyError) as e:
+        except (ValueError, AttributeError) as e:
             print(f"Error processing sequence: {e}")
     return last_seq_id
 
@@ -60,9 +60,9 @@ async def demo_deep_research_polling():
     )
 
     print("\nCreated deep research job.\n")
-    print(f"Initial status: {submitted_response['status']}")
-    print(f"Job ID: {submitted_response['job_id']}")
-    print(f"Created at: {submitted_response['created_at']}\n")
+    print(f"Initial status: {submitted_response.status}")
+    print(f"Job ID: {submitted_response.job_id}")
+    print(f"Created at: {submitted_response.created_at}\n")
 
     # Poll for job status with get_job_results based on the job_id
     print("Polling the results...")
@@ -71,26 +71,28 @@ async def demo_deep_research_polling():
     while True:
         try:
             polled_response = await client.deep_research.get_job_results(
-                submitted_response["job_id"]
+                submitted_response.job_id
             )
-            current_status = polled_response["status"]
-            current_updated = polled_response["updated_at"]
+            current_status = polled_response.status
+            current_updated = polled_response.updated_at
 
             # On completion, print the final answer and its sequence ID
             if current_status == "completed":
                 print("\nJob completed successfully!")
                 print(f"\nLast update at: {current_updated}")
-                if "result" in polled_response and polled_response["result"]:
+                if polled_response.result:
                     if content := extract_content_from_chunk(
-                        polled_response["result"][-1]["chunk"]
+                        polled_response.result[-1].chunk
                     ):
                         print(
-                            f"\nFinal answer (seq_id {polled_response['result'][-1]['seq_id']}):\n{content}"
+                            f"\nFinal answer (seq_id {polled_response.result[-1].seq_id}):\n{content}"
                         )
                 break
 
             elif current_status == "failed":
-                print(f"\nJob failed: {polled_response.get('error', 'Unknown error')}")
+                print(
+                    f"\nJob failed: {polled_response.error if hasattr(polled_response, 'error') else 'Unknown error'}"
+                )
                 print(f"\nLast update at: {current_updated}")
                 break
 
@@ -100,9 +102,9 @@ async def demo_deep_research_polling():
                 print(f"Status: {current_status}")
 
                 # Process new content
-                if "result" in polled_response and polled_response["result"]:
+                if polled_response.result:
                     last_seq_id = await process_result_chunks(
-                        polled_response["result"], last_seq_id
+                        polled_response.result, last_seq_id
                     )
                 last_updated = current_updated
 
