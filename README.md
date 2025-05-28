@@ -41,6 +41,7 @@ import macrocosmos as mc
 client = mc.ApexClient(api_key="<your-api-key>")
 response = client.web_search.search(
     search_query="What is Bittensor?",
+    max_results_per_miner=3,
     max_response_time=20,
 )
 
