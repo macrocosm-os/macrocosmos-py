@@ -148,7 +148,7 @@ class AsyncGravityClient(BaseClient):
         self.gravity = AsyncGravity(self)
 
 
-class GravityClient:
+class GravityClient(BaseClient):
     """
     Synchronous client for the Gravity (subnet 13) API on Bittensor.
     """
