@@ -61,7 +61,7 @@ import macrocosmos as mc
 client = mc.Sn13Client(api_key="<your-api-key>")
 
 response = client.sn13.OnDemandData(
-    source='X',  # or 'reddit'
+    source='X',  # or 'Reddit'
     usernames=["@nasa"],  # Optional, up to 5 users
     keywords=["galaxy"],  # Optional, up to 5 keywords
     start_date='2025-04-15',  # Defaults to 24h range if not specified
