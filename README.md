@@ -41,13 +41,37 @@ import macrocosmos as mc
 client = mc.ApexClient(api_key="<your-api-key>")
 response = client.web_search.search(
     search_query="What is Bittensor?",
-    n_results=3,
+    max_results_per_miner=3,
     max_response_time=20,
 )
 
 print(response)
 ```
 
+## SN13 OnDemandAPI
+
+SN13 is focused on large-scale data collection. With the OnDemandAPI, you can run precise, real-time queries against platforms like X (Twitter) and Reddit (YouTube forthcoming).
+
+Use the synchronous `Sn13Client` to query historical or current data based on users, keywords, and time range.
+
+### Query Example
+
+```py
+import macrocosmos as mc
+
+client = mc.Sn13Client(api_key="<your-api-key>")
+
+response = client.sn13.OnDemandData(
+    source='X',  # or 'Reddit'
+    usernames=["@nasa"],  # Optional, up to 5 users
+    keywords=["galaxy"],  # Optional, up to 5 keywords
+    start_date='2025-04-15',  # Defaults to 24h range if not specified
+    end_date='2025-05-15',  # Defaults to current time if not specified
+    limit=1000  # Optional, up to 1000 results
+)
+
+print(response)
+```
 
 ## Gravity
 Gravity is a decentralized data collection platform powered by Subnet 13 (Data Universe) on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Data Universe page](https://www.macrocosmos.ai/sn13).
