@@ -15,7 +15,7 @@ uv add macrocosmos
 ```
 
 # Usage
-For a comprehensive overview of available functionality and integration patterns, refer to the [Macrocosmos SDK guide](https://docs.macrocosmos.ai/developers/macrocosmos-sdk) and [API documentation](https://docs.macrocosmos.ai/developers/api-documentation).
+For a comprehensive overview of available functionality and integration patterns, refer to the [Macrocosmos SDK guide](https://docs.macrocosmos.ai/developers/macrocosmos-sdk).
 
 ## Apex
 Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).
