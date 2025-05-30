@@ -15,7 +15,7 @@ uv add macrocosmos
 ```
 
 # Usage
-For complete documentation on the SDK and API, check out the [Macrocosmos guide](https://guide.macrocosmos.ai/api-documentation/introduction).
+For a comprehensive overview of available functionality and integration patterns, refer to the [Macrocosmos SDK guide](https://docs.macrocosmos.ai/developers/macrocosmos-sdk).
 
 ## Apex
 Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).
@@ -46,6 +46,39 @@ response = client.web_search.search(
 )
 
 print(response)
+```
+
+### Deep Researcher
+
+#### Submit a deep researcher job
+
+```py
+import macrocosmos as mc
+
+client = mc.AsyncApexClient(api_key="<your-api-key>")
+submitted_response = await client.deep_research.create_job(
+        messages=[
+            {
+                "role": "user",
+                "content": """Can you propose a mechanism by which a decentralized network 
+                of AI agents could achieve provable alignment on abstract ethical principles 
+                without relying on human-defined ontologies or centralized arbitration?""",
+            }
+        ]
+    )
+
+print(submitted_response)
+```
+
+#### Retrieve the results of a deep researcher job
+
+```py
+import macrocosmos as mc
+
+client = mc.AsyncApexClient(api_key="<your-api-key>")
+polled_response = await client.deep_research.get_job_results(job_id="<your-job-id>")
+
+print(polled_response)
 ```
 
 ## SN13 OnDemandAPI
