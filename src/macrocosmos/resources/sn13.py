@@ -126,8 +126,8 @@ class SyncSn13:
     def OnDemandData(
         self,
         source: str,
-        usernames: List[str],
-        keywords: List[str],
+        usernames: Optional[List[str]]=[],
+        keywords: Optional[List[str]]=[],
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         limit: int = 5,
