@@ -10,7 +10,7 @@ import time
 import macrocosmos as mc
 
 async def fetch_data(client: mc.AsyncSn13Client, source: str, usernames: list, keywords: list, request_id: int):
-    """Fetch data for a single request and track its timing."""
+    """Fetch data for a single request and track its timing. Keep time range fixed for simplicity."""
     start_time = time.time()
     print(f"Starting request {request_id}...")
     
@@ -73,6 +73,7 @@ async def main():
     
     # Print summary of responses
     for i, response in enumerate(responses, 1):
+        print("\n--------------------------------")
         print(f"\nResponse {i}:")
         print(f"Status: {response.get('status', 'unknown')}")
         print(f"Number of results: {len(response.get('data', []))}")
