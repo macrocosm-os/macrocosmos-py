@@ -55,8 +55,8 @@ print(response)
 ```py
 import macrocosmos as mc
 
-client = mc.AsyncApexClient(api_key="<your-api-key>")
-submitted_response = await client.deep_research.create_job(
+client = mc.ApexClient(api_key="<your-api-key>")
+submitted_response = client.deep_research.create_job(
         messages=[
             {
                 "role": "user",
@@ -75,8 +75,8 @@ print(submitted_response)
 ```py
 import macrocosmos as mc
 
-client = mc.AsyncApexClient(api_key="<your-api-key>")
-polled_response = await client.deep_research.get_job_results(job_id="<your-job-id>")
+client = mc.ApexClient(api_key="<your-api-key>")
+polled_response = client.deep_research.get_job_results(job_id="<your-job-id>")
 
 print(polled_response)
 ```
