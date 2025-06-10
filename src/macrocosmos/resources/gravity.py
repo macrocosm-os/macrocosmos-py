@@ -352,6 +352,7 @@ class SyncGravity:
     def BuildDataset(
         self,
         crawler_id: str,
+        max_rows: int,
         notification_requests: List[
             Union[gravity_p2p.NotificationRequest, Dict]
         ] = None,
@@ -361,6 +362,7 @@ class SyncGravity:
 
         Args:
             crawler_id: The ID of the crawler to build a dataset for.
+            max_rows: The maximum number of rows to include in the dataset.
             notification_requests: The details of the notifications to be sent (optional).
 
         Returns:
@@ -369,6 +371,7 @@ class SyncGravity:
         return asyncio.run(
             self._async_gravity.BuildDataset(
                 crawler_id=crawler_id,
+                max_rows=max_rows,
                 notification_requests=notification_requests,
             )
         )

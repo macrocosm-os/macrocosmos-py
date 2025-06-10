@@ -1,6 +1,6 @@
 [project]
 name = "macrocosmos"
-version = "1.0.4"
+version = "1.0.5"
 description = "The official Python SDK for Macrocosmos"
 readme = "README.md"
 license = "Apache-2.0"
