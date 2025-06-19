@@ -1,4 +1,5 @@
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from google.protobuf import struct_pb2 as _struct_pb2
 from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
@@ -387,7 +388,41 @@ class GetChatSessionsResponse(_message.Message):
     chat_sessions: _containers.RepeatedCompositeFieldContainer[ChatSession]
     def __init__(self, chat_sessions: _Optional[_Iterable[_Union[ChatSession, _Mapping]]] = ...) -> None: ...
 
-class UpdateChatAttributeRequest(_message.Message):
+class GetStoredChatCompletionsRequest(_message.Message):
+    __slots__ = ("chat_id",)
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    chat_id: str
+    def __init__(self, chat_id: _Optional[str] = ...) -> None: ...
+
+class StoredChatCompletion(_message.Message):
+    __slots__ = ("id", "chat_id", "completion_type", "created_at", "completed_at", "user_prompt_text", "completion_text", "metadata", "error_message")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETED_AT_FIELD_NUMBER: _ClassVar[int]
+    USER_PROMPT_TEXT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TEXT_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    ERROR_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    chat_id: str
+    completion_type: str
+    created_at: _timestamp_pb2.Timestamp
+    completed_at: _timestamp_pb2.Timestamp
+    user_prompt_text: str
+    completion_text: str
+    metadata: _struct_pb2.Struct
+    error_message: str
+    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., completion_type: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., completed_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., error_message: _Optional[str] = ...) -> None: ...
+
+class GetStoredChatCompletionsResponse(_message.Message):
+    __slots__ = ("chat_completions",)
+    CHAT_COMPLETIONS_FIELD_NUMBER: _ClassVar[int]
+    chat_completions: _containers.RepeatedCompositeFieldContainer[StoredChatCompletion]
+    def __init__(self, chat_completions: _Optional[_Iterable[_Union[StoredChatCompletion, _Mapping]]] = ...) -> None: ...
+
+class UpdateChatAttributesRequest(_message.Message):
     __slots__ = ("chat_id", "attributes")
     class AttributesEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -402,8 +437,132 @@ class UpdateChatAttributeRequest(_message.Message):
     attributes: _containers.ScalarMap[str, str]
     def __init__(self, chat_id: _Optional[str] = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
-class UpdateChatAttributeResponse(_message.Message):
+class UpdateChatAttributesResponse(_message.Message):
+    __slots__ = ("chat",)
+    CHAT_FIELD_NUMBER: _ClassVar[int]
+    chat: ChatSession
+    def __init__(self, chat: _Optional[_Union[ChatSession, _Mapping]] = ...) -> None: ...
+
+class DeleteChatsRequest(_message.Message):
+    __slots__ = ("chat_ids",)
+    CHAT_IDS_FIELD_NUMBER: _ClassVar[int]
+    chat_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, chat_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class DeleteChatsResponse(_message.Message):
     __slots__ = ("success",)
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
     def __init__(self, success: bool = ...) -> None: ...
+
+class ParsedChat(_message.Message):
+    __slots__ = ("id", "title", "created_at", "chat_type")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    title: str
+    created_at: _timestamp_pb2.Timestamp
+    chat_type: str
+    def __init__(self, id: _Optional[str] = ..., title: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., chat_type: _Optional[str] = ...) -> None: ...
+
+class ParsedCompletion(_message.Message):
+    __slots__ = ("id", "chat_id", "created_at", "user_prompt_text", "completion_text", "completion_type", "metadata")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    USER_PROMPT_TEXT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TEXT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TYPE_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    chat_id: str
+    created_at: _timestamp_pb2.Timestamp
+    user_prompt_text: str
+    completion_text: str
+    completion_type: str
+    metadata: _struct_pb2.Struct
+    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., completion_type: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+
+class CreateChatAndCompletionRequest(_message.Message):
+    __slots__ = ("user_prompt", "chat_type", "completion_type", "title")
+    USER_PROMPT_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TYPE_FIELD_NUMBER: _ClassVar[int]
+    TITLE_FIELD_NUMBER: _ClassVar[int]
+    user_prompt: str
+    chat_type: str
+    completion_type: str
+    title: str
+    def __init__(self, user_prompt: _Optional[str] = ..., chat_type: _Optional[str] = ..., completion_type: _Optional[str] = ..., title: _Optional[str] = ...) -> None: ...
+
+class CreateChatAndCompletionResponse(_message.Message):
+    __slots__ = ("parsed_chat", "parsed_completion")
+    PARSED_CHAT_FIELD_NUMBER: _ClassVar[int]
+    PARSED_COMPLETION_FIELD_NUMBER: _ClassVar[int]
+    parsed_chat: ParsedChat
+    parsed_completion: ParsedCompletion
+    def __init__(self, parsed_chat: _Optional[_Union[ParsedChat, _Mapping]] = ..., parsed_completion: _Optional[_Union[ParsedCompletion, _Mapping]] = ...) -> None: ...
+
+class CreateCompletionRequest(_message.Message):
+    __slots__ = ("chat_id", "user_prompt", "completion_type")
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_PROMPT_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TYPE_FIELD_NUMBER: _ClassVar[int]
+    chat_id: str
+    user_prompt: str
+    completion_type: str
+    def __init__(self, chat_id: _Optional[str] = ..., user_prompt: _Optional[str] = ..., completion_type: _Optional[str] = ...) -> None: ...
+
+class CreateCompletionResponse(_message.Message):
+    __slots__ = ("parsed_completion",)
+    PARSED_COMPLETION_FIELD_NUMBER: _ClassVar[int]
+    parsed_completion: ParsedCompletion
+    def __init__(self, parsed_completion: _Optional[_Union[ParsedCompletion, _Mapping]] = ...) -> None: ...
+
+class DeleteCompletionsRequest(_message.Message):
+    __slots__ = ("completion_ids",)
+    COMPLETION_IDS_FIELD_NUMBER: _ClassVar[int]
+    completion_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, completion_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class DeleteCompletionsResponse(_message.Message):
+    __slots__ = ("success",)
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    def __init__(self, success: bool = ...) -> None: ...
+
+class SearchChatIdsByPromptAndCompletionTextRequest(_message.Message):
+    __slots__ = ("search_term",)
+    SEARCH_TERM_FIELD_NUMBER: _ClassVar[int]
+    search_term: str
+    def __init__(self, search_term: _Optional[str] = ...) -> None: ...
+
+class SearchChatIdsByPromptAndCompletionTextResponse(_message.Message):
+    __slots__ = ("chat_ids",)
+    CHAT_IDS_FIELD_NUMBER: _ClassVar[int]
+    chat_ids: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, chat_ids: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class UpdateCompletionAttributesRequest(_message.Message):
+    __slots__ = ("completion_id", "completion_text", "metadata")
+    COMPLETION_ID_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TEXT_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    completion_id: str
+    completion_text: str
+    metadata: _struct_pb2.Struct
+    def __init__(self, completion_id: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+
+class UpdateCompletionAttributesResponse(_message.Message):
+    __slots__ = ("completion",)
+    COMPLETION_FIELD_NUMBER: _ClassVar[int]
+    completion: StoredChatCompletion
+    def __init__(self, completion: _Optional[_Union[StoredChatCompletion, _Mapping]] = ...) -> None: ...
+
+class GetCompletionsWithDeepResearcherEntryResponse(_message.Message):
+    __slots__ = ("completions",)
+    COMPLETIONS_FIELD_NUMBER: _ClassVar[int]
+    completions: _containers.RepeatedCompositeFieldContainer[ParsedCompletion]
+    def __init__(self, completions: _Optional[_Iterable[_Union[ParsedCompletion, _Mapping]]] = ...) -> None: ...

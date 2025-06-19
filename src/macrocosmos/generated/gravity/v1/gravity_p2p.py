@@ -27,11 +27,19 @@ class CrawlerCriteria(BaseModel):
 # platform: the platform of the job ('x' or 'reddit')
     platform: str = Field(default="")
 # topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-    topic: str = Field(default="")
+    topic: typing.Optional[str] = Field(default="")
 # notification: the details of the notification to be sent to the user
     notification: CrawlerNotification = Field(default_factory=CrawlerNotification)
 # mock: Used for testing purposes (optional, defaults to false)
     mock: bool = Field(default=False)
+# user_id: the ID of the user who created the gravity task
+    user_id: str = Field(default="")
+# keyword: the keyword to search for in the job (optional)
+    keyword: typing.Optional[str] = Field(default="")
+# post_start_datetime: the start date of the job (optional)
+    post_start_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
+# post_end_datetime: the end date of the job (optional)
+    post_end_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
 
 class HfRepo(BaseModel):
     """
@@ -128,9 +136,15 @@ class GravityTask(BaseModel):
     """
 
 # topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-    topic: str = Field(default="")
+    topic: typing.Optional[str] = Field(default="")
 # platform: the platform of the job ('x' or 'reddit')
     platform: str = Field(default="")
+# keyword: the keyword to search for in the job (optional)
+    keyword: typing.Optional[str] = Field(default="")
+# post_start_datetime: the start date of the job (optional)
+    post_start_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
+# post_end_datetime: the end date of the job (optional)
+    post_end_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
 
 class NotificationRequest(BaseModel):
     """

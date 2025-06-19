@@ -25,16 +25,24 @@ class Crawler(_message.Message):
     def __init__(self, crawler_id: _Optional[str] = ..., criteria: _Optional[_Union[CrawlerCriteria, _Mapping]] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., deregistration_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., archive_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., state: _Optional[_Union[CrawlerState, _Mapping]] = ..., dataset_workflows: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CrawlerCriteria(_message.Message):
-    __slots__ = ("platform", "topic", "notification", "mock")
+    __slots__ = ("platform", "topic", "notification", "mock", "user_id", "keyword", "post_start_datetime", "post_end_datetime")
     PLATFORM_FIELD_NUMBER: _ClassVar[int]
     TOPIC_FIELD_NUMBER: _ClassVar[int]
     NOTIFICATION_FIELD_NUMBER: _ClassVar[int]
     MOCK_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    KEYWORD_FIELD_NUMBER: _ClassVar[int]
+    POST_START_DATETIME_FIELD_NUMBER: _ClassVar[int]
+    POST_END_DATETIME_FIELD_NUMBER: _ClassVar[int]
     platform: str
     topic: str
     notification: CrawlerNotification
     mock: bool
-    def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., notification: _Optional[_Union[CrawlerNotification, _Mapping]] = ..., mock: bool = ...) -> None: ...
+    user_id: str
+    keyword: str
+    post_start_datetime: _timestamp_pb2.Timestamp
+    post_end_datetime: _timestamp_pb2.Timestamp
+    def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., notification: _Optional[_Union[CrawlerNotification, _Mapping]] = ..., mock: bool = ..., user_id: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class CrawlerNotification(_message.Message):
     __slots__ = ("to", "link")
@@ -97,12 +105,18 @@ class GetGravityTasksResponse(_message.Message):
     def __init__(self, gravity_task_states: _Optional[_Iterable[_Union[GravityTaskState, _Mapping]]] = ...) -> None: ...
 
 class GravityTask(_message.Message):
-    __slots__ = ("topic", "platform")
+    __slots__ = ("topic", "platform", "keyword", "post_start_datetime", "post_end_datetime")
     TOPIC_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_FIELD_NUMBER: _ClassVar[int]
+    KEYWORD_FIELD_NUMBER: _ClassVar[int]
+    POST_START_DATETIME_FIELD_NUMBER: _ClassVar[int]
+    POST_END_DATETIME_FIELD_NUMBER: _ClassVar[int]
     topic: str
     platform: str
-    def __init__(self, topic: _Optional[str] = ..., platform: _Optional[str] = ...) -> None: ...
+    keyword: str
+    post_start_datetime: _timestamp_pb2.Timestamp
+    post_end_datetime: _timestamp_pb2.Timestamp
+    def __init__(self, topic: _Optional[str] = ..., platform: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class NotificationRequest(_message.Message):
     __slots__ = ("type", "address", "redirect_url")
