@@ -4,6 +4,7 @@ package apex.v1;
 
 option go_package = "macrocosm-os/rift/constellation_api/gen/apex/v1";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 
 
@@ -26,8 +27,32 @@ service ApexService {
   // GetChatSessions retrieves a user's chats
   rpc GetChatSessions(google.protobuf.Empty) returns (GetChatSessionsResponse);
 
-  // UpdateChatAttribute updates attribute after asking LLM for one
-  rpc UpdateChatAttribute(UpdateChatAttributeRequest) returns (UpdateChatAttributeResponse); 
+  // GetStoredChatCompletions retrieves a chat's completions
+  rpc GetStoredChatCompletions(GetStoredChatCompletionsRequest) returns (GetStoredChatCompletionsResponse);
+
+  // UpdateChatAttributes updates specified attributes of a chat
+  rpc UpdateChatAttributes(UpdateChatAttributesRequest) returns (UpdateChatAttributesResponse);
+
+  // DeleteChats removes chats based on the specified chat_ids
+  rpc DeleteChats(DeleteChatsRequest) returns (DeleteChatsResponse);
+
+  // CreateChatAndCompletion makes a new chat when completion present, otherwise sets as new chat
+  rpc CreateChatAndCompletion(CreateChatAndCompletionRequest) returns (CreateChatAndCompletionResponse);
+
+  // CreateCompletion creates a new completion for an existing chat
+  rpc CreateCompletion(CreateCompletionRequest) returns (CreateCompletionResponse);
+
+  // DeleteCompletions removes completions based on the specified completion_ids
+  rpc DeleteCompletions(DeleteCompletionsRequest) returns (DeleteCompletionsResponse);
+
+  // SearchChatIdsByPromptAndCompletionText searches for completions where the parent chat has the user's ID and either user_prompt_text OR completion_text matches the search_term
+  rpc SearchChatIdsByPromptAndCompletionText(SearchChatIdsByPromptAndCompletionTextRequest) returns (SearchChatIdsByPromptAndCompletionTextResponse);
+
+  //UpdateCompletionAttributes updates attribute for a given chat completion
+  rpc UpdateCompletionAttributes(UpdateCompletionAttributesRequest) returns (UpdateCompletionAttributesResponse);
+
+  //GetCompletionsWithDeepResearcherEntry returns a list of completions that contain metadata on deep researcher
+  rpc GetCompletionsWithDeepResearcherEntry(google.protobuf.Empty) returns (GetCompletionsWithDeepResearcherEntryResponse);
 }
 
 // A request to generate completions following Apex CompletionsRequest format.
@@ -436,15 +461,175 @@ message GetChatSessionsResponse {
   repeated ChatSession chat_sessions = 1;
 }
 
+// A GetStoredChatCompletionRequest request message
+message GetStoredChatCompletionsRequest {
+  // chat_id: a unique identifier for a chat
+  string chat_id = 1;
+}
+
+
+// A StoredChatCompletion message repeated in GetStoredChatCompletionsResponse
+message StoredChatCompletion {
+  // id: chat completion id
+  string id = 1;
+  // chat_id: chat id
+  string chat_id = 2;
+  // completion_type: type of completion
+  string completion_type = 3;  
+  // created_at: when the chat was created
+  google.protobuf.Timestamp created_at = 4;
+  // completed_at: when the chat was updated
+  google.protobuf.Timestamp completed_at = 5;
+  // user_prompt_text: user_prompt_text of chat
+  string user_prompt_text = 6;
+  // completion_text: completion_text of chat
+  string completion_text = 7;  
+  // metadata: metadata json blob
+  google.protobuf.Struct metadata = 8;
+  // error_message: error_message if any
+  string error_message = 9;    
+}
+
+// A GetChatStoredChatCompletionResponse response
+message GetStoredChatCompletionsResponse {
+  // chat_completions: the chat completions
+  repeated StoredChatCompletion chat_completions = 1;
+}
+
 // Directly model the attributes as a map
-message UpdateChatAttributeRequest {
+message UpdateChatAttributesRequest {
   // chat_id: the unique id associated to a users chat message
   string chat_id = 1;
   // attributes: the data attributes captured in the chat logging process
   map<string, string> attributes = 2;
 }
 
-message UpdateChatAttributeResponse {
-  // success: indicates if an attribute update was successful
+// A UpdateChatAttributes response
+message UpdateChatAttributesResponse {
+  // chat: the updated chat row from the chats table
+  ChatSession chat = 1;
+}
+
+// A DeleteChats request
+message DeleteChatsRequest{
+  // chat_ids: the unique ids associated to user chat messages that should be deleted
+  repeated string chat_ids = 1;
+}
+
+// A DeleteChats response
+message DeleteChatsResponse {
+  // success: indicates if the deletion was successful
   bool success = 1;
+}
+
+// A ParsedChat message serving as part of the CreateChatAndCompletion response
+message ParsedChat {
+  // id: the chat_id
+  string id = 1;
+  // title: title of the chat
+  string title = 2;
+  // created_at: the time the chat was created
+  google.protobuf.Timestamp created_at = 3;
+  // chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+  string chat_type = 4;
+}
+
+// A ParsedCompletion message serving as part of the CreateChatAndCompletion response
+message ParsedCompletion {
+  // id: the completion_id
+  string id = 1;
+  //chat_id: the chat_id
+  string chat_id = 2;
+  // created_at: the time the completion was created
+  google.protobuf.Timestamp created_at = 3;
+  // user_prompt_text: the user's chat prompt text
+  string user_prompt_text = 4;
+  // completion_text: the user's completion text 
+  string completion_text = 5;
+  // completion_type: type of completion
+  string completion_type = 6;  
+  // metadata: metadata json blob
+  google.protobuf.Struct metadata = 7;
+}
+
+// A CreateChatAndCompletion request
+message CreateChatAndCompletionRequest {
+  // user_prompt: the prompt the user issues
+  string user_prompt = 1;
+  // chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+  string chat_type = 2;
+  // completion_type: specific to completions and might accompany specific kinds of metadata (e.g.: "basic", "combined")
+  string completion_type = 3;
+  // title: the title of the new chat (optional)
+  optional string title = 4;
+}
+
+// A CreateChatAndCompletion response
+message CreateChatAndCompletionResponse {
+  // parsed_chat: the chat row that was successfully created
+  ParsedChat parsed_chat = 1;
+  // parsed_completion: the completion row that was successfully created
+  ParsedCompletion parsed_completion = 2;
+}
+
+// A CreateCompletion request
+message CreateCompletionRequest {
+  // chat_id: the ID of the chat to create the completion for
+  string chat_id = 1;
+  // user_prompt: the prompt the user issues
+  string user_prompt = 2;
+  // completion_type: the completion type e.g. basic, reasoning etc.
+  string completion_type = 3;
+}
+
+// A CreateCompletion response
+message CreateCompletionResponse {
+  // parsed_completion: the completion row that was successfully created
+  ParsedCompletion parsed_completion = 1;
+}
+
+// A DeleteCompletions request
+message DeleteCompletionsRequest {
+  // completion_ids: the unique ids associated to user chat-completions that should be deleted
+  repeated string completion_ids = 1;
+}
+
+// A DeleteCompletions response
+message DeleteCompletionsResponse {
+  // success: indicates if the deletion was successful
+  bool success = 1;
+}
+
+// A SearchChatIdsByPromptAndCompletionText request
+message SearchChatIdsByPromptAndCompletionTextRequest {
+  // search_term: the user supplied search term
+  string search_term = 1;
+}
+
+// A SearchChatIdsByPromptAndCompletionText response
+message SearchChatIdsByPromptAndCompletionTextResponse {
+  // chat_ids: a list of chat_ids which adhere to the search criteria
+  repeated string chat_ids = 1;
+}
+
+// An UpdateCompletionAttributes request
+message UpdateCompletionAttributesRequest {
+  // completion_id: the chat completion id
+  string completion_id = 1;
+  // completion_text: the user's completion text (optional)
+  optional string completion_text = 2;
+  // metadata: metadata json blob (optional)
+  google.protobuf.Struct metadata = 3;
+}
+
+// An UpdateCompletionAttributes response
+message UpdateCompletionAttributesResponse {
+  // completion: the chat completion that has been updated
+  StoredChatCompletion completion = 1;
+}
+
+// A GetCompletionsWithDeepResearcherEntry response (request is not required)
+message GetCompletionsWithDeepResearcherEntryResponse {
+  // completions: a list of completion objects containing deep researcher metadata
+  repeated ParsedCompletion completions = 1;
 }

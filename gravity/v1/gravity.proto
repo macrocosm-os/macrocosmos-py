@@ -29,7 +29,7 @@ service GravityService {
   rpc CancelDataset(CancelDatasetRequest) returns (CancelDatasetResponse);
 
   // Refund user if fewer rows are returned
-  rpc DatasetBillingCorrection(DatasetBillingCorrectionRequest) returns (DatasetBillingCorrectionResponse);  
+  rpc DatasetBillingCorrection(DatasetBillingCorrectionRequest) returns (DatasetBillingCorrectionResponse);
 }
 
 // Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
@@ -55,11 +55,19 @@ message CrawlerCriteria {
   // platform: the platform of the job ('x' or 'reddit')
   string platform = 1;
   // topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-  string topic = 2;
+  optional string topic = 2;
   // notification: the details of the notification to be sent to the user
   CrawlerNotification notification = 3;
   // mock: Used for testing purposes (optional, defaults to false)
   bool mock = 4;
+  // user_id: the ID of the user who created the gravity task
+  string user_id = 5;
+  // keyword: the keyword to search for in the job (optional)
+  optional string keyword = 6;
+  // post_start_datetime: the start date of the job (optional)
+  optional google.protobuf.Timestamp post_start_datetime = 7;
+  // post_end_datetime: the end date of the job (optional)
+  optional google.protobuf.Timestamp post_end_datetime = 8;
 }
 
 // CrawlerNotification is the details of the notification to be sent to the user
@@ -132,9 +140,15 @@ message GetGravityTasksResponse {
 // GravityTask defines a crawler's criteria for a single job (platform/topic)
 message GravityTask {
   // topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-  string topic = 1;
+  optional string topic = 1;
   // platform: the platform of the job ('x' or 'reddit')
   string platform = 2;
+  // keyword: the keyword to search for in the job (optional)
+  optional string keyword = 3;
+  // post_start_datetime: the start date of the job (optional)
+  optional google.protobuf.Timestamp post_start_datetime = 4;
+  // post_end_datetime: the end date of the job (optional)
+  optional google.protobuf.Timestamp post_end_datetime = 5;
 }
 
 // NotificationRequest is the request message for sending a notification to a user when a dataset is ready to download

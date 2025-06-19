@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package logger.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/logger/v1";
+
+service LoggerService {
+  // CreateRun creates a new run
+  rpc CreateRun(CreateRunRequest) returns (Ack);
+
+  // StoreRecordBatch stores a batch of records
+  rpc StoreRecordBatch(StoreRecordBatchRequest) returns (Ack);
+}
+
+// Ack is a response to a request
+message Ack {
+  // status is the status of the request
+  string status = 1;
+  // message is the message of the request
+  string message = 2;
+}
+
+// CreateRunRequest is a request to create a new run
+message CreateRunRequest {
+  // run_id is the ID of the run
+  string run_id = 1;
+  // name is the name of the run
+  string name = 2;
+  // project is the project of the run
+  string project = 3;
+  // tags are the tags of the run
+  repeated string tags = 4;
+  // config_json is the config of the run
+  string config_json = 5;
+  // created_at is the timestamp of the run
+  google.protobuf.Timestamp created_at = 6;
+  // description is the description of the run
+  optional string description = 7;
+  // notes are the notes of the run
+  optional string notes = 8;
+  // entity is the entity of the run
+  optional string entity = 9;
+}
+
+// Record is a record in the logger
+message Record {
+  // timestamp is the timestamp of the record
+  google.protobuf.Timestamp timestamp = 1;
+  // payload_json is the payload of the record
+  string payload_json = 2;
+  // payload_name is the name of the payload (used in artifact storage)
+  optional string payload_name = 3;
+  // sequence is the sequence of the record (used as "step" in history)
+  optional int64 sequence = 4;
+  // runtime is the runtime of the record (seconds since ran began)
+  optional float runtime = 5;
+}
+
+// StoreRecordBatchRequest is a request to store a batch of records
+message StoreRecordBatchRequest {
+  // run_id is the ID of the run
+  string run_id = 1;
+  // project is the project of the record
+  string project = 2;
+  // type is the record type
+  string type = 3;
+  // records are the records to store
+  repeated Record records = 4;
+}
