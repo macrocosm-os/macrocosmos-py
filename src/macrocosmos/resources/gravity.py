@@ -250,10 +250,6 @@ class AsyncGravity:
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
-            (
-                "remote-user-email",
-                "example@example.com",
-            ),  # TODO: Remove this once authentication is fully implemented
         ]
 
         compression = grpc.Compression.Gzip if self._client.compress else None
