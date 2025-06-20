@@ -44,7 +44,7 @@ class Run:
     def to_header_dict(self) -> Dict[str, Any]:
         """Convert run metadata to a header dictionary for file writing."""
         return {
-            "type": "header",
+            "__type": "header",
             "run_id": self.run_id,
             "project": self.project,
             "entity": self.entity,

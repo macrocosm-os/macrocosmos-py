@@ -14,9 +14,10 @@ from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.logger.v1 import logger_pb2
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources.logging.file_manager import (
+    FileType,
     FileManager,
     File,
-    FILE_TYPES,
+    FILE_MAP,
     TEMP_FILE_SUFFIX,
 )
 from macrocosmos.resources.logging.run import Run
@@ -132,10 +133,6 @@ class AsyncLogger:
         # Create file manager
         self._file_manager = FileManager(self._temp_dir, self._run)
 
-        # Write header to history file (log file header will be written by ConsoleCapture)
-        history_file = self._file_manager.get_file("history")
-        history_file.write_run_header_from_run(self._run)
-
         # Create run via gRPC
         await self._create_run()
 
@@ -184,15 +181,7 @@ class AsyncLogger:
         }
 
         # Write to history file
-        history_file = self._file_manager.get_file("history")
-
-        # Check if file exists and has header, write header if needed
-        with history_file.lock:
-            if not history_file.exists():
-                history_file.write_run_header_from_run(self._run, auto_lock=False)
-
-            # Write the record using the file object's write method with conditional locking
-            history_file.write(json.dumps(record) + "\n", auto_lock=False)
+        self._file_manager.get_file(FileType.HISTORY).write(json.dumps(record) + "\n")
 
     async def finish(self) -> None:
         """
@@ -240,7 +229,7 @@ class AsyncLogger:
     async def _send_remaining_data(self) -> None:
         """Send any remaining data in files."""
         if self._temp_dir and self._temp_dir.exists():
-            for file_type in FILE_TYPES.keys():
+            for file_type in FILE_MAP.keys():
                 if self._file_manager.get_file(file_type).exists():
                     await self._upload_worker._send_file_data_async(
                         self._file_manager.get_file(file_type)
@@ -258,7 +247,7 @@ class AsyncLogger:
                 tmp_upload_worker = UploadWorker(
                     tmp_file_manager, self._client, self._stop_upload
                 )
-                for file_type in FILE_TYPES.keys():
+                for file_type in FILE_MAP.keys():
                     file_obj = tmp_file_manager.get_file(file_type)
                     if file_obj.exists():
                         await tmp_upload_worker._send_file_data_async(file_obj)

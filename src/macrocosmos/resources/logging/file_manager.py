@@ -14,12 +14,10 @@ class FileType(Enum, str):
 
 
 TEMP_FILE_SUFFIX = ".tmp"
-LOG_FILE_NAME = "logs.jsonl"
-HISTORY_FILE_NAME = "history.jsonl"
-FILE_TYPES = {FileType.LOG: LOG_FILE_NAME, FileType.HISTORY: HISTORY_FILE_NAME}
-
-# TODO: we should check our locking behavior and make sure we're attempting to lock something that is already locked
-# as well as if a lock might need to be moved because of a race condition we introduced.
+FILE_MAP = {
+    FileType.LOG: "logs.jsonl",
+    FileType.HISTORY: "history.jsonl",
+}
 
 
 class File:
@@ -66,7 +64,6 @@ class File:
     def write_run_header_from_run(self, run: Run, auto_lock: bool = True) -> None:
         """Write a header row to a file using a Run object."""
         header = run.to_header_dict()
-        header["__type"] = "header"
         header["type"] = self.file_type.value
         self.write_header(json.dumps(header) + "\n", auto_lock=auto_lock)
 
@@ -101,7 +98,7 @@ class File:
                 first_line = f.readline().strip()
                 if first_line:
                     header_data = json.loads(first_line)
-                    if header_data.get("type") == "header":
+                    if header_data.get("__type") == "header":
                         return header_data
         except (json.JSONDecodeError, IOError):
             pass
@@ -114,8 +111,10 @@ class FileManager:
     def __init__(self, temp_dir: Path, run: Optional[Run] = None):
         self.temp_dir = temp_dir
         self.run = run
-        self.history_file = File(temp_dir / HISTORY_FILE_NAME, FileType.HISTORY, run)
-        self.log_file = File(temp_dir / LOG_FILE_NAME, FileType.LOG, run)
+        self.history_file = File(
+            temp_dir / FILE_MAP[FileType.HISTORY], FileType.HISTORY, run
+        )
+        self.log_file = File(temp_dir / FILE_MAP[FileType.LOG], FileType.LOG, run)
 
     def get_file(self, file_type: FileType) -> File:
         """Get the file object for a given file type."""

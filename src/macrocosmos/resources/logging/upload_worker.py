@@ -11,7 +11,7 @@ from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources.logging.file_manager import (
     File,
     FileManager,
-    FILE_TYPES,
+    FILE_MAP,
     TEMP_FILE_SUFFIX,
 )
 from macrocosmos.resources.logging.request import make_request
@@ -119,7 +119,6 @@ class UploadWorker:
                             record_data = json.loads(line)
 
                             # Skip header row
-                            # TODO: this check for header has to change since "type" is already reserved for 'log' and 'history'
                             if record_data.get("__type") == "header":
                                 continue
 
@@ -169,7 +168,7 @@ class UploadWorker:
         """Background worker to upload data files."""
         while not self._stop_upload.is_set():
             try:
-                for file_type in FILE_TYPES.keys():
+                for file_type in FILE_MAP.keys():
                     file_obj = self.file_manager.get_file(file_type.name)
                     should_upload = False
                     with file_obj.lock:

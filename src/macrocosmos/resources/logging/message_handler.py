@@ -81,6 +81,7 @@ class ConsoleCapture:
         """Helper to write captured data to the log file."""
         if not data:
             return
+        # TODO: revisit the contents of the record
         timestamp = datetime.now().isoformat()
         record = {
             "timestamp": timestamp,
@@ -100,12 +101,6 @@ class ConsoleCapture:
         if self._capturing:
             return
         self._capturing = True
-
-        # Check if file exists and has header, write header if needed
-        with self.log_file.lock:
-            if not self.log_file.exists():
-                # Use the File object's write_run_header_from_run method which handles locking
-                self.log_file.write_run_header_from_run(self.run, auto_lock=False)
 
         if self.is_windows:
             self._start_windows_capture()
