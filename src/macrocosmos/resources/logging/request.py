@@ -1,0 +1,52 @@
+import grpc
+
+from macrocosmos import __package_name__, __version__
+from macrocosmos.generated.logger.v1 import logger_pb2, logger_pb2_grpc
+from macrocosmos.resources._client import BaseClient
+from macrocosmos.types import MacrocosmosError
+
+
+async def make_request(client: BaseClient, method_name: str, request) -> logger_pb2.Ack:
+    """
+    Make a request to the Logger service.
+
+    Args:
+        client: The client instance for making requests.
+        method_name: The name of the method to call.
+        request: The request message.
+
+    Returns:
+        The response from the service.
+    """
+    metadata = [
+        ("x-source", client.app_name),
+        ("x-client-id", __package_name__),
+        ("x-client-version", __version__),
+    ]
+
+    compression = grpc.Compression.Gzip if client.compress else None
+
+    retries = 0
+    last_error = None
+    while retries <= client.max_retries:
+        try:
+            channel = client.get_channel()
+            stub = logger_pb2_grpc.LoggerServiceStub(channel)
+            method = getattr(stub, method_name)
+            response = await method(
+                request,
+                metadata=metadata,
+                timeout=client.timeout,
+                compression=compression,
+            )
+            await channel.close()
+            return response
+        except grpc.RpcError as e:
+            last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
+            retries += 1
+            await channel.close()
+        except Exception as e:
+            await channel.close()
+            raise MacrocosmosError(f"Error calling {method_name}: {e}")
+
+    raise last_error
