@@ -77,7 +77,7 @@ class ConsoleCapture:
             self._stdout_pipe_write: Optional[int] = None
             self._stderr_pipe_write: Optional[int] = None
 
-    def _log_data(self, data: str, stream_name: str):
+    def _log_data(self, data: str, stream_name: str, line_number: int):
         """Helper to write captured data to the log file."""
         if not data:
             return
@@ -85,8 +85,10 @@ class ConsoleCapture:
         timestamp = datetime.now().isoformat()
         record = {
             "timestamp": timestamp,
-            "payload_json": json.dumps({"stream": stream_name, "data": data}),
+            "payload_json": json.dumps({"stream": stream_name, "message": data}),
             "payload_name": f"{stream_name}_output",
+            "runtime": self.run.runtime,
+            "sequence": line_number,
         }
 
         # Use the File object's write method which handles locking
@@ -126,8 +128,8 @@ class ConsoleCapture:
             with os.fdopen(
                 read_fd, "r", encoding="utf-8", errors="replace", buffering=1
             ) as reader:
-                for line in reader:
-                    self._log_data(line.rstrip(), stream_name)
+                for line_number, line in enumerate(reader):
+                    self._log_data(line.rstrip(), stream_name, line_number)
                     try:
                         os.write(forward_fd, line.encode("utf-8", "replace"))
                     except OSError:

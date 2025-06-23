@@ -30,42 +30,39 @@ class File:
         self.run = run
 
     def write(self, content: str, auto_lock: bool = True) -> None:
-        """Write content to the file with lock protection."""
+        """Write content to the file with lock protection (append mode)."""
         if auto_lock:
-            # Acquire lock ourselves
             with self.lock:
-                self._write_with_header_check(content)
+                self._write(content, mode="a", include_header=True)
         else:
-            # Assume lock is already held by caller
-            self._write_with_header_check(content)
+            self._write(content, mode="a", include_header=True)
 
-    def _write_with_header_check(self, content: str) -> None:
-        """Write content, recreating file with header if it doesn't exist."""
-        if not self.path.exists():
-            # File was renamed (sent to server), start a new file with header
-            if self.run is not None:
-                self.write_run_header_from_run(self.run, auto_lock=False)
+    def _write(
+        self, content: str, *, mode: str = "a", include_header: bool = True
+    ) -> None:
+        """Internal helper that handles all file-writing permutations.
 
-        with open(self.path, "a") as f:
-            f.write(content)
+        Args:
+            content: The string data that should be written to the file.
+            mode: The file mode – "a" (append) or "w" (overwrite).
+            include_header: When True and the file does not yet exist, a header row
+                derived from `self.run` is written before the supplied content.
+        """
+        # Transparently create the directory if it disappeared between runs
+        self.path.parent.mkdir(parents=True, exist_ok=True)
 
-    def write_header(self, content: str, auto_lock: bool = True) -> None:
-        """Write header content to the file with lock protection."""
-        if auto_lock:
-            # Acquire lock ourselves
-            with self.lock:
-                with open(self.path, "w") as f:
-                    f.write(content)
-        else:
-            # Assume lock is already held by caller
+        # If requested, write the header first when the file is missing.
+        if include_header and self.run is not None and not self.path.exists():
+            header_dict = self.run.to_header_dict()
+            header_dict["type"] = self.file_type.value
+            header_line = json.dumps(header_dict) + "\n"
+            # Ensure we start with a fresh file for the header
             with open(self.path, "w") as f:
-                f.write(content)
+                f.write(header_line)
 
-    def write_run_header_from_run(self, run: Run, auto_lock: bool = True) -> None:
-        """Write a header row to a file using a Run object."""
-        header = run.to_header_dict()
-        header["type"] = self.file_type.value
-        self.write_header(json.dumps(header) + "\n", auto_lock=auto_lock)
+        # Now write the actual payload in the desired mode
+        with open(self.path, mode) as f:
+            f.write(content)
 
     def exists(self) -> bool:
         """Check if the file exists."""
@@ -103,6 +100,21 @@ class File:
         except (json.JSONDecodeError, IOError):
             pass
         return None
+
+    def has_records(self) -> bool:
+        """Check if a file has records (excluding header)."""
+        # Note: file existence is checked by the caller, so we don't check again here
+        # to avoid race conditions
+
+        try:
+            with open(self.path, "r") as f:
+                # Skip header
+                f.readline()
+                # Check if second line has content
+                second_line = f.readline().strip()
+                return bool(second_line)
+        except IOError:
+            return False
 
 
 class FileManager:

@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from google.protobuf import timestamp_pb2
 from macrocosmos.generated.logger.v1 import logger_pb2
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources.logging.file_manager import (
@@ -15,6 +16,9 @@ from macrocosmos.resources.logging.file_manager import (
     TEMP_FILE_SUFFIX,
 )
 from macrocosmos.resources.logging.request import make_request
+
+MAX_FILE_SIZE_MB = 5  # 5MB
+MIN_FILE_AGE_SEC = 10  # 10 seconds
 
 
 class UploadWorker:
@@ -38,48 +42,32 @@ class UploadWorker:
         self.client = client
         self._stop_upload = stop_upload
 
-    def _should_upload_file(self, file_path: Path) -> bool:
+    def _should_upload_file(self, file_obj: File) -> bool:
         """Check if a file should be uploaded based on size and time."""
         # Note: This method is called while holding the file lock, so file existence
         # should be stable, but we still handle potential race conditions defensively
 
         try:
-            if not file_path.exists():
+            if not file_obj.exists():
                 return False
 
             # Get file stats once to avoid multiple stat calls
-            stat_info = file_path.stat()
+            stat_info = file_obj.path.stat()
 
             # Check file size (>5MB)
-            if stat_info.st_size > 5 * 1024 * 1024:
+            if stat_info.st_size > MAX_FILE_SIZE_MB * 1024 * 1024:
                 return True
 
             # Check if there are records to upload (excluding header)
-            if self._has_records(file_path):
+            if file_obj.has_records():
                 # Check file age (>10s) using the stat info we already have
                 file_age = time.time() - stat_info.st_mtime
-                if file_age > 10:
+                if file_age > MIN_FILE_AGE_SEC:
                     return True
 
             return False
         except (OSError, IOError):
             # File was deleted or became inaccessible between checks
-            return False
-
-    # TODO: this should be a method on the File object
-    def _has_records(self, file_path: Path) -> bool:
-        """Check if a file has records (excluding header)."""
-        # Note: file existence is checked by the caller, so we don't check again here
-        # to avoid race conditions
-
-        try:
-            with open(file_path, "r") as f:
-                # Skip header
-                f.readline()
-                # Check if second line has content
-                second_line = f.readline().strip()
-                return bool(second_line)
-        except IOError:
             return False
 
     async def _send_file_data_async(
@@ -100,13 +88,14 @@ class UploadWorker:
 
             # Check if there are records before renaming
             with file_obj.lock:
-                if not self._has_records(file_obj.path):
+                if not file_obj.has_records():
                     # No records, just clean up the file
                     if file_obj.path.exists():
                         file_obj.path.unlink()
                     return
                 file_obj.path.rename(temp_file)
 
+        # Using temp file, we don't need to lock the file since there will only be one upload worker
         try:
             records = []
             with open(temp_file, "r") as f:
@@ -122,12 +111,13 @@ class UploadWorker:
                             if record_data.get("__type") == "header":
                                 continue
 
-                            # TODO: need to fix the timestamp type here since the protobuf expects a google.protobuf.Timestamp
-                            # TODO: need to consider how the data in the file is formatted to match this expected format
+                            # Convert datetime string to protobuf timestamp
+                            dt = datetime.fromisoformat(record_data["timestamp"])
+                            timestamp = timestamp_pb2.Timestamp()
+                            timestamp.FromDatetime(dt)
+
                             record = logger_pb2.Record(
-                                timestamp=datetime.fromisoformat(
-                                    record_data["timestamp"]
-                                ),
+                                timestamp=timestamp,
                                 payload_json=record_data["payload_json"],
                                 payload_name=record_data.get("payload_name"),
                                 sequence=record_data.get("sequence"),
@@ -139,7 +129,6 @@ class UploadWorker:
                             continue
 
             if records:
-                # TODO: we need to expand this to include other data needed
                 request = logger_pb2.StoreRecordBatchRequest(
                     run_id=header_data.get("run_id"),
                     project=header_data.get("project"),
@@ -172,9 +161,7 @@ class UploadWorker:
                     file_obj = self.file_manager.get_file(file_type.name)
                     should_upload = False
                     with file_obj.lock:
-                        if file_obj.exists() and self._should_upload_file(
-                            file_obj.path
-                        ):
+                        if file_obj.exists() and self._should_upload_file(file_obj):
                             should_upload = True
 
                     if should_upload:

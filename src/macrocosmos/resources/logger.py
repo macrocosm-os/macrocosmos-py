@@ -22,6 +22,7 @@ from macrocosmos.resources.logging.file_manager import (
 )
 from macrocosmos.resources.logging.run import Run
 from macrocosmos.resources.logging.upload_worker import UploadWorker
+from macrocosmos.resources.logging.console_handler import ConsoleCapture
 from macrocosmos.resources.logging.request import make_request
 
 
@@ -37,9 +38,7 @@ class AsyncLogger:
         """
         self._client = client
         self._run: Optional[Run] = None
-        self._console_capture: Optional[Any] = (
-            None  # Type will be ConsoleCapture when imported
-        )
+        self._console_capture: Optional[ConsoleCapture] = None
         self._temp_dir: Optional[Path] = None
         self._file_manager: Optional[FileManager] = None
         self._upload_thread: Optional[threading.Thread] = None
@@ -142,9 +141,6 @@ class AsyncLogger:
             "1",
             "yes",
         ):
-            # Import ConsoleCapture only when needed to avoid unnecessary setup
-            from macrocosmos.resources.logging.message_handler import ConsoleCapture
-
             self._console_capture = ConsoleCapture(
                 self._file_manager.log_file, self._run
             )
@@ -162,7 +158,7 @@ class AsyncLogger:
 
         return self._run.run_id
 
-    async def log(self, data: Dict[str, Any], step: Optional[int] = None) -> None:
+    async def log(self, data: Dict[str, Any]) -> None:
         """
         Log data to the run.
 
@@ -176,7 +172,7 @@ class AsyncLogger:
         record = {
             "timestamp": datetime.now().isoformat(),
             "payload_json": json.dumps(data),
-            "sequence": step,
+            "sequence": self._run.next_step(),
             "runtime": self._run.runtime,
         }
 

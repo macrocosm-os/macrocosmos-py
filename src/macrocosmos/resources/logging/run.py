@@ -16,6 +16,7 @@ class Run:
         tags: Optional[List[str]] = None,
         config: Optional[Dict[str, Any]] = None,
         start_time: Optional[datetime] = None,
+        initial_step: Optional[int] = 0,
     ):
         """
         Initialize a new run.
@@ -40,6 +41,7 @@ class Run:
         self.tags = tags or []
         self.config = config or {}
         self.start_time = start_time or datetime.now()
+        self.step = initial_step or 0
 
     def to_header_dict(self) -> Dict[str, Any]:
         """Convert run metadata to a header dictionary for file writing."""
@@ -60,3 +62,8 @@ class Run:
     def runtime(self) -> float:
         """Get the current runtime in seconds."""
         return (datetime.now() - self.start_time).total_seconds()
+
+    def next_step(self) -> int:
+        """Increment the step number."""
+        self.step += 1
+        return self.step

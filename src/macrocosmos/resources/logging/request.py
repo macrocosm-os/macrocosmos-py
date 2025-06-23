@@ -24,8 +24,6 @@ async def make_request(client: BaseClient, method_name: str, request) -> logger_
         ("x-client-version", __version__),
     ]
 
-    compression = grpc.Compression.Gzip if client.compress else None
-
     retries = 0
     last_error = None
     while retries <= client.max_retries:
@@ -37,7 +35,7 @@ async def make_request(client: BaseClient, method_name: str, request) -> logger_
                 request,
                 metadata=metadata,
                 timeout=client.timeout,
-                compression=compression,
+                compression=grpc.Compression.Gzip,
             )
             await channel.close()
             return response
