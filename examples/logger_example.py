@@ -87,39 +87,6 @@ def generate_training_metrics(epoch: int, total_epochs: int) -> Dict[str, Any]:
     }
 
 
-def generate_data_processing_metrics(
-    batch: int, total_batches: int, data_type: str
-) -> Dict[str, Any]:
-    """
-    Generate realistic data processing metrics.
-
-    Args:
-        batch: Current batch number
-        total_batches: Total number of batches
-        data_type: Type of data being processed
-
-    Returns:
-        Dictionary with processing metrics
-    """
-    progress = batch / total_batches
-
-    # Simulate processing time and throughput
-    base_time = 0.1 + 0.2 * random.random()
-    throughput = 1000 + 500 * random.random()
-
-    return {
-        "batch": batch,
-        "total_batches": total_batches,
-        "data_type": data_type,
-        "progress": progress,
-        "processing_time": round(base_time, 3),
-        "throughput": round(throughput, 0),
-        "memory_usage": round(512 + 256 * random.random(), 0),
-        "timestamp": datetime.now().isoformat(),
-        "status": "completed" if batch == total_batches else "processing",
-    }
-
-
 def simulate_random_error(
     iteration: int, max_iterations: int, error_type: str = "training"
 ):
@@ -166,52 +133,33 @@ def simulate_random_error(
                 print(f"Stacktrace details:\n{traceback.format_exc()}")
 
 
-async def run_simulation(simulation_type: str, iterations: int, run_number: int = 1):
+async def run_simulation(iterations: int, run_number: int = 1):
     """
     Simulate either ML training or data processing with realistic logging.
 
     Args:
-        run_number: The run number for identification
-        simulation_type: Type of simulation ("training" or "processing")
         iterations: Number of iterations (epochs for training, batches for processing)
+        run_number: The run number for identification
     """
-    simulation_config = {
-        "training": {
-            "title": "ML Training Simulation",
-            "entity": "research-team",
-            "name_prefix": "ml-training-run",
-            "description_prefix": "Machine learning training simulation run",
-            "config": {
-                "model_type": "transformer",
-                "dataset": "imagenet",
-                "batch_size": 32,
-                "learning_rate": 0.001,
-                "epochs": iterations,
-            },
-            "progress_interval": 10,
-            "debug_interval": 5,
+    config = {
+        "title": "ML Training Simulation",
+        "entity": "research-team",
+        "name_prefix": "ml-training-run",
+        "description_prefix": "Machine learning training simulation run",
+        "config": {
+            "model_type": "transformer",
+            "dataset": "imagenet",
+            "batch_size": 32,
+            "learning_rate": 0.001,
+            "epochs": iterations,
         },
-        "processing": {
-            "title": "Data Processing Simulation",
-            "entity": "data-team",
-            "name_prefix": "data-processing-run",
-            "description_prefix": "Data processing pipeline simulation run",
-            "config": {
-                "pipeline_type": "etl",
-                "data_source": "database",
-                "batch_size": 1000,
-                "total_batches": iterations,
-            },
-            "progress_interval": 50,
-            "debug_interval": 25,
-        },
+        "progress_interval": 10,
+        "debug_interval": 5,
     }
-
-    config = simulation_config[simulation_type]
 
     print(f"\n{'=' * 60}")
     print(f"Starting {config['title']} Run #{run_number}")
-    print(f"{'Epochs' if simulation_type == 'training' else 'Batches'}: {iterations}")
+    print(f"{'Epochs training'}: {iterations}")
     print(f"{'=' * 60}")
 
     # Initialize logger (no API key needed)
@@ -221,7 +169,7 @@ async def run_simulation(simulation_type: str, iterations: int, run_number: int 
     try:
         # Initialize the logger
         logger.info(
-            f"Starting {simulation_type} simulation run #{run_number} with {iterations} iterations"
+            f"Starting simulation run #{run_number} with {iterations} iterations"
         )
 
         run_id = await mc_logger.init(
@@ -244,33 +192,20 @@ async def run_simulation(simulation_type: str, iterations: int, run_number: int 
 
         for iteration in range(1, iterations + 1):
             # Simulate random errors (non-blocking)
-            simulate_random_error(iteration, iterations, simulation_type)
+            simulate_random_error(iteration, iterations)
 
             # Generate metrics based on simulation type
-            if simulation_type == "training":
-                metrics = generate_training_metrics(iteration, iterations)
-            else:
-                metrics = generate_data_processing_metrics(
-                    iteration, iterations, "training_data"
-                )
+            metrics = generate_training_metrics(iteration, iterations)
 
             # Log the metrics
             await mc_logger.log(metrics)
 
             # Log progress at specified intervals
             if iteration % config["progress_interval"] == 0 or iteration == iterations:
-                if simulation_type == "training":
-                    logger.info(
-                        f"Training progress: Epoch {iteration}/{iterations} - Loss: {metrics['loss']:.4f}, "
-                        f"Accuracy: {metrics['accuracy']:.4f}, LR: {metrics['learning_rate']:.6f}"
-                    )
-                else:
-                    logger.info(
-                        f"Processing progress: Batch {iteration}/{iterations} - "
-                        f"Progress: {metrics['progress']:.1%}, "
-                        f"Throughput: {metrics['throughput']:.0f} items/s, "
-                        f"Memory: {metrics['memory_usage']:.0f}MB"
-                    )
+                logger.info(
+                    f"Training progress: Epoch {iteration}/{iterations} - Loss: {metrics['loss']:.4f}, "
+                    f"Accuracy: {metrics['accuracy']:.4f}, LR: {metrics['learning_rate']:.6f}"
+                )
 
             # Additional debug logs
             if iteration % config["debug_interval"] == 0:
@@ -282,33 +217,19 @@ async def run_simulation(simulation_type: str, iterations: int, run_number: int 
         simulation_time = time.time() - start_time
 
         # Log final summary based on simulation type
-        if simulation_type == "training":
-            final_metrics = {
-                "training_completed": True,
-                "total_epochs": iterations,
-                "final_loss": metrics["loss"],
-                "final_accuracy": metrics["accuracy"],
-                "training_time_seconds": round(simulation_time, 2),
-                "epochs_per_second": round(iterations / simulation_time, 2),
-                "completed_at": datetime.now().isoformat(),
-            }
-            success_message = (
-                f"Training completed successfully in {simulation_time:.2f} seconds - "
-                f"Final metrics: Loss={metrics['loss']:.4f}, Accuracy={metrics['accuracy']:.4f}"
-            )
-        else:
-            final_metrics = {
-                "processing_completed": True,
-                "total_batches": iterations,
-                "total_items_processed": iterations * 1000,
-                "processing_time_seconds": round(simulation_time, 2),
-                "average_throughput": round((iterations * 1000) / simulation_time, 0),
-                "completed_at": datetime.now().isoformat(),
-            }
-            success_message = (
-                f"Data processing completed successfully in {simulation_time:.2f} seconds - "
-                f"Processed {iterations * 1000:,} items at {final_metrics['average_throughput']:.0f} items/s"
-            )
+        final_metrics = {
+            "training_completed": True,
+            "total_epochs": iterations,
+            "final_loss": metrics["loss"],
+            "final_accuracy": metrics["accuracy"],
+            "training_time_seconds": round(simulation_time, 2),
+            "epochs_per_second": round(iterations / simulation_time, 2),
+            "completed_at": datetime.now().isoformat(),
+        }
+        success_message = (
+            f"Training completed successfully in {simulation_time:.2f} seconds - "
+            f"Final metrics: Loss={metrics['loss']:.4f}, Accuracy={metrics['accuracy']:.4f}"
+        )
 
         await mc_logger.log(final_metrics)
         logger.success(success_message)
@@ -316,23 +237,24 @@ async def run_simulation(simulation_type: str, iterations: int, run_number: int 
         return run_id
 
     except Exception as e:
-        logger.error(f"Critical error in {simulation_type} run #{run_number}: {str(e)}")
+        logger.error(f"Critical error in simulation run #{run_number}: {str(e)}")
         print(f"Stacktrace details:\n{traceback.format_exc()}")
         raise
     finally:
-        logger.info(f"Finishing {simulation_type} run #{run_number}")
+        logger.info(f"Finishing simulation run #{run_number}")
         await mc_logger.finish()
 
 
 async def main():
     """Main function to run the logger simulations."""
+    start_time = time.time()
     print("🚀 Starting Logger Simulation Examples")
     print("This example demonstrates realistic logger usage patterns:")
     print("  - Run 1: ML Training simulation (50 epochs)")
     print("  - Run 2: Data Processing simulation (200 batches)")
 
     try:
-        run_id = await run_simulation(3, "training", 2000)
+        run_id = await run_simulation(2000)
         print("\n🎉 All logger simulations completed successfully!")
         print(f"Run ID: {run_id}")
         print(
@@ -345,6 +267,8 @@ async def main():
         print(f"Simulation failed with error: {str(e)}")
         print(f"Stacktrace details:\n{traceback.format_exc()}")
         raise
+    finally:
+        print(f"\nTotal time: {time.time() - start_time:.2f} seconds")
 
 
 if __name__ == "__main__":
