@@ -57,6 +57,9 @@ class ConsoleCapture:
         self.is_windows = sys.platform == "win32"
         self._capturing = False
 
+        # Add a global sequence counter (no separate lock needed - will use file lock)
+        self._sequence_counter = 0
+
         self._stdout_reader_thread: Optional[threading.Thread] = None
         self._stderr_reader_thread: Optional[threading.Thread] = None
 
@@ -107,28 +110,39 @@ class ConsoleCapture:
             return
         timestamp = datetime.now().isoformat()
         cleaned_message = ConsoleCapture.strip_ansi(data)
-        record = {
-            "timestamp": timestamp,
-            "payload_json": json.dumps(
-                {"stream": stream_name, "message": cleaned_message, "message_raw": data}
-            ),
-            "payload_name": f"{stream_name}_output",
-            "runtime": self.run.runtime,
-            "sequence": line_number,
-        }
 
-        # Use the File object's write method which handles locking
-        try:
-            self.log_file.write(json.dumps(record) + "\n")
-        except Exception:
-            # Best-effort logging; ignore I/O errors to keep program running
-            pass
+        # Use the file's lock to ensure thread-safe sequence generation and writing
+        with self.log_file.lock:
+            sequence = self._sequence_counter
+            self._sequence_counter += 1
+
+            record = {
+                "timestamp": timestamp,
+                "payload_json": json.dumps(
+                    {
+                        "stream": stream_name,
+                        "message": cleaned_message,
+                        "message_raw": data,
+                    }
+                ),
+                "payload_name": f"{stream_name}_output",
+                "runtime": self.run.runtime,
+                "sequence": sequence,
+            }
+
+            # Write to file (no need to auto_lock since we already have the lock)
+            try:
+                self.log_file.write(json.dumps(record) + "\n", auto_lock=False)
+            except Exception:
+                # Best-effort logging; ignore I/O errors to keep program running
+                pass
 
     def start_capture(self):
         """Start capturing stdout and stderr."""
         if self._capturing:
             return
         self._capturing = True
+        self._sequence_counter = 0
 
         if self.is_windows:
             self._start_windows_capture()
