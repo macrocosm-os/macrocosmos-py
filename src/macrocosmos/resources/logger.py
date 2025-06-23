@@ -98,6 +98,7 @@ class AsyncLogger:
         Returns:
             The run ID.
         """
+        loop = asyncio.get_event_loop()
         if self._run and not reinit:
             raise RuntimeError(
                 "Logger already initialized. Use reinit=True to reinitialize."
@@ -127,7 +128,7 @@ class AsyncLogger:
         self._temp_dir.mkdir(exist_ok=True)
 
         # Handle startup recovery - send any existing files asynchronously
-        await self._handle_startup_recovery(skip_dir=self._temp_dir)
+        await loop.run_in_executor(None, self._handle_startup_recovery, self._temp_dir)
 
         # Create file manager
         self._file_manager = FileManager(self._temp_dir, self._run)
@@ -177,7 +178,12 @@ class AsyncLogger:
         }
 
         # Write to history file
-        self._file_manager.get_file(FileType.HISTORY).write(json.dumps(record) + "\n")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None,
+            self._file_manager.get_file(FileType.HISTORY).write,
+            json.dumps(record) + "\n",
+        )
 
     async def finish(self) -> None:
         """
@@ -196,7 +202,8 @@ class AsyncLogger:
             self._console_capture.stop_capture()
 
         # Send any remaining data
-        await self._send_remaining_data()
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self._send_remaining_data)
 
         # Cleanup
         self._run = None
@@ -222,16 +229,16 @@ class AsyncLogger:
 
         await make_request(self._client, "CreateRun", request)
 
-    async def _send_remaining_data(self) -> None:
+    def _send_remaining_data(self) -> None:
         """Send any remaining data in files."""
         if self._temp_dir and self._temp_dir.exists():
             for file_type in FILE_MAP.keys():
-                if self._file_manager.get_file(file_type).exists():
-                    await self._upload_worker._send_file_data_async(
-                        self._file_manager.get_file(file_type)
-                    )
+                file_obj = self._file_manager.get_file(file_type)
+                with file_obj.lock:
+                    if file_obj.exists():
+                        self._upload_worker._send_file_data(file_obj)
 
-    async def _handle_startup_recovery(self, skip_dir: Optional[Path] = None) -> None:
+    def _handle_startup_recovery(self, skip_dir: Optional[Path] = None) -> None:
         """Handle startup recovery by sending any existing files from previous runs, except the specified skip directory."""
         temp_dir = Path(tempfile.gettempdir())
 
@@ -245,17 +252,19 @@ class AsyncLogger:
                 )
                 for file_type in FILE_MAP.keys():
                     file_obj = tmp_file_manager.get_file(file_type)
-                    if file_obj.exists():
-                        await tmp_upload_worker._send_file_data_async(file_obj)
+                    with file_obj.lock:
+                        if file_obj.exists():
+                            tmp_upload_worker._send_file_data(file_obj)
 
                     tmp_file_path = file_obj.path.with_suffix(
                         file_obj.path.suffix + TEMP_FILE_SUFFIX
                     )
                     tmp_file_obj = File(tmp_file_path, file_type)
-                    if tmp_file_obj.exists():
-                        await tmp_upload_worker._send_file_data_async(
-                            tmp_file_obj, tmp_file_path
-                        )
+                    with tmp_file_obj.lock:
+                        if tmp_file_obj.exists():
+                            tmp_upload_worker._send_file_data(
+                                tmp_file_obj, tmp_file_path
+                            )
 
 
 class Logger:

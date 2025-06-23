@@ -47,33 +47,62 @@ class UploadWorker:
         # Note: This method is called while holding the file lock, so file existence
         # should be stable, but we still handle potential race conditions defensively
 
+        print("Checking if file should be uploaded")
+
         try:
             if not file_obj.exists():
+                print("Checker: File does not exist")
                 return False
 
             # Get file stats once to avoid multiple stat calls
             stat_info = file_obj.path.stat()
 
             # Check file size (>5MB)
+            print(
+                f"Checker: File size is only {stat_info.st_size / 1024 / 1024:.2f} mb"
+            )
             if stat_info.st_size > MAX_FILE_SIZE_MB * 1024 * 1024:
                 return True
 
             # Check if there are records to upload (excluding header)
-            if file_obj.has_records():
-                # Check file age (>10s) using the stat info we already have
-                file_age = time.time() - stat_info.st_mtime
-                if file_age > MIN_FILE_AGE_SEC:
-                    return True
+            print(f"Checker: File age is {file_obj.age:.2f} seconds")
+            if (
+                file_obj.age
+                and file_obj.age > MIN_FILE_AGE_SEC
+                and file_obj.has_records()
+            ):
+                return True
 
             return False
         except (OSError, IOError):
             # File was deleted or became inaccessible between checks
             return False
 
-    async def _send_file_data_async(
-        self, file_obj: File, temp_file: Optional[Path] = None
+    def _send_file_data(
+        self,
+        file_obj: File,
+        temp_file: Optional[Path] = None,
+        force_lock_release: bool = False,
     ) -> None:
-        """Send file data to the server asynchronously."""
+        """
+        Send file data to the server asynchronously.
+
+        Args:
+            file_obj (File): The file object representing the log file to be sent.
+                             This file must be locked before calling this method.
+            temp_file (Optional[Path]): An optional path to a temporary file. If provided,
+                                        this file will be used directly for sending data,
+                                        typically for recovery of orphaned temp files.
+            force_lock_release (bool): A flag indicating whether to forcefully release the
+                                       file lock after renaming the file. Use this when the
+                                       lock was manually "acquired" instead of a context
+                                       manager. Read below for more details. Defaults to False.
+        """
+
+        # Check if file is indeed locked
+        if not file_obj.lock.locked():
+            raise ValueError("File is not locked")
+
         # Read header to get run info
         header_data = file_obj.read_file_header()
         if not header_data:
@@ -87,13 +116,17 @@ class UploadWorker:
             )
 
             # Check if there are records before renaming
-            with file_obj.lock:
-                if not file_obj.has_records():
-                    # No records, just clean up the file
-                    if file_obj.path.exists():
-                        file_obj.path.unlink()
-                    return
-                file_obj.path.rename(temp_file)
+            if not file_obj.has_records():
+                # No records, just clean up the file
+                if file_obj.path.exists():
+                    file_obj.path.unlink()
+                return
+            file_obj.path.rename(temp_file)
+            if force_lock_release:
+                # This is to reduce blocking locks on writes to the file while a run is running
+                # it does this by releaing the lock on this file early since the file has been renamed
+                # so concurrent writes can happen while the rest of this process runs.
+                file_obj.lock.release()
 
         # Using temp file, we don't need to lock the file since there will only be one upload worker
         try:
@@ -136,7 +169,9 @@ class UploadWorker:
                     records=records,
                 )
 
-                await make_request(self.client, "StoreRecordBatch", request)
+                self._run_async_in_thread(
+                    make_request(self.client, "StoreRecordBatch", request)
+                )
 
         except Exception:
             # Restore file on error
@@ -146,27 +181,36 @@ class UploadWorker:
         finally:
             # Clean up temp file
             if temp_file.exists():
-                temp_file.unlink()
+                # TODO: reenable this
+                # temp_file.unlink()
+                # rename the file with dateandtime
+                new_name = f"{temp_file.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{temp_file.suffix}"
+                temp_file.rename(temp_file.with_name(new_name))
+                print(f"Not unlinking temp file with full path: {temp_file}")
 
-    def _send_file_data_sync(self, file_obj: File, record_type: str) -> None:
-        """Send file data to the server synchronously."""
-        # Use asyncio.run to call the async version
-        asyncio.run(self._send_file_data_async(file_obj))
+    def _run_async_in_thread(self, coro):
+        """Helper to run async coroutines in this thread."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
+            asyncio.set_event_loop(None)
 
     def upload_worker(self) -> None:
         """Background worker to upload data files."""
         while not self._stop_upload.is_set():
             try:
                 for file_type in FILE_MAP.keys():
-                    file_obj = self.file_manager.get_file(file_type.name)
-                    should_upload = False
-                    with file_obj.lock:
+                    file_obj = self.file_manager.get_file(file_type)
+                    file_obj.lock.acquire()
+                    try:
                         if file_obj.exists() and self._should_upload_file(file_obj):
-                            should_upload = True
-
-                    if should_upload:
-                        self._send_file_data_sync(file_obj, file_type.name)
-
+                            self._send_file_data(file_obj, force_lock_release=True)
+                    finally:
+                        if file_obj.lock.locked():
+                            file_obj.lock.release()
                 time.sleep(1)  # Check every second
             except Exception:
                 time.sleep(5)  # Wait longer on error
