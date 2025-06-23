@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -28,23 +29,21 @@ class File:
         self.file_type = file_type
         self.lock = threading.Lock()
         self.run = run
+        self.creation_time: Optional[float] = None  # Track actual file creation time
 
     def write(self, content: str, auto_lock: bool = True) -> None:
         """Write content to the file with lock protection (append mode)."""
         if auto_lock:
             with self.lock:
-                self._write(content, mode="a", include_header=True)
+                self._write(content, include_header=True)
         else:
-            self._write(content, mode="a", include_header=True)
+            self._write(content, include_header=True)
 
-    def _write(
-        self, content: str, *, mode: str = "a", include_header: bool = True
-    ) -> None:
+    def _write(self, content: str, include_header: bool = True) -> None:
         """Internal helper that handles all file-writing permutations.
 
         Args:
             content: The string data that should be written to the file.
-            mode: The file mode – "a" (append) or "w" (overwrite).
             include_header: When True and the file does not yet exist, a header row
                 derived from `self.run` is written before the supplied content.
         """
@@ -53,16 +52,26 @@ class File:
 
         # If requested, write the header first when the file is missing.
         if include_header and self.run is not None and not self.path.exists():
+            # Track creation time when we actually create the file
+            self.creation_time = time.time()
             header_dict = self.run.to_header_dict()
             header_dict["type"] = self.file_type.value
             header_line = json.dumps(header_dict) + "\n"
             # Ensure we start with a fresh file for the header
+            print("FileManager: Creating a new file!")
             with open(self.path, "w") as f:
                 f.write(header_line)
 
         # Now write the actual payload in the desired mode
-        with open(self.path, mode) as f:
+        with open(self.path, "a") as f:
             f.write(content)
+
+    @property
+    def age(self) -> Optional[float]:
+        """Get the age of the file in seconds since it was created."""
+        if self.creation_time is None:
+            return None
+        return time.time() - self.creation_time
 
     def exists(self) -> bool:
         """Check if the file exists."""
