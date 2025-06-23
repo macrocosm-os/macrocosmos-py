@@ -98,7 +98,6 @@ class AsyncLogger:
         Returns:
             The run ID.
         """
-        loop = asyncio.get_event_loop()
         if self._run and not reinit:
             raise RuntimeError(
                 "Logger already initialized. Use reinit=True to reinitialize."
@@ -128,6 +127,7 @@ class AsyncLogger:
         self._temp_dir.mkdir(exist_ok=True)
 
         # Handle startup recovery - send any existing files asynchronously
+        loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self._handle_startup_recovery, self._temp_dir)
 
         # Create file manager
@@ -193,9 +193,10 @@ class AsyncLogger:
             return
 
         # Stop upload thread
-        self._stop_upload.set()
-        if self._upload_thread and self._upload_thread.is_alive():
-            self._upload_thread.join(timeout=5)
+        if hasattr(self, "_stop_upload") and self._stop_upload is not None:
+            self._stop_upload.set()
+            if self._upload_thread and self._upload_thread.is_alive():
+                self._upload_thread.join(timeout=5)
 
         # Stop logging capture
         if self._console_capture:
@@ -212,6 +213,7 @@ class AsyncLogger:
         self._file_manager = None
         self._upload_thread = None
         self._upload_worker = None
+        self._stop_upload = None
 
     async def _create_run(self) -> None:
         """Create a new run via gRPC."""
@@ -247,8 +249,10 @@ class AsyncLogger:
             if run_dir.is_dir() and run_dir != skip_dir:
                 # For recovery, we don't need run info since we're just reading existing files
                 tmp_file_manager = FileManager(run_dir)
+                # Create a temporary stop event for recovery upload worker
+                tmp_stop_event = threading.Event()
                 tmp_upload_worker = UploadWorker(
-                    tmp_file_manager, self._client, self._stop_upload
+                    tmp_file_manager, self._client, tmp_stop_event
                 )
                 for file_type in FILE_MAP.keys():
                     file_obj = tmp_file_manager.get_file(file_type)
