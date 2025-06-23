@@ -8,7 +8,7 @@ from macrocosmos.resources.logging.run import Run
 from enum import Enum
 
 
-class FileType(Enum, str):
+class FileType(str, Enum):
     LOG = "log"
     HISTORY = "history"
 
