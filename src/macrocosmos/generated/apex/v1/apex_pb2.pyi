@@ -4,7 +4,8 @@ from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -380,7 +381,7 @@ class ChatSession(_message.Message):
     chat_type: str
     created_at: _timestamp_pb2.Timestamp
     updated_at: _timestamp_pb2.Timestamp
-    def __init__(self, id: _Optional[str] = ..., user_id: _Optional[str] = ..., title: _Optional[str] = ..., chat_type: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., user_id: _Optional[str] = ..., title: _Optional[str] = ..., chat_type: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetChatSessionsResponse(_message.Message):
     __slots__ = ("chat_sessions",)
@@ -414,7 +415,7 @@ class StoredChatCompletion(_message.Message):
     completion_text: str
     metadata: _struct_pb2.Struct
     error_message: str
-    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., completion_type: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., completed_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., error_message: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., completion_type: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., completed_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., error_message: _Optional[str] = ...) -> None: ...
 
 class GetStoredChatCompletionsResponse(_message.Message):
     __slots__ = ("chat_completions",)
@@ -465,7 +466,7 @@ class ParsedChat(_message.Message):
     title: str
     created_at: _timestamp_pb2.Timestamp
     chat_type: str
-    def __init__(self, id: _Optional[str] = ..., title: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., chat_type: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., title: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., chat_type: _Optional[str] = ...) -> None: ...
 
 class ParsedCompletion(_message.Message):
     __slots__ = ("id", "chat_id", "created_at", "user_prompt_text", "completion_text", "completion_type", "metadata")
@@ -483,7 +484,7 @@ class ParsedCompletion(_message.Message):
     completion_text: str
     completion_type: str
     metadata: _struct_pb2.Struct
-    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., completion_type: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., chat_id: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., user_prompt_text: _Optional[str] = ..., completion_text: _Optional[str] = ..., completion_type: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class CreateChatAndCompletionRequest(_message.Message):
     __slots__ = ("user_prompt", "chat_type", "completion_type", "title")

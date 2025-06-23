@@ -4,7 +4,7 @@ import grpc
 import warnings
 from macrocosmos.generated.sn13.v1 import sn13_validator_pb2 as sn13_dot_v1_dot_sn13__validator__pb2
 
-GRPC_GENERATED_VERSION = '1.71.0'
+GRPC_GENERATED_VERSION = '1.73.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

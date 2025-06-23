@@ -2,7 +2,8 @@ from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -22,7 +23,7 @@ class Crawler(_message.Message):
     archive_time: _timestamp_pb2.Timestamp
     state: CrawlerState
     dataset_workflows: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, crawler_id: _Optional[str] = ..., criteria: _Optional[_Union[CrawlerCriteria, _Mapping]] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., deregistration_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., archive_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., state: _Optional[_Union[CrawlerState, _Mapping]] = ..., dataset_workflows: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, crawler_id: _Optional[str] = ..., criteria: _Optional[_Union[CrawlerCriteria, _Mapping]] = ..., start_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., deregistration_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., archive_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., state: _Optional[_Union[CrawlerState, _Mapping]] = ..., dataset_workflows: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class CrawlerCriteria(_message.Message):
     __slots__ = ("platform", "topic", "notification", "mock", "user_id", "keyword", "post_start_datetime", "post_end_datetime")
@@ -42,7 +43,7 @@ class CrawlerCriteria(_message.Message):
     keyword: str
     post_start_datetime: _timestamp_pb2.Timestamp
     post_end_datetime: _timestamp_pb2.Timestamp
-    def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., notification: _Optional[_Union[CrawlerNotification, _Mapping]] = ..., mock: bool = ..., user_id: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., notification: _Optional[_Union[CrawlerNotification, _Mapping]] = ..., mock: bool = ..., user_id: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class CrawlerNotification(_message.Message):
     __slots__ = ("to", "link")
@@ -88,7 +89,7 @@ class GravityTaskState(_message.Message):
     start_time: _timestamp_pb2.Timestamp
     crawler_ids: _containers.RepeatedScalarFieldContainer[str]
     crawler_workflows: _containers.RepeatedCompositeFieldContainer[Crawler]
-    def __init__(self, gravity_task_id: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., crawler_ids: _Optional[_Iterable[str]] = ..., crawler_workflows: _Optional[_Iterable[_Union[Crawler, _Mapping]]] = ...) -> None: ...
+    def __init__(self, gravity_task_id: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ..., start_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., crawler_ids: _Optional[_Iterable[str]] = ..., crawler_workflows: _Optional[_Iterable[_Union[Crawler, _Mapping]]] = ...) -> None: ...
 
 class GetGravityTasksRequest(_message.Message):
     __slots__ = ("gravity_task_id", "include_crawlers")
@@ -116,7 +117,7 @@ class GravityTask(_message.Message):
     keyword: str
     post_start_datetime: _timestamp_pb2.Timestamp
     post_end_datetime: _timestamp_pb2.Timestamp
-    def __init__(self, topic: _Optional[str] = ..., platform: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, topic: _Optional[str] = ..., platform: _Optional[str] = ..., keyword: _Optional[str] = ..., post_start_datetime: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., post_end_datetime: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class NotificationRequest(_message.Message):
     __slots__ = ("type", "address", "redirect_url")
@@ -206,7 +207,7 @@ class Dataset(_message.Message):
     steps: _containers.RepeatedCompositeFieldContainer[DatasetStep]
     total_steps: int
     nebula: Nebula
-    def __init__(self, crawler_workflow_id: _Optional[str] = ..., create_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expire_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ..., status: _Optional[str] = ..., status_message: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[DatasetStep, _Mapping]]] = ..., total_steps: _Optional[int] = ..., nebula: _Optional[_Union[Nebula, _Mapping]] = ...) -> None: ...
+    def __init__(self, crawler_workflow_id: _Optional[str] = ..., create_date: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., expire_date: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ..., status: _Optional[str] = ..., status_message: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[DatasetStep, _Mapping]]] = ..., total_steps: _Optional[int] = ..., nebula: _Optional[_Union[Nebula, _Mapping]] = ...) -> None: ...
 
 class DatasetFile(_message.Message):
     __slots__ = ("file_name", "file_size_bytes", "last_modified", "num_rows", "s3_key", "url")
@@ -222,7 +223,7 @@ class DatasetFile(_message.Message):
     num_rows: int
     s3_key: str
     url: str
-    def __init__(self, file_name: _Optional[str] = ..., file_size_bytes: _Optional[int] = ..., last_modified: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., num_rows: _Optional[int] = ..., s3_key: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
+    def __init__(self, file_name: _Optional[str] = ..., file_size_bytes: _Optional[int] = ..., last_modified: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., num_rows: _Optional[int] = ..., s3_key: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
 
 class DatasetStep(_message.Message):
     __slots__ = ("progress", "step", "step_name")
