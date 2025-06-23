@@ -77,15 +77,41 @@ class ConsoleCapture:
             self._stdout_pipe_write: Optional[int] = None
             self._stderr_pipe_write: Optional[int] = None
 
+    @staticmethod
+    def strip_ansi(text: str) -> str:
+        """Strip ANSI escape sequences from a string."""
+        result = []
+        append = result.append  # local reference for speed
+        i = 0
+        length = len(text)
+
+        while i < length:
+            ch = text[i]
+            if ch == "\x1b" and i + 1 < length and text[i + 1] == "[":
+                i += 2
+                while i < length:
+                    c = text[i]
+                    if c.isalpha():
+                        i += 1  # end of ANSI sequence
+                        break
+                    i += 1
+            else:
+                append(ch)
+                i += 1
+
+        return "".join(result)
+
     def _log_data(self, data: str, stream_name: str, line_number: int):
         """Helper to write captured data to the log file."""
         if not data:
             return
-        # TODO: revisit the contents of the record
         timestamp = datetime.now().isoformat()
+        cleaned_message = ConsoleCapture.strip_ansi(data)
         record = {
             "timestamp": timestamp,
-            "payload_json": json.dumps({"stream": stream_name, "message": data}),
+            "payload_json": json.dumps(
+                {"stream": stream_name, "message": cleaned_message, "message_raw": data}
+            ),
             "payload_name": f"{stream_name}_output",
             "runtime": self.run.runtime,
             "sequence": line_number,
