@@ -283,6 +283,11 @@ class AsyncLogger:
                                 tmp_file_obj, tmp_file_path
                             )
 
+    @property
+    def run(self) -> Optional[Run]:
+        """Get the current run."""
+        return self._run
+
 
 class Logger:
     """Synchronous Logger resource for logging data to the Macrocosmos platform."""
@@ -351,3 +356,8 @@ class Logger:
         Finish the logging run and cleanup resources synchronously.
         """
         asyncio.run(self._async_logger.finish())
+
+    @property
+    def run(self) -> Optional[Run]:
+        """Get the current run."""
+        return self._async_logger.run
