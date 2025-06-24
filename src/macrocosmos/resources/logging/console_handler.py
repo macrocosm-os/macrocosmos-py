@@ -208,7 +208,7 @@ class ConsoleCapture:
 
             # Write to file (no need to auto_lock since we already have the lock)
             try:
-                self.log_file.write(json.dumps(record) + "\n", auto_lock=False)
+                self.log_file.write(json.dumps(record) + "\n")
             except Exception:
                 # Best-effort logging; ignore I/O errors to keep program running
                 pass

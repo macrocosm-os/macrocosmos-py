@@ -31,27 +31,26 @@ class File:
         self.run = run
         self.creation_time: Optional[float] = None  # Track actual file creation time
 
-    def write(self, content: str, auto_lock: bool = True) -> None:
+    def write(self, content: str) -> None:
         """Write content to the file with lock protection (append mode)."""
-        if auto_lock:
-            with self.lock:
-                self._write(content, include_header=True)
-        else:
-            self._write(content, include_header=True)
+        if self.lock.locked():
+            self._write(content)
+            return
 
-    def _write(self, content: str, include_header: bool = True) -> None:
+        with self.lock:
+            self._write(content)
+
+    def _write(self, content: str) -> None:
         """Internal helper that handles all file-writing permutations.
 
         Args:
             content: The string data that should be written to the file.
-            include_header: When True and the file does not yet exist, a header row
-                derived from `self.run` is written before the supplied content.
         """
         # Transparently create the directory if it disappeared between runs
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
         # If requested, write the header first when the file is missing.
-        if include_header and self.run is not None and not self.path.exists():
+        if self.run is not None and not self.path.exists():
             # Track creation time when we actually create the file
             self.creation_time = time.time()
             header_dict = self.run.to_header_dict()
