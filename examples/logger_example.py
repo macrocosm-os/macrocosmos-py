@@ -14,6 +14,9 @@ import macrocosmos as mc
 from loguru import logger
 
 
+# Run :
+# MACROCOSMOS_BASE_URL=localhost:4000 PYTHONUNBUFFERED=1 MACROCOSMOS_CAPTURE_LOGS=false MACROCOSMOS_USE_HTTPS=false uv run examples/logger_example.py > tmp.log 2>&1
+# pm2 start logger.config.js
 def generate_training_metrics(epoch: int, total_epochs: int) -> Dict[str, Any]:
     """
     Generate realistic training metrics for a machine learning model.
@@ -184,6 +187,7 @@ async def run_simulation(iterations: int, run_number: int = 1):
             name=f"{config['name_prefix']}-{run_number}",
             description=f"{config['description_prefix']} #{run_number}",
         )
+        print("🚀 Logger capturing started")
 
         logger.success(f"Logger initialized successfully with run ID: {run_id}")
 
@@ -242,6 +246,7 @@ async def run_simulation(iterations: int, run_number: int = 1):
         raise
     finally:
         logger.info(f"Finishing simulation run #{run_number}")
+        print("🏁 Logger capturing finished")
         await mc_logger.finish()
 
 
