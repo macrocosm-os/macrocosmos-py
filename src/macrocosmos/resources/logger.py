@@ -44,6 +44,7 @@ class AsyncLogger:
         self._upload_thread: Optional[threading.Thread] = None
         self._stop_upload: Optional[threading.Event] = None
         self._upload_worker: Optional[UploadWorker] = None
+        self._recovery_thread: Optional[threading.Thread] = None
 
     def _generate_run_id(self) -> str:
         """
@@ -126,9 +127,11 @@ class AsyncLogger:
         self._temp_dir = Path(tempfile.gettempdir()) / f"mcl_run_{self._run.run_id}"
         self._temp_dir.mkdir(exist_ok=True)
 
-        # Handle startup recovery - send any existing files asynchronously
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._handle_startup_recovery, self._temp_dir)
+        # Handle startup recovery - send any existing files asynchronously in background
+        self._recovery_thread = threading.Thread(
+            target=self._handle_startup_recovery, args=(self._temp_dir,), daemon=True
+        )
+        self._recovery_thread.start()
 
         # Create file manager
         self._file_manager = FileManager(self._temp_dir, self._run)
@@ -198,6 +201,10 @@ class AsyncLogger:
             if self._upload_thread and self._upload_thread.is_alive():
                 self._upload_thread.join(timeout=5)
 
+        # Wait for recovery thread to complete (if still running)
+        if self._recovery_thread and self._recovery_thread.is_alive():
+            self._recovery_thread.join(timeout=5)
+
         # Stop logging capture
         if self._console_capture:
             self._console_capture.stop_capture()
@@ -214,6 +221,7 @@ class AsyncLogger:
         self._upload_thread = None
         self._upload_worker = None
         self._stop_upload = None
+        self._recovery_thread = None
 
     async def _create_run(self) -> None:
         """Create a new run via gRPC."""
@@ -241,7 +249,13 @@ class AsyncLogger:
                         self._upload_worker._send_file_data(file_obj)
 
     def _handle_startup_recovery(self, skip_dir: Optional[Path] = None) -> None:
-        """Handle startup recovery by sending any existing files from previous runs, except the specified skip directory."""
+        """
+        Handle startup recovery by sending any existing files from previous runs, except the specified skip directory.
+
+        This method runs asynchronously in a background thread and does not block the initialization
+        of new logging runs. It searches for orphaned log files from previous runs and uploads them
+        to ensure no data is lost.
+        """
         temp_dir = Path(tempfile.gettempdir())
 
         # Search for any existing mcl_run_* directories
