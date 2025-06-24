@@ -45,7 +45,6 @@ class File:
                 header_dict["type"] = self.file_type.value
                 header_line = json.dumps(header_dict) + "\n"
                 # Ensure we start with a fresh file for the header
-                print("FileManager: Creating a new file!")
                 with open(self.path, "w") as f:
                     f.write(header_line)
 

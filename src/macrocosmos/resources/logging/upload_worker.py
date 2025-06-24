@@ -46,9 +46,6 @@ class UploadWorker:
         """Check if a file should be uploaded based on size and time."""
         # Note: This method is called while holding the file lock, so file existence
         # should be stable, but we still handle potential race conditions defensively
-
-        print("Checking if file should be uploaded")
-
         try:
             if not file_obj.exists():
                 return False
