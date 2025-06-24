@@ -206,6 +206,8 @@ class UploadWorker:
                     file_obj.lock.acquire()
                     if file_obj.exists() and self._should_upload_file(file_obj):
                         self._send_file_data(file_obj, early_lock_release=True)
+                    else:
+                        file_obj.lock.release()
                 time.sleep(1)  # Check every second
             except Exception:
                 time.sleep(5)  # Wait longer on error

@@ -254,9 +254,7 @@ async def main():
     """Main function to run the logger simulations."""
     start_time = time.time()
     print("🚀 Starting Logger Simulation Examples")
-    print("This example demonstrates realistic logger usage patterns:")
-    print("  - Run 1: ML Training simulation (50 epochs)")
-    print("  - Run 2: Data Processing simulation (200 batches)")
+    print("This example demonstrates logger usage patterns:")
 
     try:
         run_id = await run_simulation(2000)
