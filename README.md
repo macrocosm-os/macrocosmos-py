@@ -26,7 +26,7 @@ Use the synchronous `ApexClient` or asynchronous `AsyncApexClient` for inferenci
 ```py
 import macrocosmos as mc
 
-client = mc.ApexClient(api_key="<your-api-key>")
+client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
 response = client.chat.completions.create(
     messages=[{"role": "user", "content": "Write a short story about a cosmonaut learning to paint."}],
 )
@@ -38,7 +38,7 @@ print(response)
 ```py
 import macrocosmos as mc
 
-client = mc.ApexClient(api_key="<your-api-key>")
+client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
 response = client.web_search.search(
     search_query="What is Bittensor?",
     max_results_per_miner=3,
@@ -55,7 +55,7 @@ print(response)
 ```py
 import macrocosmos as mc
 
-client = mc.AsyncApexClient(api_key="<your-api-key>")
+client = mc.AsyncApexClient(api_key="<your-api-key>", app_name="my_app")
 submitted_response = await client.deep_research.create_job(
         messages=[
             {
@@ -75,7 +75,7 @@ print(submitted_response)
 ```py
 import macrocosmos as mc
 
-client = mc.AsyncApexClient(api_key="<your-api-key>")
+client = mc.AsyncApexClient(api_key="<your-api-key>", app_name="my_app")
 polled_response = await client.deep_research.get_job_results(job_id="<your-job-id>")
 
 print(polled_response)
@@ -92,7 +92,7 @@ Use the synchronous `Sn13Client` to query historical or current data based on us
 ```py
 import macrocosmos as mc
 
-client = mc.Sn13Client(api_key="<your-api-key>")
+client = mc.Sn13Client(api_key="<your-api-key>", app_name="my_app")
 
 response = client.sn13.OnDemandData(
     source='X',  # or 'Reddit'
@@ -117,7 +117,7 @@ Gravity tasks will immediately be registered on the network for miners to start 
 ```py
 import macrocosmos as mc
 
-client = mc.GravityClient(api_key="<your-api-key>")
+client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
 gravity_tasks = [
     {"topic": "#ai", "platform": "x"},
@@ -144,7 +144,7 @@ If you wish to get further information about the crawlers, you can use the `incl
 ```py
 import macrocosmos as mc
 
-client = mc.GravityClient(api_key="<your-api-key>")
+client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
 response = client.gravity.GetGravityTasks(gravity_task_id="<your-gravity-task-id>", include_crawlers=False)
 
@@ -158,7 +158,7 @@ If you do not want to wait 7-days for your data, you can request it earlier.  Ad
 ```py
 import macrocosmos as mc
 
-client = mc.GravityClient(api_key="<your-api-key>")
+client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
 notification = {
     "type": "email",
@@ -173,3 +173,47 @@ response = client.gravity.BuildDataset(
 # Print the dataset ID
 print(response)
 ```
+
+## Logger
+Logger is the Macrocosmos logging utilty used by Macrocosmos subnets for capturing subnet activity.
+
+
+### Example usage
+Here's a simple example of a `run` method that utlizes the Macrocosmos logger.
+```py
+import macrocosmos as mc
+from loguru import logger
+
+async def run():
+    mcl_client = mc.AsyncLoggerClient(app_name="my_app")
+    mc_logger = mcl_client.logger
+
+    run_id = await mc_logger.init(
+        project="data-universe-validators",
+        tags=[f"example"],
+        notes=f"Additional notes",
+        config={"key": "value"},
+        name=f"My Example",
+        description=f"This is an example",
+    )
+
+    logger.success(f"🚀 Logger initialized successfully with run ID: {run_id}")
+
+    try:
+        while True:
+            # Do something
+            logger.info("Captured log message")
+
+            # Log metrics
+            metrics = {"key": "value"}
+            await mc_logger.log(metrics)
+    except Exception as e:
+        logger.error(f"Critical error: {str(e)}")
+        raise
+    finally:
+        logger.info(f"🏁 Finished")
+        await mc_logger.finish()
+```
+
+### Disable Console Capture
+All console messages (i.e. log messages) are automatically captured `mc_logger` between the `init()` and `finish()` calls.  This can be disabled by setting the environment variable `MACROCOSMOS_CAPTURE_LOGS=false`.
