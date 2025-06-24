@@ -1,4 +1,3 @@
-import os
 from typing import Optional
 
 from macrocosmos.resources.logger import AsyncLogger, Logger
@@ -51,7 +50,6 @@ class LoggerClient(BaseClient):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
@@ -69,11 +67,9 @@ class LoggerClient(BaseClient):
             secure: Whether to use HTTPS (default: True).
             app_name: The name of the application using the client.
         """
-        if not api_key:
-            api_key = os.environ.get("LOGGER_API_KEY")
 
         super().__init__(
-            api_key=api_key,
+            api_key="NOT_NEEDED",
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
