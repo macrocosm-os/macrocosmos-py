@@ -76,23 +76,6 @@ class File:
         """Check if the file exists."""
         return self.path.exists()
 
-    def ends_with_newline(self) -> bool:
-        """Check if file ends with a newline character."""
-        if not self.exists():
-            return False
-
-        try:
-            with open(self.path, "rb") as f:
-                # Seek to end and check last character
-                f.seek(0, 2)  # Seek to end
-                if f.tell() == 0:  # Empty file
-                    return True
-                f.seek(-1, 2)  # Go back 1 byte
-                last_char = f.read(1)
-                return last_char == b"\n"
-        except (OSError, IOError):
-            return False
-
     def read_file_header(self) -> Optional[Dict[str, Any]]:
         """Read the header row from a file to extract run metadata."""
         # Note: file existence is checked by the caller, so we don't check again here
