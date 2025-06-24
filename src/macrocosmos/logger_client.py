@@ -12,7 +12,6 @@ class AsyncLoggerClient(BaseClient):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: int = 0,
@@ -24,7 +23,6 @@ class AsyncLoggerClient(BaseClient):
         Initialize the asynchronous Logger client.
 
         Args:
-            api_key: The API key.
             base_url: The base URL for the API.
             timeout: Time to wait for a response in seconds. (default: None)
             max_retries: The maximum number of retries. (default: 0)
@@ -32,11 +30,9 @@ class AsyncLoggerClient(BaseClient):
             secure: Whether to use HTTPS (default: True).
             app_name: The name of the application using the client.
         """
-        if not api_key:
-            api_key = os.environ.get("LOGGER_API_KEY")
 
         super().__init__(
-            api_key=api_key,
+            api_key="NOT_NEEDED",
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
