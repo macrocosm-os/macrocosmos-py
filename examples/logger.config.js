@@ -7,7 +7,6 @@ module.exports = {
         max_restarts: 0,
         env: {
             MACROCOSMOS_BASE_URL: 'localhost:4000',
-            PYTHONUNBUFFERED: '1',
             MACROCOSMOS_CAPTURE_LOGS: 'true',
             MACROCOSMOS_USE_HTTPS: 'false'
         }

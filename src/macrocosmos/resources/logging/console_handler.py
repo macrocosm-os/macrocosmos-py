@@ -63,6 +63,13 @@ class ConsoleCapture:
         self._stdout_reader_thread: Optional[threading.Thread] = None
         self._stderr_reader_thread: Optional[threading.Thread] = None
 
+        # Store original stream configurations for restoration
+        self._orig_stdout_line_buffering = getattr(sys.stdout, "line_buffering", False)
+        self._orig_stderr_line_buffering = getattr(sys.stderr, "line_buffering", False)
+        # write_through attribute (Python 3.10+) ensures immediate write flush
+        self._orig_stdout_write_through = getattr(sys.stdout, "write_through", False)
+        self._orig_stderr_write_through = getattr(sys.stderr, "write_through", False)
+
         # Platform-specific state
         if self.is_windows:
             self._orig_stdout_handle: Optional[wintypes.HANDLE] = None
@@ -79,6 +86,75 @@ class ConsoleCapture:
             self._orig_stderr_fd: Optional[int] = None
             self._stdout_pipe_write: Optional[int] = None
             self._stderr_pipe_write: Optional[int] = None
+
+    def _force_unbuffered_streams(self):
+        """
+        Force Python's stdout and stderr streams to be unbuffered.
+        This eliminates the need for PYTHONUNBUFFERED=1 environment variable.
+        """
+        try:
+            # Force stdout to be unbuffered
+            if hasattr(sys.stdout, "reconfigure"):
+                # Ensure both line buffering and write-through for immediate flush
+                try:
+                    sys.stdout.reconfigure(line_buffering=True, write_through=True)
+                except TypeError:
+                    # Older Pythons may not support write_through param
+                    sys.stdout.reconfigure(line_buffering=True)
+            else:
+                # Older Python versions: at least flush any buffered data so far
+                try:
+                    sys.stdout.flush()
+                except Exception:
+                    pass
+
+            # Force stderr to be unbuffered
+            if hasattr(sys.stderr, "reconfigure"):
+                # Ensure both line buffering and write-through for immediate flush
+                try:
+                    sys.stderr.reconfigure(line_buffering=True, write_through=True)
+                except TypeError:
+                    sys.stderr.reconfigure(line_buffering=True)
+            else:
+                try:
+                    sys.stderr.flush()
+                except Exception:
+                    pass
+        except Exception:
+            # Best-effort approach - if we can't reconfigure, continue anyway
+            pass
+
+    def _restore_stream_buffering(self):
+        """
+        Restore original buffering settings for stdout and stderr.
+        """
+        try:
+            # Restore stdout buffering
+            if hasattr(sys.stdout, "reconfigure"):
+                try:
+                    sys.stdout.reconfigure(
+                        line_buffering=self._orig_stdout_line_buffering,
+                        write_through=self._orig_stdout_write_through,
+                    )
+                except TypeError:
+                    sys.stdout.reconfigure(
+                        line_buffering=self._orig_stdout_line_buffering
+                    )
+
+            # Restore stderr buffering
+            if hasattr(sys.stderr, "reconfigure"):
+                try:
+                    sys.stderr.reconfigure(
+                        line_buffering=self._orig_stderr_line_buffering,
+                        write_through=self._orig_stderr_write_through,
+                    )
+                except TypeError:
+                    sys.stderr.reconfigure(
+                        line_buffering=self._orig_stderr_line_buffering
+                    )
+        except Exception:
+            # Best-effort approach - if we can't restore, continue anyway
+            pass
 
     @staticmethod
     def strip_ansi(text: str) -> str:
@@ -144,6 +220,9 @@ class ConsoleCapture:
         self._capturing = True
         self._sequence_counter = 0
 
+        # Force unbuffered streams to eliminate need for PYTHONUNBUFFERED=1
+        self._force_unbuffered_streams()
+
         if self.is_windows:
             self._start_windows_capture()
         else:
@@ -154,6 +233,10 @@ class ConsoleCapture:
         if not self._capturing:
             return
         self._capturing = False  # Signal threads to stop
+
+        # Restore original buffering settings
+        self._restore_stream_buffering()
+
         if self.is_windows:
             self._stop_windows_capture()
         else:

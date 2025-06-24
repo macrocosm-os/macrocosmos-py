@@ -15,7 +15,7 @@ from loguru import logger
 
 
 # Run :
-# MACROCOSMOS_BASE_URL=localhost:4000 PYTHONUNBUFFERED=1 MACROCOSMOS_CAPTURE_LOGS=false MACROCOSMOS_USE_HTTPS=false uv run examples/logger_example.py > tmp.log 2>&1
+# MACROCOSMOS_BASE_URL=localhost:4000 MACROCOSMOS_CAPTURE_LOGS=true MACROCOSMOS_USE_HTTPS=false uv run examples/logger_example.py > tmp.log 2>&1
 # pm2 start logger.config.js
 def generate_training_metrics(epoch: int, total_epochs: int) -> Dict[str, Any]:
     """
