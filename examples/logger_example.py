@@ -1,6 +1,6 @@
 """
 Example demonstrating the Logger functionality with realistic usage patterns.
-This example creates two runs simulating actual application logging with predefined payload structures.
+This example creates a run simulating actual application logging with predefined payload structures.
 """
 
 import asyncio
