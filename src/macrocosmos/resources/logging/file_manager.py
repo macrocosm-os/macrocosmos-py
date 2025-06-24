@@ -27,43 +27,31 @@ class File:
     def __init__(self, path: Path, file_type: FileType, run: Optional[Run] = None):
         self.path = path
         self.file_type = file_type
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.run = run
         self.creation_time: Optional[float] = None  # Track actual file creation time
 
     def write(self, content: str) -> None:
         """Write content to the file with lock protection (append mode)."""
-        if self.lock.locked():
-            self._write(content)
-            return
-
         with self.lock:
-            self._write(content)
+            # Transparently create the directory if it disappeared between runs
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
-    def _write(self, content: str) -> None:
-        """Internal helper that handles all file-writing permutations.
+            # If requested, write the header first when the file is missing.
+            if self.run is not None and not self.path.exists():
+                # Track creation time when we actually create the file
+                self.creation_time = time.time()
+                header_dict = self.run.to_header_dict()
+                header_dict["type"] = self.file_type.value
+                header_line = json.dumps(header_dict) + "\n"
+                # Ensure we start with a fresh file for the header
+                print("FileManager: Creating a new file!")
+                with open(self.path, "w") as f:
+                    f.write(header_line)
 
-        Args:
-            content: The string data that should be written to the file.
-        """
-        # Transparently create the directory if it disappeared between runs
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-
-        # If requested, write the header first when the file is missing.
-        if self.run is not None and not self.path.exists():
-            # Track creation time when we actually create the file
-            self.creation_time = time.time()
-            header_dict = self.run.to_header_dict()
-            header_dict["type"] = self.file_type.value
-            header_line = json.dumps(header_dict) + "\n"
-            # Ensure we start with a fresh file for the header
-            print("FileManager: Creating a new file!")
-            with open(self.path, "w") as f:
-                f.write(header_line)
-
-        # Now write the actual payload in the desired mode
-        with open(self.path, "a") as f:
-            f.write(content)
+            # Now write the actual payload in the desired mode
+            with open(self.path, "a") as f:
+                f.write(content)
 
     @property
     def age(self) -> Optional[float]:

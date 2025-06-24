@@ -93,10 +93,6 @@ class UploadWorker:
                                        lock was manually "acquired" instead of a context
                                        manager. Read below for more details. Defaults to False.
         """
-        # Check if file is indeed locked
-        if not file_obj.lock.locked():
-            raise ValueError("File is not locked")
-
         try:
             # Read header to get run info
             header_data = file_obj.read_file_header()
