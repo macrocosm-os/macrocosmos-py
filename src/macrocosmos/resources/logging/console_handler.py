@@ -120,9 +120,9 @@ class ConsoleCapture:
                 "timestamp": timestamp,
                 "payload_json": json.dumps(
                     {
-                        "stream": stream_name,
-                        "message": cleaned_message,
-                        "message_raw": data,
+                        "_stream": stream_name,
+                        "_message": cleaned_message,
+                        "_message_raw": data,
                     }
                 ),
                 "payload_name": f"{stream_name}_output",

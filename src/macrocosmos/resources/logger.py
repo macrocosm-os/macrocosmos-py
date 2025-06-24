@@ -233,7 +233,7 @@ class AsyncLogger:
 
     def _send_remaining_data(self) -> None:
         """Send any remaining data in files."""
-        if self._temp_dir and self._temp_dir.exists():
+        if self._temp_dir and self._temp_dir.exists() and self._file_manager:
             for file_type in FILE_MAP.keys():
                 file_obj = self._file_manager.get_file(file_type)
                 with file_obj.lock:
