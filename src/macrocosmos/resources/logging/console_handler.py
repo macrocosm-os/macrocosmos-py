@@ -180,7 +180,7 @@ class ConsoleCapture:
 
         return "".join(result)
 
-    def _log_data(self, data: str, stream_name: str, line_number: int):
+    def _log_data(self, data: str, stream_name: str):
         """Helper to write captured data to the log file."""
         if not data:
             return
@@ -251,8 +251,8 @@ class ConsoleCapture:
             with os.fdopen(
                 read_fd, "r", encoding="utf-8", errors="replace", buffering=1
             ) as reader:
-                for line_number, line in enumerate(reader):
-                    self._log_data(line.rstrip(), stream_name, line_number)
+                for line in reader:
+                    self._log_data(line.rstrip(), stream_name)
                     try:
                         os.write(forward_fd, line.encode("utf-8", "replace"))
                     except OSError:

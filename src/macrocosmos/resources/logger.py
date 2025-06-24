@@ -168,7 +168,6 @@ class AsyncLogger:
 
         Args:
             data: The data to log.
-            step: The step number (optional).
         """
         if not self._run:
             raise RuntimeError("Logger not initialized. Call init() first.")
@@ -338,15 +337,14 @@ class Logger:
             )
         )
 
-    def log(self, data: Dict[str, Any], step: Optional[int] = None) -> None:
+    def log(self, data: Dict[str, Any]) -> None:
         """
         Log data to the run synchronously.
 
         Args:
             data: The data to log.
-            step: The step number (optional).
         """
-        asyncio.run(self._async_logger.log(data=data, step=step))
+        asyncio.run(self._async_logger.log(data=data))
 
     def finish(self) -> None:
         """
