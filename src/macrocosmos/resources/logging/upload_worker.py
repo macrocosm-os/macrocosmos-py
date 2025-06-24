@@ -51,21 +51,16 @@ class UploadWorker:
 
         try:
             if not file_obj.exists():
-                print("Checker: File does not exist")
                 return False
 
             # Get file stats once to avoid multiple stat calls
             stat_info = file_obj.path.stat()
 
             # Check file size (>5MB)
-            print(
-                f"Checker: File size is only {stat_info.st_size / 1024 / 1024:.2f} mb"
-            )
             if stat_info.st_size > MAX_FILE_SIZE_MB * 1024 * 1024:
                 return True
 
             # Check if there are records to upload (excluding header)
-            print(f"Checker: File age is {file_obj.age:.2f} seconds")
             if (
                 file_obj.age
                 and file_obj.age > MIN_FILE_AGE_SEC
@@ -82,7 +77,7 @@ class UploadWorker:
         self,
         file_obj: File,
         temp_file: Optional[Path] = None,
-        force_lock_release: bool = False,
+        early_lock_release: bool = False,
     ) -> None:
         """
         Send file data to the server asynchronously.
@@ -93,38 +88,43 @@ class UploadWorker:
             temp_file (Optional[Path]): An optional path to a temporary file. If provided,
                                         this file will be used directly for sending data,
                                         typically for recovery of orphaned temp files.
-            force_lock_release (bool): A flag indicating whether to forcefully release the
-                                       file lock after renaming the file. Use this when the
+            early_lock_release (bool): A flag indicating whether to release the file lock
+                                       immediately after renaming the file. Use this when the
                                        lock was manually "acquired" instead of a context
                                        manager. Read below for more details. Defaults to False.
         """
-
         # Check if file is indeed locked
         if not file_obj.lock.locked():
             raise ValueError("File is not locked")
 
-        # Read header to get run info
-        header_data = file_obj.read_file_header()
-        if not header_data:
-            raise ValueError("run_id and project are required for sending file data")
+        try:
+            # Read header to get run info
+            header_data = file_obj.read_file_header()
+            if not header_data:
+                raise ValueError(
+                    "run_id and project are required for sending file data"
+                )
 
-        # If temp_file is provided, use it directly (for recovery of orphaned temp files)
-        # Otherwise, check if there are records and rename the file
-        if temp_file is None:
-            temp_file = file_obj.path.with_suffix(
-                file_obj.path.suffix + TEMP_FILE_SUFFIX
-            )
+            # If temp_file is provided, use it directly (for recovery of orphaned temp files)
+            # Otherwise, check if there are records and rename the file
+            if temp_file is None:
+                temp_file = file_obj.path.with_suffix(
+                    file_obj.path.suffix + TEMP_FILE_SUFFIX
+                )
 
-            # Check if there are records before renaming
-            if not file_obj.has_records():
-                # No records, just clean up the file
-                if file_obj.path.exists():
-                    file_obj.path.unlink()
-                return
-            file_obj.path.rename(temp_file)
-            if force_lock_release:
+                # Check if there are records before renaming
+                if not file_obj.has_records():
+                    # No records, just clean up the file
+                    if file_obj.path.exists():
+                        file_obj.path.unlink()
+                    return
+                file_obj.path.rename(temp_file)
+        except Exception:
+            raise
+        finally:
+            if early_lock_release:
                 # This is to reduce blocking locks on writes to the file while a run is running
-                # it does this by releaing the lock on this file early since the file has been renamed
+                # It does this by releasing the lock on this file early since the file has been renamed
                 # so concurrent writes can happen while the rest of this process runs.
                 file_obj.lock.release()
 
@@ -181,12 +181,11 @@ class UploadWorker:
         finally:
             # Clean up temp file
             if temp_file.exists():
-                # TODO: reenable this
-                # temp_file.unlink()
-                # rename the file with dateandtime
-                new_name = f"{temp_file.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{temp_file.suffix}"
-                temp_file.rename(temp_file.with_name(new_name))
-                print(f"Not unlinking temp file with full path: {temp_file}")
+                temp_file.unlink()
+                # DEBUGGING - rename the file with dateandtime
+                # new_name = f"{temp_file.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{temp_file.suffix}"
+                # temp_file.rename(temp_file.with_name(new_name))
+                # print(f"Not unlinking temp file with full path: {temp_file}")
 
     def _run_async_in_thread(self, coro):
         """Helper to run async coroutines in this thread."""
@@ -205,12 +204,8 @@ class UploadWorker:
                 for file_type in FILE_MAP.keys():
                     file_obj = self.file_manager.get_file(file_type)
                     file_obj.lock.acquire()
-                    try:
-                        if file_obj.exists() and self._should_upload_file(file_obj):
-                            self._send_file_data(file_obj, force_lock_release=True)
-                    finally:
-                        if file_obj.lock.locked():
-                            file_obj.lock.release()
+                    if file_obj.exists() and self._should_upload_file(file_obj):
+                        self._send_file_data(file_obj, early_lock_release=True)
                 time.sleep(1)  # Check every second
             except Exception:
                 time.sleep(5)  # Wait longer on error
