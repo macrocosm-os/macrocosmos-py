@@ -70,6 +70,7 @@ class ApexClient(BaseClient):
         timeout: Optional[int] = None,
         max_retries: int = 0,
         secure: Optional[bool] = None,
+        compress: bool = True,
         app_name: Optional[str] = None,
     ):
         """
@@ -81,6 +82,7 @@ class ApexClient(BaseClient):
             timeout: Time to wait for a response in seconds. (default: None)
             max_retries: The maximum number of retries. (default: 0)
             secure: Whether to use HTTPS (default: True).
+            compress: Whether to compress the request using gzip (default: True).
             app_name: The name of the application using the client.
         """
         if not api_key:
@@ -92,6 +94,7 @@ class ApexClient(BaseClient):
             timeout=timeout,
             max_retries=max_retries,
             secure=secure,
+            compress=compress,
             app_name=app_name,
         )
 
