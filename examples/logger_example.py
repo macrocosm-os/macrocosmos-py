@@ -4,6 +4,7 @@ This example creates a run simulating actual application logging with predefined
 """
 
 import asyncio
+import json
 import random
 import time
 import traceback
@@ -136,13 +137,16 @@ def simulate_random_error(
                 print(f"Stacktrace details:\n{traceback.format_exc()}")
 
 
-async def run_simulation(iterations: int, run_number: int = 1):
+async def run_simulation(
+    iterations: int, run_number: int = 1, use_payload_file: bool = False
+):
     """
     Simulate either ML training or data processing with realistic logging.
 
     Args:
         iterations: Number of iterations (epochs for training, batches for processing)
         run_number: The run number for identification
+        use_payload_file: If True, use payload.json file instead of generated metrics
     """
     config = {
         "title": "ML Training Simulation",
@@ -160,9 +164,22 @@ async def run_simulation(iterations: int, run_number: int = 1):
         "debug_interval": 5,
     }
 
+    # Load payload from file if requested
+    payload_data = None
+    if use_payload_file:
+        try:
+            with open("payload.json", "r") as f:
+                payload_data = json.load(f)
+            logger.info("Loaded payload data from payload.json file")
+        except Exception as e:
+            logger.error(f"Failed to load payload.json: {e}")
+            logger.info("Falling back to generated training metrics")
+            use_payload_file = False
+
     print(f"\n{'=' * 60}")
     print(f"Starting {config['title']} Run #{run_number}")
     print(f"{'Epochs training'}: {iterations}")
+    print(f"{'Using payload file'}: {use_payload_file}")
     print(f"{'=' * 60}")
 
     # Initialize logger (no API key needed)
@@ -183,6 +200,7 @@ async def run_simulation(iterations: int, run_number: int = 1):
             config={
                 **config["config"],
                 "run_number": run_number,
+                "use_payload_file": use_payload_file,
             },
             name=f"{config['name_prefix']}-{run_number}",
             description=f"{config['description_prefix']} #{run_number}",
@@ -198,18 +216,42 @@ async def run_simulation(iterations: int, run_number: int = 1):
             # Simulate random errors (non-blocking)
             simulate_random_error(iteration, iterations)
 
-            # Generate metrics based on simulation type
-            metrics = generate_training_metrics(iteration, iterations)
+            # Generate metrics based on simulation type or use payload data
+            if use_payload_file and payload_data:
+                # Use payload data from file, potentially cycling through if iterations > payload length
+                if isinstance(payload_data, list):
+                    payload_index = (iteration - 1) % len(payload_data)
+                    metrics = payload_data[payload_index]
+                    # Add iteration info to the payload
+                    if isinstance(metrics, dict):
+                        metrics["iteration"] = iteration
+                        metrics["total_iterations"] = iterations
+                else:
+                    # If payload is not a list, use it directly
+                    metrics = (
+                        payload_data.copy()
+                        if isinstance(payload_data, dict)
+                        else {"data": payload_data}
+                    )
+                    metrics["iteration"] = iteration
+                    metrics["total_iterations"] = iterations
+            else:
+                metrics = generate_training_metrics(iteration, iterations)
 
             # Log the metrics
             await mc_logger.log(metrics)
 
             # Log progress at specified intervals
             if iteration % config["progress_interval"] == 0 or iteration == iterations:
-                logger.info(
-                    f"Training progress: Epoch {iteration}/{iterations} - Loss: {metrics['loss']:.4f}, "
-                    f"Accuracy: {metrics['accuracy']:.4f}, LR: {metrics['learning_rate']:.6f}"
-                )
+                if use_payload_file and payload_data:
+                    logger.info(
+                        f"Processing progress: Iteration {iteration}/{iterations} - Using payload data"
+                    )
+                else:
+                    logger.info(
+                        f"Training progress: Epoch {iteration}/{iterations} - Loss: {metrics['loss']:.4f}, "
+                        f"Accuracy: {metrics['accuracy']:.4f}, LR: {metrics['learning_rate']:.6f}"
+                    )
 
             # Additional debug logs
             if iteration % config["debug_interval"] == 0:
@@ -221,19 +263,33 @@ async def run_simulation(iterations: int, run_number: int = 1):
         simulation_time = time.time() - start_time
 
         # Log final summary based on simulation type
-        final_metrics = {
-            "training_completed": True,
-            "total_epochs": iterations,
-            "final_loss": metrics["loss"],
-            "final_accuracy": metrics["accuracy"],
-            "training_time_seconds": round(simulation_time, 2),
-            "epochs_per_second": round(iterations / simulation_time, 2),
-            "completed_at": datetime.now().isoformat(),
-        }
-        success_message = (
-            f"Training completed successfully in {simulation_time:.2f} seconds - "
-            f"Final metrics: Loss={metrics['loss']:.4f}, Accuracy={metrics['accuracy']:.4f}"
-        )
+        if use_payload_file and payload_data:
+            final_metrics = {
+                "processing_completed": True,
+                "total_iterations": iterations,
+                "processing_time_seconds": round(simulation_time, 2),
+                "iterations_per_second": round(iterations / simulation_time, 2),
+                "completed_at": datetime.now().isoformat(),
+                "data_source": "payload.json",
+            }
+            success_message = (
+                f"Processing completed successfully in {simulation_time:.2f} seconds - "
+                f"Processed {iterations} iterations using payload data"
+            )
+        else:
+            final_metrics = {
+                "training_completed": True,
+                "total_epochs": iterations,
+                "final_loss": metrics["loss"],
+                "final_accuracy": metrics["accuracy"],
+                "training_time_seconds": round(simulation_time, 2),
+                "epochs_per_second": round(iterations / simulation_time, 2),
+                "completed_at": datetime.now().isoformat(),
+            }
+            success_message = (
+                f"Training completed successfully in {simulation_time:.2f} seconds - "
+                f"Final metrics: Loss={metrics['loss']:.4f}, Accuracy={metrics['accuracy']:.4f}"
+            )
 
         await mc_logger.log(final_metrics)
         logger.success(success_message)
@@ -257,7 +313,7 @@ async def main():
     print("This example demonstrates logger usage patterns:")
 
     try:
-        run_id = await run_simulation(2000)
+        run_id = await run_simulation(1000, use_payload_file=True)
         print("\n🎉 All logger simulations completed successfully!")
         print(f"Run ID: {run_id}")
         print(
