@@ -1,4 +1,3 @@
-import asyncio
 import json
 import threading
 import time
@@ -16,13 +15,10 @@ from macrocosmos.resources.logging.file_manager import (
     FILE_MAP,
     TEMP_FILE_SUFFIX,
 )
-from macrocosmos.resources.logging.request import make_request
+from macrocosmos.resources.logging.request import make_sync_request
 
 MAX_BATCH_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
 MIN_FILE_AGE_SEC = 10  # 10 seconds
-# Batch processing configuration
-DEFAULT_BATCH_SIZE = 100  # Records per batch
-DEFAULT_MAX_BATCH_SIZE_BYTES = 5 * 1024 * 1024  # 5MB per batch
 
 
 class UploadWorker:
@@ -268,9 +264,7 @@ class UploadWorker:
             records=records,
         )
 
-        self._run_async_in_thread(
-            make_request(self.client, "StoreRecordBatch", request)
-        )
+        make_sync_request(self.client, "StoreRecordBatch", request)
 
     def _update_checkpoint(self, checkpoint_file: Path, line_index: int) -> None:
         """
@@ -287,16 +281,6 @@ class UploadWorker:
             # If we can't write checkpoint, continue processing
             # The checkpoint will be recreated on next attempt
             pass
-
-    def _run_async_in_thread(self, coro):
-        """Helper to run async coroutines in this thread."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
-            asyncio.set_event_loop(None)
 
     def upload_worker(self) -> None:
         """Background worker to upload data files."""

@@ -23,7 +23,7 @@ from macrocosmos.resources.logging.file_manager import (
 from macrocosmos.resources.logging.run import Run
 from macrocosmos.resources.logging.upload_worker import UploadWorker
 from macrocosmos.resources.logging.console_handler import ConsoleCapture
-from macrocosmos.resources.logging.request import make_request
+from macrocosmos.resources.logging.request import make_async_request
 
 
 class AsyncLogger:
@@ -236,7 +236,7 @@ class AsyncLogger:
             entity=self._run.entity,
         )
 
-        await make_request(self._client, "CreateRun", request)
+        await make_async_request(self._client, "CreateRun", request)
 
     def _send_remaining_data(self) -> None:
         """Send any remaining data in files."""
