@@ -269,10 +269,6 @@ class AsyncLogger:
                 )
                 for file_type in FILE_MAP.keys():
                     file_obj = tmp_file_manager.get_file(file_type)
-                    with file_obj.lock:
-                        if file_obj.exists():
-                            tmp_upload_worker._send_file_data(file_obj)
-
                     tmp_file_path = file_obj.path.with_suffix(
                         file_obj.path.suffix + TEMP_FILE_SUFFIX
                     )
@@ -282,6 +278,9 @@ class AsyncLogger:
                             tmp_upload_worker._send_file_data(
                                 tmp_file_obj, tmp_file_path
                             )
+                    with file_obj.lock:
+                        if file_obj.exists():
+                            tmp_upload_worker._send_file_data(file_obj)
 
     @property
     def run(self) -> Optional[Run]:
