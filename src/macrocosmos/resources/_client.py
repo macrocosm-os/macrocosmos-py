@@ -65,12 +65,20 @@ class BaseClient(ABC):
         self.compress = compress
         self.app_name = app_name
 
-    def get_channel(self) -> grpc.aio.Channel:
+    def get_async_channel(self) -> grpc.aio.Channel:
         """
-        Get a channel for the given client.
+        Get an asynchronous channel for the given client.
         """
         if self.secure:
             return grpc.aio.secure_channel(
                 self.base_url, grpc.ssl_channel_credentials()
             )
         return grpc.aio.insecure_channel(self.base_url)
+
+    def get_sync_channel(self) -> grpc.Channel:
+        """
+        Get a synchronous channel for the given client.
+        """
+        if self.secure:
+            return grpc.secure_channel(self.base_url, grpc.ssl_channel_credentials())
+        return grpc.insecure_channel(self.base_url)

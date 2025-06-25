@@ -101,8 +101,9 @@ class AsyncDeepResearch:
         retries = 0
         last_error = None
         while retries <= self._client.max_retries:
+            channel = None
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.SubmitDeepResearcherJob(
                     request,
@@ -110,15 +111,15 @@ class AsyncDeepResearch:
                     timeout=self._client.timeout,
                     compression=compression,
                 )
-                await channel.close()
                 return response
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
-                await channel.close()
             except Exception as e:
-                await channel.close()
                 raise MacrocosmosError(f"Error creating research job: {e}")
+            finally:
+                if channel:
+                    await channel.close()
 
         raise last_error
 
@@ -154,8 +155,9 @@ class AsyncDeepResearch:
         retries = 0
         last_error = None
         while retries <= self._client.max_retries:
+            channel = None
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 response = await stub.GetDeepResearcherJob(
                     request,
@@ -163,15 +165,15 @@ class AsyncDeepResearch:
                     timeout=self._client.timeout,
                     compression=compression,
                 )
-                await channel.close()
                 return response
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
-                await channel.close()
             except Exception as e:
-                await channel.close()
                 raise MacrocosmosError(f"Error getting research job status: {e}")
+            finally:
+                if channel:
+                    await channel.close()
 
         raise last_error
 

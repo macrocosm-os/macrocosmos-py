@@ -111,7 +111,7 @@ class AsyncCompletions:
         last_error = None
         while retries <= self._client.max_retries:
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = apex_pb2_grpc.ApexServiceStub(channel)
                 if not stream:
                     response = await stub.ChatCompletion(
