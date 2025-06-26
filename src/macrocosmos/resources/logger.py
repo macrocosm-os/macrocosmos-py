@@ -7,6 +7,7 @@ import string
 import signal
 import tempfile
 import threading
+import logging
 import time
 from datetime import datetime
 from pathlib import Path
@@ -27,6 +28,8 @@ from macrocosmos.resources.logging.upload_worker import UploadWorker
 from macrocosmos.resources.logging.file_monitor import FileMonitor
 from macrocosmos.resources.logging.console_handler import ConsoleCapture
 from macrocosmos.resources.logging.request import make_async_request
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncLogger:
@@ -181,7 +184,7 @@ class AsyncLogger:
         # Write to history file
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
-            None,
+            self._thread_pool,
             self._file_manager.get_file(FileType.HISTORY).write,
             json.dumps(record) + "\n",
         )
@@ -200,7 +203,7 @@ class AsyncLogger:
                 try:
                     self._monitor_future.result(timeout=1)
                 except concurrent.futures.TimeoutError:
-                    print("Warning: Monitor future timed out")
+                    logger.warning("monitor future timed out")
                     pass  # Monitor thread will be cleaned up with thread pool
 
         # Stop logging capture
@@ -305,7 +308,7 @@ class AsyncLogger:
                         if not future.done():
                             future.result(timeout=1)
                     except concurrent.futures.TimeoutError:
-                        print("Warning: Recovery upload future timed out")
+                        logger.warning("recovery upload future timed out")
                         pass  # Recovery thread will be cleaned up with thread pool
 
             # Wait for recovery thread to complete (if still running)
@@ -313,7 +316,7 @@ class AsyncLogger:
                 try:
                     self._recovery_future.result(timeout=1)
                 except concurrent.futures.TimeoutError:
-                    print("Warning: Recovery future timed out")
+                    logger.warning("recovery future timed out")
                     pass  # Recovery thread will be cleaned up with thread pool
 
             # Wait for remaining upload futures to complete (if still running)
@@ -323,7 +326,7 @@ class AsyncLogger:
                         if not future.done():
                             future.result(timeout=1)
                     except concurrent.futures.TimeoutError:
-                        print("Warning: Remaining upload future timed out")
+                        logger.warning("remaining upload future timed out")
                         pass  # Remaining upload thread will be cleaned up with thread pool
 
             # Shutdown thread pool
