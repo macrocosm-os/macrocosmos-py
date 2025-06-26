@@ -427,13 +427,14 @@ class AsyncLogger:
                         )
                         file_obj = File(tmp_file_path, file_type)
                     else:
-                        # check if we have blocking temp upload for this regular file
-                        if key in blocking_temp_uploads and file_obj.exists():
-                            # we will skip this for now and we will upload it once the temp file is done
-                            continue
-                        else:
-                            # we don't need to monitor this temp file upload
-                            del blocking_temp_uploads[run_dir]
+                        # check if we have blocking temp upload matching this regular file
+                        if key in blocking_temp_uploads:
+                            if file_obj.exists():
+                                # we will skip this for now and we will upload it once the temp file is done
+                                continue
+                            else:
+                                # we don't need to monitor this temp file upload - proceed with upload
+                                del blocking_temp_uploads[key]
 
                     with file_obj.lock:
                         if file_obj.exists():
