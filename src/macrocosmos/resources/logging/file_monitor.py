@@ -7,6 +7,7 @@ from macrocosmos.resources.logging.file_manager import (
     File,
     FileManager,
     FILE_MAP,
+    TEMP_FILE_SUFFIX,
 )
 from macrocosmos.resources.logging.upload_worker import UploadWorker
 
@@ -47,6 +48,13 @@ class FileMonitor:
         # should be stable, but we still handle potential race conditions defensively
         try:
             if not file_obj.exists():
+                return False
+
+            tmp_file_path = file_obj.path.with_suffix(
+                file_obj.path.suffix + TEMP_FILE_SUFFIX
+            )
+            if tmp_file_path.exists():
+                # There is an upload in progress, we will keep appending to the current file
                 return False
 
             # Get file stats once to avoid multiple stat calls

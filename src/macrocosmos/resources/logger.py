@@ -395,7 +395,7 @@ class AsyncLogger:
 
     def _handle_startup_recovery(self) -> None:
         """
-        Handle startup recovery by sending any existing files from previous runs, except the specified skip directory.
+        Handle startup recovery by sending any existing files from previous runs.
 
         This method runs asynchronously in a background thread and does not block the initialization
         of new logging runs. It searches for orphaned log files from previous runs and uploads them
@@ -408,6 +408,7 @@ class AsyncLogger:
         run_dirs = [
             run_dir for run_dir in temp_dir.glob("mcl_run_*") if run_dir.is_dir()
         ]
+        blocking_temp_uploads = dict()
 
         for f in ["temp", "regular"]:
             for run_dir in run_dirs:
@@ -418,12 +419,21 @@ class AsyncLogger:
                 for file_type in FILE_MAP.keys():
                     file_obj = tmp_file_manager.get_file(file_type)
                     tmp_file_path = None
+                    key = (run_dir, file_type)
 
                     if f == "temp":
                         tmp_file_path = file_obj.path.with_suffix(
                             file_obj.path.suffix + TEMP_FILE_SUFFIX
                         )
                         file_obj = File(tmp_file_path, file_type)
+                    else:
+                        # check if we have blocking temp upload for this regular file
+                        if key in blocking_temp_uploads and file_obj.exists():
+                            # we will skip this for now and we will upload it once the temp file is done
+                            continue
+                        else:
+                            # we don't need to monitor this temp file upload
+                            del blocking_temp_uploads[run_dir]
 
                     with file_obj.lock:
                         if file_obj.exists():
@@ -433,14 +443,25 @@ class AsyncLogger:
                                 tmp_file_path,
                             )
                             self._recovery_upload_futures.append(future)
+                            if f == "temp":
+                                blocking_temp_uploads[key] = future
 
-            if f == "temp":
-                # Wait for all temp recovery uploads to complete before we move
-                # on to regular files to keep sequence integrity
-                concurrent.futures.wait(
-                    self._recovery_upload_futures,
-                    return_when=concurrent.futures.ALL_COMPLETED,
-                )
+        # Process blocked regular files after temp files are done
+        future_to_name = {
+            future: name for name, future in blocking_temp_uploads.items()
+        }
+        for future in concurrent.futures.as_completed(future_to_name.keys()):
+            name = future_to_name[future]
+            run_dir, file_type = name
+            tmp_file_manager = FileManager(run_dir)
+            file_obj = tmp_file_manager.get_file(file_type)
+            with file_obj.lock:
+                if file_obj.exists():
+                    future = thread_pool.submit(
+                        self._upload_worker.upload_file,
+                        file_obj,
+                    )
+                    self._recovery_upload_futures.append(future)
 
     @property
     def run(self) -> Optional[Run]:
