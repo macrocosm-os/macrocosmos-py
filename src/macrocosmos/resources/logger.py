@@ -86,7 +86,7 @@ class AsyncLogger:
         name: Optional[str] = None,
         description: Optional[str] = None,
         reinit: bool = False,
-    ) -> str:
+    ) -> Run:
         """
         Initialize a new logging run.
 
@@ -126,6 +126,7 @@ class AsyncLogger:
             tags=base_tags + (tags or []),
             config=config or {},
             start_time=datetime.now(),
+            finish_callback=self.finish,
         )
 
         # Create temporary run directory
@@ -162,7 +163,7 @@ class AsyncLogger:
             self._file_monitor.monitor_files
         )
 
-        return self._run.run_id
+        return self._run
 
     async def log(self, data: Dict[str, Any]) -> None:
         """
@@ -390,7 +391,6 @@ class AsyncLogger:
                 file_obj = file_manager.get_file(file_type)
                 with file_obj.lock:
                     if file_obj.exists():
-                        # Submit upload task to thread pool
                         future = self._thread_pool.submit(
                             self._upload_worker.upload_file, file_obj
                         )

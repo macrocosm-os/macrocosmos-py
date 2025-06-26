@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 
 class Run:
@@ -17,6 +17,7 @@ class Run:
         config: Optional[Dict[str, Any]] = None,
         start_time: Optional[datetime] = None,
         initial_step: Optional[int] = 0,
+        finish_callback: Optional[Callable[[], None]] = None,
     ):
         """
         Initialize a new run.
@@ -31,6 +32,8 @@ class Run:
             tags: Optional list of tags
             config: Optional configuration dictionary
             start_time: Optional start time (defaults to current time)
+            initial_step: Optional initial step number (defaults to 0)
+            finish_callback: Optional callback to call when the run is finished
         """
         self.run_id = run_id
         self.project = project
@@ -42,6 +45,8 @@ class Run:
         self.config = config or {}
         self.start_time = start_time or datetime.now()
         self.step = initial_step or 0
+        self._finish_callback = finish_callback
+        self._finish_time: Optional[datetime] = None
 
     def to_header_dict(self) -> Dict[str, Any]:
         """Convert run metadata to a header dictionary for file writing."""
@@ -58,10 +63,21 @@ class Run:
             "created_at": self.start_time.isoformat(),
         }
 
+    def finish(self) -> None:
+        """Finish the run and call the finish callback."""
+        if self._finish_callback:
+            self._finish_callback()
+        self._finish_time = datetime.now()
+
+    @property
+    def id(self) -> str:
+        """Get the run ID."""
+        return self.run_id
+
     @property
     def runtime(self) -> float:
         """Get the current runtime in seconds."""
-        return (datetime.now() - self.start_time).total_seconds()
+        return ((self._finish_time or datetime.now()) - self.start_time).total_seconds()
 
     def next_step(self) -> int:
         """Increment the step number."""
