@@ -192,7 +192,7 @@ async def run_simulation(
             f"Starting simulation run #{run_number} with {iterations} iterations"
         )
 
-        run_id = await mc_logger.init(
+        run = await mc_logger.init(
             project="data-universe-validators",
             entity=config["entity"],
             tags=[f"example-run-{run_number}"],
@@ -207,7 +207,7 @@ async def run_simulation(
         )
         print("🚀 Logger capturing started")
 
-        logger.success(f"Logger initialized successfully with run ID: {run_id}")
+        logger.success(f"Logger initialized successfully with run ID: {run.id}")
 
         # Simulation loop
         start_time = time.time()
@@ -294,7 +294,7 @@ async def run_simulation(
         await mc_logger.log(final_metrics)
         logger.success(success_message)
 
-        return run_id
+        return run.id
 
     except Exception as e:
         logger.error(f"Critical error in simulation run #{run_number}: {str(e)}")
@@ -313,7 +313,7 @@ async def main():
     print("This example demonstrates logger usage patterns:")
 
     try:
-        run_id = await run_simulation(1000, use_payload_file=True)
+        run_id = await run_simulation(500, use_payload_file=True)
         print("\n🎉 All logger simulations completed successfully!")
         print(f"Run ID: {run_id}")
         print(
