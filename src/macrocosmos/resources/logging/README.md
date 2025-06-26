@@ -1,5 +1,5 @@
 # Logger
-Logger is the Macrocosmos logging utilty used by Macrocosmos subnets for capturing subnet node activity.
+Logger is the Macrocosmos logging utility used by Macrocosmos subnets for capturing subnet node activity.
 
 
 ## Example usage
@@ -12,7 +12,8 @@ async def run():
     mcl_client = mc.AsyncLoggerClient(app_name="my_app")
     mc_logger = mcl_client.logger
 
-    run_id = await mc_logger.init(
+    # Start a new run
+    run = await mc_logger.init(
         project="data-universe-validators",
         tags=[f"example"],
         notes=f"Additional notes",
@@ -21,7 +22,7 @@ async def run():
         description=f"This is an example",
     )
 
-    logger.success(f"🚀 Logger initialized successfully with run ID: {run_id}")
+    logger.success(f"🚀 Logger initialized successfully with run ID: {run.id}")
 
     try:
         while True:
@@ -36,7 +37,7 @@ async def run():
         raise
     finally:
         logger.info(f"🏁 Finished")
-        await mc_logger.finish()
+        await mc_logger.finish()  # or use `run.finish()`
 ```
 
 ## Disable Console Capture
