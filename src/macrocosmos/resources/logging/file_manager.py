@@ -27,7 +27,7 @@ class File:
     def __init__(self, path: Path, file_type: FileType, run: Optional[Run] = None):
         self.path = path
         self.file_type = file_type
-        self.lock = threading.RLock()
+        self.lock = threading.Lock()
         self.run = run
         self.creation_time: Optional[float] = None  # Track actual file creation time
 
