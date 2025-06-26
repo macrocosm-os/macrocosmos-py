@@ -208,6 +208,9 @@ class ConsoleCapture:
 
             # Write to file (no need to auto_lock since we already have the lock)
             try:
+                # WARNING: we don't autolock bcs we locked above already and trying
+                # to lock again will be blocked. this is not an RLock and can't be
+                # due to other restrictions in the codebase
                 self.log_file.write(json.dumps(record) + "\n", auto_lock=False)
             except Exception:
                 # Best-effort logging; ignore I/O errors to keep program running

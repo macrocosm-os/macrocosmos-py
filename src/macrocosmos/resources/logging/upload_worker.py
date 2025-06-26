@@ -55,6 +55,7 @@ class UploadWorker:
                                        lock was manually "acquired" instead of a context
                                        manager. Read below for more details. Defaults to False.
         """
+        # WARNING: do not put any code above in this area as an unexpected failure will not release the blocking lock for the file monitor
         try:
             if self._stop_upload.is_set():
                 return
@@ -83,6 +84,7 @@ class UploadWorker:
         except Exception:
             raise
         finally:
+            # WARNING: do not remove this logic to ensure the lock gets cleared for the file monitor
             if early_lock_release:
                 # This is to reduce blocking locks on writes to the file while a run is running
                 # It does this by releasing the lock on this file early since the file has been renamed

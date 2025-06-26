@@ -83,7 +83,7 @@ class FileMonitor:
             try:
                 for file_type in FILE_MAP.keys():
                     file_obj = self.file_manager.get_file(file_type)
-                    file_obj.lock.acquire()
+                    file_obj.lock.acquire()  # NOTE: This lock will be released by the `upload_file` method or the below else clause
                     if file_obj.exists() and self._should_upload_file(file_obj):
                         # Submit upload task to thread pool if available
                         future = self._thread_pool.submit(

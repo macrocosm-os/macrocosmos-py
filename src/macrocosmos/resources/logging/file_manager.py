@@ -37,6 +37,11 @@ class File:
             with self.lock:
                 self._write(content)
         else:
+            # when `auto_lock=False` we are assuming a lock is already inplace
+            # if we were to try to lock when the lock is already in place (even if it's the same thread)
+            # we'd block ourselves (console_handler._log_data).
+            # NOTE: an RLock won't work for self.lock since we have some locks that are released by
+            # threads that did not create the lock (monitor_files > upload_file)
             self._write(content)
 
     def _write(self, content: str, auto_lock: bool = True) -> None:
