@@ -1,6 +1,5 @@
 import json
 import threading
-import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -10,74 +9,40 @@ from macrocosmos.generated.logger.v1 import logger_pb2
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources.logging.file_manager import (
     File,
-    FileManager,
     FileType,
-    FILE_MAP,
     TEMP_FILE_SUFFIX,
 )
 from macrocosmos.resources.logging.request import make_sync_request
 
 MAX_BATCH_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
-MIN_FILE_AGE_SEC = 10  # 10 seconds
 
 
 class UploadWorker:
-    """Background worker for uploading log files to the server."""
+    """Worker for uploading files in bathces to the server."""
 
     def __init__(
         self,
-        file_manager: FileManager,
         client: BaseClient,
         stop_upload: threading.Event,
     ):
         """
-        Initialize the logging worker.
+        Initialize the upload worker.
 
         Args:
-            file_manager: The file manager instance.
             client: The client instance for making requests.
             stop_upload: The stop event for the upload thread.
         """
-        self.file_manager = file_manager
         self.client = client
         self._stop_upload = stop_upload
 
-    def _should_upload_file(self, file_obj: File) -> bool:
-        """Check if a file should be uploaded based on size and time."""
-        # Note: This method is called while holding the file lock, so file existence
-        # should be stable, but we still handle potential race conditions defensively
-        try:
-            if not file_obj.exists():
-                return False
-
-            # Get file stats once to avoid multiple stat calls
-            stat_info = file_obj.path.stat()
-
-            # Check file size (>5MB)
-            if stat_info.st_size > MAX_BATCH_SIZE_BYTES:
-                return True
-
-            # Check if there are records to upload (excluding header)
-            if (
-                file_obj.age
-                and file_obj.age > MIN_FILE_AGE_SEC
-                and file_obj.has_records()
-            ):
-                return True
-
-            return False
-        except (OSError, IOError):
-            # File was deleted or became inaccessible between checks
-            return False
-
-    def _send_file_data(
+    def upload_file(
         self,
         file_obj: File,
         temp_file: Optional[Path] = None,
         early_lock_release: bool = False,
     ) -> None:
         """
-        Send file data to the server using checkpoint-based processing.
+        Upload a single file to the server using checkpoint-based processing.
 
         Args:
             file_obj (File): The file object representing the log file to be sent.
@@ -91,6 +56,9 @@ class UploadWorker:
                                        manager. Read below for more details. Defaults to False.
         """
         try:
+            if self._stop_upload.is_set():
+                return
+
             # Read header to get run info
             header_data = file_obj.read_file_header()
             if not header_data:
@@ -144,17 +112,16 @@ class UploadWorker:
                 start_index,
             )
 
-            # Success - clean up checkpoint file
-            if checkpoint_file.exists():
-                checkpoint_file.unlink()
+            if not self._stop_upload.is_set():
+                # Success - clean up checkpoint and tempfile
+                if checkpoint_file.exists():
+                    checkpoint_file.unlink()
+                if temp_file.exists():
+                    temp_file.unlink()
 
         except Exception:
             # Keep checkpoint file for recovery on next attempt
             raise
-        finally:
-            # Clean up temp file only on success (checkpoint will be cleaned up above)
-            if temp_file.exists():
-                temp_file.unlink()
 
     def _process_file_with_checkpoints(
         self,
@@ -189,7 +156,7 @@ class UploadWorker:
             line_index = start_index
             batches_sent = 0
 
-            while True:
+            while not self._stop_upload.is_set():
                 line = f.readline()
                 if not line:
                     break
@@ -240,7 +207,7 @@ class UploadWorker:
                         # Skip malformed lines - they might be incomplete writes
                         continue
 
-            # Send final batch
+            # Send final batch - or when the upload is stopped
             if current_batch:
                 self._send_batch(current_batch, header_data, file_type)
                 batches_sent += 1
@@ -281,18 +248,3 @@ class UploadWorker:
             # If we can't write checkpoint, continue processing
             # The checkpoint will be recreated on next attempt
             pass
-
-    def upload_worker(self) -> None:
-        """Background worker to upload data files."""
-        while not self._stop_upload.is_set():
-            try:
-                for file_type in FILE_MAP.keys():
-                    file_obj = self.file_manager.get_file(file_type)
-                    file_obj.lock.acquire()
-                    if file_obj.exists() and self._should_upload_file(file_obj):
-                        self._send_file_data(file_obj, early_lock_release=True)
-                    else:
-                        file_obj.lock.release()
-                time.sleep(1)  # Check every second
-            except Exception:
-                time.sleep(5)  # Wait longer on error
