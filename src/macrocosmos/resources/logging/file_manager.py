@@ -31,26 +31,33 @@ class File:
         self.run = run
         self.creation_time: Optional[float] = None  # Track actual file creation time
 
-    def write(self, content: str) -> None:
+    def write(self, content: str, auto_lock: bool = True) -> None:
         """Write content to the file with lock protection (append mode)."""
-        with self.lock:
-            # Transparently create the directory if it disappeared between runs
-            self.path.parent.mkdir(parents=True, exist_ok=True)
+        if auto_lock:
+            with self.lock:
+                self._write(content)
+        else:
+            self._write(content)
 
-            # If requested, write the header first when the file is missing.
-            if self.run is not None and not self.path.exists():
-                # Track creation time when we actually create the file
-                self.creation_time = time.time()
-                header_dict = self.run.to_header_dict()
-                header_dict["type"] = self.file_type.value
-                header_line = json.dumps(header_dict) + "\n"
-                # Ensure we start with a fresh file for the header
-                with open(self.path, "w") as f:
-                    f.write(header_line)
+    def _write(self, content: str, auto_lock: bool = True) -> None:
+        """Write content to the file with lock protection (append mode)."""
+        # Transparently create the directory if it disappeared between runs
+        self.path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Now write the actual payload in the desired mode
-            with open(self.path, "a") as f:
-                f.write(content)
+        # If requested, write the header first when the file is missing.
+        if self.run is not None and not self.path.exists():
+            # Track creation time when we actually create the file
+            self.creation_time = time.time()
+            header_dict = self.run.to_header_dict()
+            header_dict["type"] = self.file_type.value
+            header_line = json.dumps(header_dict) + "\n"
+            # Ensure we start with a fresh file for the header
+            with open(self.path, "w") as f:
+                f.write(header_line)
+
+        # Now write the actual payload in the desired mode
+        with open(self.path, "a") as f:
+            f.write(content)
 
     @property
     def age(self) -> Optional[float]:
