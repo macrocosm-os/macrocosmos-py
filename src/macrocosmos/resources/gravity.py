@@ -250,10 +250,6 @@ class AsyncGravity:
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
-            (
-                "remote-user-email",
-                "example@example.com",
-            ),  # TODO: Remove this once authentication is fully implemented
         ]
 
         compression = grpc.Compression.Gzip if self._client.compress else None
@@ -261,8 +257,9 @@ class AsyncGravity:
         retries = 0
         last_error = None
         while retries <= self._client.max_retries:
+            channel = None
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = gravity_pb2_grpc.GravityServiceStub(channel)
                 method = getattr(stub, method_name)
                 response = await method(
@@ -271,15 +268,15 @@ class AsyncGravity:
                     timeout=self._client.timeout,
                     compression=compression,
                 )
-                await channel.close()
                 return response
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
-                await channel.close()
             except Exception as e:
-                await channel.close()
                 raise MacrocosmosError(f"Error calling {method_name}: {e}")
+            finally:
+                if channel:
+                    await channel.close()
 
         raise last_error
 

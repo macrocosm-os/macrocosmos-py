@@ -73,10 +73,6 @@ class AsyncSn13:
             ("x-client-id", __package_name__),
             ("x-client-version", __version__),
             ("authorization", f"Bearer {self._client.api_key}"),
-            (
-                "remote-user-email",
-                "example@example.com",
-            ),  # TODO: Remove this once authentication is fully implemented
         ]
 
         compression = grpc.Compression.Gzip if self._client.compress else None
@@ -84,8 +80,9 @@ class AsyncSn13:
         retries = 0
         last_error = None
         while retries <= self._client.max_retries:
+            channel = None
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = sn13_validator_pb2_grpc.Sn13ServiceStub(channel)
                 method = getattr(stub, method_name)
                 response = await method(
@@ -94,7 +91,6 @@ class AsyncSn13:
                     timeout=self._client.timeout,
                     compression=compression,
                 )
-                await channel.close()
                 # MessageToDict removes verbosity due to data and meta fields being google.protobuf.Struct types
                 return MessageToDict(
                     response, preserving_proto_field_name=True
@@ -102,10 +98,11 @@ class AsyncSn13:
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
-                await channel.close()
             except Exception as e:
-                await channel.close()
                 raise MacrocosmosError(f"Error calling {method_name}: {e}")
+            finally:
+                if channel:
+                    await channel.close()
 
         raise last_error
 

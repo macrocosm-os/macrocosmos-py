@@ -1,7 +1,7 @@
 # This is an automatically generated file, please do not change
-# gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
-# Protobuf Version: 5.29.4 
-# Pydantic Version: 2.11.0 
+# gen by protobuf_to_pydantic[v0.3.3.1](https://github.com/so1n/protobuf_to_pydantic)
+# Protobuf Version: 6.31.1 
+# Pydantic Version: 2.11.7 
 from datetime import datetime
 from google.protobuf.message import Message  # type: ignore
 from pydantic import BaseModel
@@ -27,11 +27,19 @@ class CrawlerCriteria(BaseModel):
 # platform: the platform of the job ('x' or 'reddit')
     platform: str = Field(default="")
 # topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-    topic: str = Field(default="")
+    topic: typing.Optional[str] = Field(default="")
 # notification: the details of the notification to be sent to the user
     notification: CrawlerNotification = Field(default_factory=CrawlerNotification)
 # mock: Used for testing purposes (optional, defaults to false)
     mock: bool = Field(default=False)
+# user_id: the ID of the user who created the gravity task
+    user_id: str = Field(default="")
+# keyword: the keyword to search for in the job (optional)
+    keyword: typing.Optional[str] = Field(default="")
+# post_start_datetime: the start date of the job (optional)
+    post_start_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
+# post_end_datetime: the end date of the job (optional)
+    post_end_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
 
 class HfRepo(BaseModel):
     """
@@ -128,9 +136,15 @@ class GravityTask(BaseModel):
     """
 
 # topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-    topic: str = Field(default="")
+    topic: typing.Optional[str] = Field(default="")
 # platform: the platform of the job ('x' or 'reddit')
     platform: str = Field(default="")
+# keyword: the keyword to search for in the job (optional)
+    keyword: typing.Optional[str] = Field(default="")
+# post_start_datetime: the start date of the job (optional)
+    post_start_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
+# post_end_datetime: the end date of the job (optional)
+    post_end_datetime: typing.Optional[datetime] = Field(default_factory=datetime.now)
 
 class NotificationRequest(BaseModel):
     """

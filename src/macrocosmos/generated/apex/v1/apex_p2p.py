@@ -1,7 +1,7 @@
 # This is an automatically generated file, please do not change
-# gen by protobuf_to_pydantic[v0.3.1.1](https://github.com/so1n/protobuf_to_pydantic)
-# Protobuf Version: 5.29.4 
-# Pydantic Version: 2.11.0 
+# gen by protobuf_to_pydantic[v0.3.3.1](https://github.com/so1n/protobuf_to_pydantic)
+# Protobuf Version: 6.31.1 
+# Pydantic Version: 2.11.7 
 from datetime import datetime
 from google.protobuf.message import Message  # type: ignore
 from pydantic import BaseModel
@@ -479,7 +479,47 @@ class GetChatSessionsResponse(BaseModel):
 # chat_sessions: the chat sessions
     chat_sessions: typing.List[ChatSession] = Field(default_factory=list)
 
-class UpdateChatAttributeRequest(BaseModel):
+class GetStoredChatCompletionsRequest(BaseModel):
+    """
+     A GetStoredChatCompletionRequest request message
+    """
+
+# chat_id: a unique identifier for a chat
+    chat_id: str = Field(default="")
+
+class StoredChatCompletion(BaseModel):
+    """
+     A StoredChatCompletion message repeated in GetStoredChatCompletionsResponse
+    """
+
+# id: chat completion id
+    id: str = Field(default="")
+# chat_id: chat id
+    chat_id: str = Field(default="")
+# completion_type: type of completion
+    completion_type: str = Field(default="")
+# created_at: when the chat was created
+    created_at: datetime = Field(default_factory=datetime.now)
+# completed_at: when the chat was updated
+    completed_at: datetime = Field(default_factory=datetime.now)
+# user_prompt_text: user_prompt_text of chat
+    user_prompt_text: str = Field(default="")
+# completion_text: completion_text of chat
+    completion_text: str = Field(default="")
+# metadata: metadata json blob
+    metadata: typing.Dict[str, typing.Any] = Field(default_factory=dict)
+# error_message: error_message if any
+    error_message: str = Field(default="")
+
+class GetStoredChatCompletionsResponse(BaseModel):
+    """
+     A GetChatStoredChatCompletionResponse response
+    """
+
+# chat_completions: the chat completions
+    chat_completions: typing.List[StoredChatCompletion] = Field(default_factory=list)
+
+class UpdateChatAttributesRequest(BaseModel):
     """
      Directly model the attributes as a map
     """
@@ -487,8 +527,166 @@ class UpdateChatAttributeRequest(BaseModel):
 # chat_id: the unique id associated to a users chat message
     chat_id: str = Field(default="")
 # attributes: the data attributes captured in the chat logging process
-    attributes: typing.Dict[str, str] = Field(default_factory=dict)
+    attributes: "typing.Dict[str, str]" = Field(default_factory=dict)
 
-class UpdateChatAttributeResponse(BaseModel):
-# success: indicates if an attribute update was successful
+class UpdateChatAttributesResponse(BaseModel):
+    """
+     A UpdateChatAttributes response
+    """
+
+# chat: the updated chat row from the chats table
+    chat: ChatSession = Field(default_factory=ChatSession)
+
+class DeleteChatsRequest(BaseModel):
+    """
+     A DeleteChats request
+    """
+
+# chat_ids: the unique ids associated to user chat messages that should be deleted
+    chat_ids: typing.List[str] = Field(default_factory=list)
+
+class DeleteChatsResponse(BaseModel):
+    """
+     A DeleteChats response
+    """
+
+# success: indicates if the deletion was successful
     success: bool = Field(default=False)
+
+class ParsedChat(BaseModel):
+    """
+     A ParsedChat message serving as part of the CreateChatAndCompletion response
+    """
+
+# id: the chat_id
+    id: str = Field(default="")
+# title: title of the chat
+    title: str = Field(default="")
+# created_at: the time the chat was created
+    created_at: datetime = Field(default_factory=datetime.now)
+# chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+    chat_type: str = Field(default="")
+
+class ParsedCompletion(BaseModel):
+    """
+     A ParsedCompletion message serving as part of the CreateChatAndCompletion response
+    """
+
+# id: the completion_id
+    id: str = Field(default="")
+#chat_id: the chat_id
+    chat_id: str = Field(default="")
+# created_at: the time the completion was created
+    created_at: datetime = Field(default_factory=datetime.now)
+# user_prompt_text: the user's chat prompt text
+    user_prompt_text: str = Field(default="")
+# completion_text: the user's completion text 
+    completion_text: str = Field(default="")
+# completion_type: type of completion
+    completion_type: str = Field(default="")
+# metadata: metadata json blob
+    metadata: typing.Dict[str, typing.Any] = Field(default_factory=dict)
+
+class CreateChatAndCompletionRequest(BaseModel):
+    """
+     A CreateChatAndCompletion request
+    """
+
+# user_prompt: the prompt the user issues
+    user_prompt: str = Field(default="")
+# chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+    chat_type: str = Field(default="")
+# completion_type: specific to completions and might accompany specific kinds of metadata (e.g.: "basic", "combined")
+    completion_type: str = Field(default="")
+# title: the title of the new chat (optional)
+    title: typing.Optional[str] = Field(default="")
+
+class CreateChatAndCompletionResponse(BaseModel):
+    """
+     A CreateChatAndCompletion response
+    """
+
+# parsed_chat: the chat row that was successfully created
+    parsed_chat: ParsedChat = Field(default_factory=ParsedChat)
+# parsed_completion: the completion row that was successfully created
+    parsed_completion: ParsedCompletion = Field(default_factory=ParsedCompletion)
+
+class CreateCompletionRequest(BaseModel):
+    """
+     A CreateCompletion request
+    """
+
+# chat_id: the ID of the chat to create the completion for
+    chat_id: str = Field(default="")
+# user_prompt: the prompt the user issues
+    user_prompt: str = Field(default="")
+# completion_type: the completion type e.g. basic, reasoning etc.
+    completion_type: str = Field(default="")
+
+class CreateCompletionResponse(BaseModel):
+    """
+     A CreateCompletion response
+    """
+
+# parsed_completion: the completion row that was successfully created
+    parsed_completion: ParsedCompletion = Field(default_factory=ParsedCompletion)
+
+class DeleteCompletionsRequest(BaseModel):
+    """
+     A DeleteCompletions request
+    """
+
+# completion_ids: the unique ids associated to user chat-completions that should be deleted
+    completion_ids: typing.List[str] = Field(default_factory=list)
+
+class DeleteCompletionsResponse(BaseModel):
+    """
+     A DeleteCompletions response
+    """
+
+# success: indicates if the deletion was successful
+    success: bool = Field(default=False)
+
+class SearchChatIdsByPromptAndCompletionTextRequest(BaseModel):
+    """
+     A SearchChatIdsByPromptAndCompletionText request
+    """
+
+# search_term: the user supplied search term
+    search_term: str = Field(default="")
+
+class SearchChatIdsByPromptAndCompletionTextResponse(BaseModel):
+    """
+     A SearchChatIdsByPromptAndCompletionText response
+    """
+
+# chat_ids: a list of chat_ids which adhere to the search criteria
+    chat_ids: typing.List[str] = Field(default_factory=list)
+
+class UpdateCompletionAttributesRequest(BaseModel):
+    """
+     An UpdateCompletionAttributes request
+    """
+
+# completion_id: the chat completion id
+    completion_id: str = Field(default="")
+# completion_text: the user's completion text (optional)
+    completion_text: typing.Optional[str] = Field(default="")
+# metadata: metadata json blob (optional)
+    metadata: typing.Dict[str, typing.Any] = Field(default_factory=dict)
+
+class UpdateCompletionAttributesResponse(BaseModel):
+    """
+     An UpdateCompletionAttributes response
+    """
+
+# completion: the chat completion that has been updated
+    completion: StoredChatCompletion = Field(default_factory=StoredChatCompletion)
+
+class GetCompletionsWithDeepResearcherEntryResponse(BaseModel):
+    """
+     A GetCompletionsWithDeepResearcherEntry response (request is not required)
+    """
+
+# completions: a list of completion objects containing deep researcher metadata
+    completions: typing.List[ParsedCompletion] = Field(default_factory=list)

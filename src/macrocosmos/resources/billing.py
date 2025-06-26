@@ -49,8 +49,9 @@ class AsyncBilling:
         retries = 0
         last_error = None
         while retries <= self._client.max_retries:
+            channel = None
             try:
-                channel = self._client.get_channel()
+                channel = self._client.get_async_channel()
                 stub = billing_pb2_grpc.BillingServiceStub(channel)
                 response = await stub.GetUsage(
                     request,
@@ -58,15 +59,15 @@ class AsyncBilling:
                     timeout=self._client.timeout,
                     compression=compression,
                 )
-                await channel.close()
                 return response
             except grpc.RpcError as e:
                 last_error = MacrocosmosError(f"RPC error: {e.code()}: {e.details()}")
                 retries += 1
-                await channel.close()
             except Exception as e:
-                await channel.close()
                 raise MacrocosmosError(f"Error getting usage: {e}")
+            finally:
+                if channel:
+                    await channel.close()
 
         raise last_error
 

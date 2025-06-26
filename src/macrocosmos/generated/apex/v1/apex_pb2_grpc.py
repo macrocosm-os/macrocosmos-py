@@ -5,7 +5,7 @@ import warnings
 from macrocosmos.generated.apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
-GRPC_GENERATED_VERSION = '1.71.0'
+GRPC_GENERATED_VERSION = '1.73.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -64,10 +64,50 @@ class ApexServiceStub(object):
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.FromString,
                 _registered_method=True)
-        self.UpdateChatAttribute = channel.unary_unary(
-                '/apex.v1.ApexService/UpdateChatAttribute',
-                request_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.SerializeToString,
-                response_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.FromString,
+        self.GetStoredChatCompletions = channel.unary_unary(
+                '/apex.v1.ApexService/GetStoredChatCompletions',
+                request_serializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.FromString,
+                _registered_method=True)
+        self.UpdateChatAttributes = channel.unary_unary(
+                '/apex.v1.ApexService/UpdateChatAttributes',
+                request_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributesRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributesResponse.FromString,
+                _registered_method=True)
+        self.DeleteChats = channel.unary_unary(
+                '/apex.v1.ApexService/DeleteChats',
+                request_serializer=apex_dot_v1_dot_apex__pb2.DeleteChatsRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.DeleteChatsResponse.FromString,
+                _registered_method=True)
+        self.CreateChatAndCompletion = channel.unary_unary(
+                '/apex.v1.ApexService/CreateChatAndCompletion',
+                request_serializer=apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionResponse.FromString,
+                _registered_method=True)
+        self.CreateCompletion = channel.unary_unary(
+                '/apex.v1.ApexService/CreateCompletion',
+                request_serializer=apex_dot_v1_dot_apex__pb2.CreateCompletionRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.CreateCompletionResponse.FromString,
+                _registered_method=True)
+        self.DeleteCompletions = channel.unary_unary(
+                '/apex.v1.ApexService/DeleteCompletions',
+                request_serializer=apex_dot_v1_dot_apex__pb2.DeleteCompletionsRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.DeleteCompletionsResponse.FromString,
+                _registered_method=True)
+        self.SearchChatIdsByPromptAndCompletionText = channel.unary_unary(
+                '/apex.v1.ApexService/SearchChatIdsByPromptAndCompletionText',
+                request_serializer=apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextResponse.FromString,
+                _registered_method=True)
+        self.UpdateCompletionAttributes = channel.unary_unary(
+                '/apex.v1.ApexService/UpdateCompletionAttributes',
+                request_serializer=apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesResponse.FromString,
+                _registered_method=True)
+        self.GetCompletionsWithDeepResearcherEntry = channel.unary_unary(
+                '/apex.v1.ApexService/GetCompletionsWithDeepResearcherEntry',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.GetCompletionsWithDeepResearcherEntryResponse.FromString,
                 _registered_method=True)
 
 
@@ -116,8 +156,64 @@ class ApexServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UpdateChatAttribute(self, request, context):
-        """UpdateChatAttribute updates attribute after asking LLM for one
+    def GetStoredChatCompletions(self, request, context):
+        """GetStoredChatCompletions retrieves a chat's completions
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateChatAttributes(self, request, context):
+        """UpdateChatAttributes updates specified attributes of a chat
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteChats(self, request, context):
+        """DeleteChats removes chats based on the specified chat_ids
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateChatAndCompletion(self, request, context):
+        """CreateChatAndCompletion makes a new chat when completion present, otherwise sets as new chat
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateCompletion(self, request, context):
+        """CreateCompletion creates a new completion for an existing chat
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteCompletions(self, request, context):
+        """DeleteCompletions removes completions based on the specified completion_ids
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SearchChatIdsByPromptAndCompletionText(self, request, context):
+        """SearchChatIdsByPromptAndCompletionText searches for completions where the parent chat has the user's ID and either user_prompt_text OR completion_text matches the search_term
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateCompletionAttributes(self, request, context):
+        """UpdateCompletionAttributes updates attribute for a given chat completion
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCompletionsWithDeepResearcherEntry(self, request, context):
+        """GetCompletionsWithDeepResearcherEntry returns a list of completions that contain metadata on deep researcher
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -156,10 +252,50 @@ def add_ApexServiceServicer_to_server(servicer, server):
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.SerializeToString,
             ),
-            'UpdateChatAttribute': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateChatAttribute,
-                    request_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.FromString,
-                    response_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.SerializeToString,
+            'GetStoredChatCompletions': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetStoredChatCompletions,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.SerializeToString,
+            ),
+            'UpdateChatAttributes': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateChatAttributes,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributesRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.UpdateChatAttributesResponse.SerializeToString,
+            ),
+            'DeleteChats': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteChats,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.DeleteChatsRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.DeleteChatsResponse.SerializeToString,
+            ),
+            'CreateChatAndCompletion': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateChatAndCompletion,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionResponse.SerializeToString,
+            ),
+            'CreateCompletion': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateCompletion,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.CreateCompletionRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.CreateCompletionResponse.SerializeToString,
+            ),
+            'DeleteCompletions': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteCompletions,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.DeleteCompletionsRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.DeleteCompletionsResponse.SerializeToString,
+            ),
+            'SearchChatIdsByPromptAndCompletionText': grpc.unary_unary_rpc_method_handler(
+                    servicer.SearchChatIdsByPromptAndCompletionText,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextResponse.SerializeToString,
+            ),
+            'UpdateCompletionAttributes': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateCompletionAttributes,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesResponse.SerializeToString,
+            ),
+            'GetCompletionsWithDeepResearcherEntry': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCompletionsWithDeepResearcherEntry,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.GetCompletionsWithDeepResearcherEntryResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -335,7 +471,7 @@ class ApexService(object):
             _registered_method=True)
 
     @staticmethod
-    def UpdateChatAttribute(request,
+    def GetStoredChatCompletions(request,
             target,
             options=(),
             channel_credentials=None,
@@ -348,9 +484,225 @@ class ApexService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/apex.v1.ApexService/UpdateChatAttribute',
-            apex_dot_v1_dot_apex__pb2.UpdateChatAttributeRequest.SerializeToString,
-            apex_dot_v1_dot_apex__pb2.UpdateChatAttributeResponse.FromString,
+            '/apex.v1.ApexService/GetStoredChatCompletions',
+            apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateChatAttributes(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/UpdateChatAttributes',
+            apex_dot_v1_dot_apex__pb2.UpdateChatAttributesRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.UpdateChatAttributesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteChats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/DeleteChats',
+            apex_dot_v1_dot_apex__pb2.DeleteChatsRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.DeleteChatsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateChatAndCompletion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/CreateChatAndCompletion',
+            apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.CreateChatAndCompletionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateCompletion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/CreateCompletion',
+            apex_dot_v1_dot_apex__pb2.CreateCompletionRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.CreateCompletionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteCompletions(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/DeleteCompletions',
+            apex_dot_v1_dot_apex__pb2.DeleteCompletionsRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.DeleteCompletionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SearchChatIdsByPromptAndCompletionText(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/SearchChatIdsByPromptAndCompletionText',
+            apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.SearchChatIdsByPromptAndCompletionTextResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateCompletionAttributes(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/UpdateCompletionAttributes',
+            apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.UpdateCompletionAttributesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCompletionsWithDeepResearcherEntry(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/GetCompletionsWithDeepResearcherEntry',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.GetCompletionsWithDeepResearcherEntryResponse.FromString,
             options,
             channel_credentials,
             insecure,

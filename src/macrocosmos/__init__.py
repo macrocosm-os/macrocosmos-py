@@ -17,17 +17,13 @@ except ImportError:
     except Exception:
         __version__ = "unknown"
 
-# Import client and types
-from .client import (
-    ApexClient,
-    AsyncApexClient,
-    AsyncGravityClient,
-    GravityClient,
-    BillingClient,
-    AsyncBillingClient,
-    Sn13Client,
-    AsyncSn13Client,
-)
+# Import clients from separate files
+from .apex_client import ApexClient, AsyncApexClient
+from .gravity_client import AsyncGravityClient, GravityClient
+from .billing_client import BillingClient, AsyncBillingClient
+from .sn13_client import Sn13Client, AsyncSn13Client
+from .logger_client import LoggerClient, AsyncLoggerClient
+
 from .types import (
     ChatCompletionChunkResponse,
     ChatCompletionResponse,
@@ -51,4 +47,6 @@ __all__ = [
     "WebRetrievalResponse",
     "Sn13Client",
     "AsyncSn13Client",
+    "LoggerClient",
+    "AsyncLoggerClient",
 ]
