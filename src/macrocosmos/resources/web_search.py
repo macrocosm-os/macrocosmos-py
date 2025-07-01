@@ -1,4 +1,3 @@
-import asyncio
 from typing import List
 
 import grpc
@@ -7,6 +6,7 @@ from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_pb2, apex_pb2_grpc
 from macrocosmos.types import MacrocosmosError
 from macrocosmos.resources._client import BaseClient
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncWebSearch:
@@ -127,7 +127,7 @@ class SyncWebSearch:
         Returns:
             A web retrieval response with search results.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_web_search.search(
                 search_query=search_query,
                 n_miners=n_miners,

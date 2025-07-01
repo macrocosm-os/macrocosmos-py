@@ -1,11 +1,13 @@
-import asyncio
 from typing import List, Optional
-import grpc
 from google.protobuf.json_format import MessageToDict
+
+import grpc
+
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.sn13.v1 import sn13_validator_pb2, sn13_validator_pb2_grpc
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.types import MacrocosmosError
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncSn13:
@@ -146,7 +148,7 @@ class SyncSn13:
                 - data (List[dict]): The data object returned by the miners
                 - meta (dict): Additional metadata about the request
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_sn13.OnDemandData(
                 source=source,
                 usernames=usernames,

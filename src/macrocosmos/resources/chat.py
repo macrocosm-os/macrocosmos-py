@@ -1,4 +1,3 @@
-import asyncio
 import random
 from typing import AsyncIterator, Dict, List, Optional, Union
 
@@ -15,6 +14,7 @@ from macrocosmos.types import (
     MacrocosmosError,
     SamplingParameters,
 )
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncCompletions:
@@ -194,7 +194,7 @@ class SyncCompletions:
         if "timeout" not in kwargs and self._client.timeout:
             kwargs["timeout"] = self._client.timeout
 
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_completions.create(
                 messages=messages,
                 sampling_parameters=sampling_parameters,

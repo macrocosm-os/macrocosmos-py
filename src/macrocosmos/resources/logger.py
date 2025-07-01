@@ -28,6 +28,7 @@ from macrocosmos.resources.logging.upload_worker import UploadWorker
 from macrocosmos.resources.logging.file_monitor import FileMonitor
 from macrocosmos.resources.logging.console_handler import ConsoleCapture
 from macrocosmos.resources.logging.request import make_async_request
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 logger = logging.getLogger(__name__)
 
@@ -513,7 +514,7 @@ class Logger:
         Returns:
             The run ID.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_logger.init(
                 project=project,
                 entity=entity,
@@ -533,13 +534,13 @@ class Logger:
         Args:
             data: The data to log.
         """
-        asyncio.run(self._async_logger.log(data=data))
+        run_sync_threadsafe(self._async_logger.log(data=data))
 
     def finish(self) -> None:
         """
         Finish the logging run and cleanup resources synchronously.
         """
-        asyncio.run(self._async_logger.finish())
+        run_sync_threadsafe(self._async_logger.finish())
 
     @property
     def run(self) -> Optional[Run]:

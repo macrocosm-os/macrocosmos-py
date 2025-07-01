@@ -1,4 +1,3 @@
-import asyncio
 from typing import List, Optional, Dict, Union
 
 import grpc
@@ -7,6 +6,7 @@ from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.apex.v1 import apex_p2p, apex_pb2, apex_pb2_grpc
 from macrocosmos.types import MacrocosmosError, ChatMessage, SamplingParameters
 from macrocosmos.resources._client import BaseClient
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncDeepResearch:
@@ -212,7 +212,7 @@ class SyncDeepResearch:
         Returns:
             A deep researcher job submit response containing the job ID, initial status created_at and updated_at info.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_deep_research.create_job(
                 messages=messages,
                 uids=uids,
@@ -235,7 +235,7 @@ class SyncDeepResearch:
         Returns:
             A deep researcher job status response containing the current status and results.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_deep_research.get_job_results(
                 job_id=job_id,
             )
