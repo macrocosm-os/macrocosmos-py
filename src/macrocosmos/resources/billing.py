@@ -1,11 +1,10 @@
-import asyncio
-
 import grpc
 
 from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.billing.v1 import billing_pb2, billing_pb2_grpc
 from macrocosmos.types import MacrocosmosError
 from macrocosmos.resources._client import BaseClient
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncBilling:
@@ -98,7 +97,7 @@ class SyncBilling:
         Returns:
             A response containing the usage and billing information.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_billing.GetUsage(
                 product_type=product_type,
             )

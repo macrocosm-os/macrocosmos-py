@@ -4,7 +4,7 @@ import grpc
 import warnings
 from macrocosmos.generated.billing.v1 import billing_pb2 as billing_dot_v1_dot_billing__pb2
 
-GRPC_GENERATED_VERSION = '1.73.0'
+GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

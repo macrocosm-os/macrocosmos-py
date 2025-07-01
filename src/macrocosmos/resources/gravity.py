@@ -1,4 +1,3 @@
-import asyncio
 from typing import Dict, List, Union
 
 import grpc
@@ -7,6 +6,7 @@ from macrocosmos import __package_name__, __version__
 from macrocosmos.generated.gravity.v1 import gravity_p2p, gravity_pb2, gravity_pb2_grpc
 from macrocosmos.types import MacrocosmosError
 from macrocosmos.resources._client import BaseClient
+from macrocosmos.resources._utils import run_sync_threadsafe
 
 
 class AsyncGravity:
@@ -309,7 +309,7 @@ class SyncGravity:
         Returns:
             A response containing the gravity tasks.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.GetGravityTasks(
                 gravity_task_id=gravity_task_id,
                 include_crawlers=include_crawlers,
@@ -337,7 +337,7 @@ class SyncGravity:
         Returns:
             A response containing the ID of the created gravity task.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.CreateGravityTask(
                 gravity_tasks=gravity_tasks,
                 name=name,
@@ -365,7 +365,7 @@ class SyncGravity:
         Returns:
             A response containing the dataset that was built.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.BuildDataset(
                 crawler_id=crawler_id,
                 max_rows=max_rows,
@@ -386,7 +386,7 @@ class SyncGravity:
         Returns:
             A response containing the dataset status.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.GetDataset(
                 dataset_id=dataset_id,
             )
@@ -405,7 +405,7 @@ class SyncGravity:
         Returns:
             A response containing the cancellation status.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.CancelGravityTask(
                 gravity_task_id=gravity_task_id,
             )
@@ -418,7 +418,7 @@ class SyncGravity:
         """
         Cancel a dataset build synchronously.
         """
-        return asyncio.run(
+        return run_sync_threadsafe(
             self._async_gravity.CancelDataset(
                 dataset_id=dataset_id,
             )

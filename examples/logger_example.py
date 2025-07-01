@@ -313,7 +313,7 @@ async def main():
     print("This example demonstrates logger usage patterns:")
 
     try:
-        run_id = await run_simulation(500, use_payload_file=True)
+        run_id = await run_simulation(10, use_payload_file=True)
         print("\n🎉 All logger simulations completed successfully!")
         print(f"Run ID: {run_id}")
         print(
