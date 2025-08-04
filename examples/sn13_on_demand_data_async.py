@@ -1,6 +1,10 @@
 """
 Example demonstrating concurrent async operations with the SN13 On Demand Data service.
 Shows how multiple requests can be processed simultaneously in an async context.
+
+As of data-universe release v1.9.75:
+    - All keywords in the OnDemandData request will be present in a returned post/comment data.
+    - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
 """
 
 import os
@@ -59,9 +63,9 @@ async def main():
             "request_id": 2,
         },
         {
-            "source": "x",
+            "source": "reddit",
             "usernames": ["ISS", "ESA"],
-            "keywords": ["galaxy", "universe", "cosmos"],
+            "keywords": ["r/space", "universe"],
             "request_id": 3,
         },
     ]
