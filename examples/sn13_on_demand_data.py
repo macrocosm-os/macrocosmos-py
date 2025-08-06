@@ -1,9 +1,10 @@
 """
 Example of using the SN13 On Demand Data Streaming service with Macrocosmos SDK.
 
-As of data-universe release v1.9.75:
+As of data-universe release v1.9.8:
     - All keywords in the OnDemandData request will be present in the returned post/comment data.
     - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
+    - For YouTube requests, only one username should be supplied - corresponding to the channel name - while keywords are ignored (empty list).
 """
 
 import os
