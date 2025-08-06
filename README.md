@@ -85,9 +85,10 @@ print(polled_response)
 
 SN13 is focused on large-scale data collection. With the OnDemandAPI, you can run precise, real-time queries against platforms like X (Twitter) and Reddit (YouTube forthcoming).
 
-As of data-universe release [v1.9.75](https://github.com/macrocosm-os/data-universe/releases/tag/v1.9.75):
-- All keywords in an OnDemandData request will be present in the returned post/comment data.
+As of data-universe release [v1.9.8](https://github.com/macrocosm-os/data-universe/releases/tag/v1.9.8):
+- All keywords in the OnDemandData request will be present in the returned post/comment data.
 - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
+- For YouTube requests, only one username should be supplied - corresponding to the channel name - while keywords are ignored (empty list).
 
 Use the synchronous `Sn13Client` to query historical or current data based on users, keywords, and time range.
 
