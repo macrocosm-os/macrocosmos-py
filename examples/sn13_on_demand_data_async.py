@@ -57,7 +57,10 @@ async def main():
         {
             "source": "x",
             "usernames": ["nasa", "spacex"],
-            "keywords": ["photo", "space"],      # Posts including both keywords will be returned
+            "keywords": [
+                "photo",
+                "space",
+            ],  # Posts including both keywords will be returned
             "start_date": "2024-04-01",
             "end_date": "2024-04-30",
             "limit": 5,
@@ -66,7 +69,7 @@ async def main():
         {
             "source": "reddit",
             "usernames": ["TheMuseumOfScience"],
-            "keywords": ["r/nasa", "vision"],      # First keyword is the subreddit
+            "keywords": ["r/nasa", "vision"],  # First keyword is the subreddit
             "start_date": "2025-04-01",
             "end_date": "2025-08-25",
             "limit": 1,
@@ -75,7 +78,7 @@ async def main():
         {
             "source": "youtube",
             "usernames": ["veritasium"],
-            "keywords": [],             # YouTube does not currently support keywords, list left empty
+            "keywords": [],  # YouTube does not currently support keywords, list left empty
             "start_date": "2025-08-01",
             "end_date": "2025-08-06",
             "limit": 1,
