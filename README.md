@@ -129,14 +129,10 @@ gravity_tasks = [
     {"topic": "r/MachineLearning", "platform": "reddit"},
 ]
 
-notification = {
-    "type": "email",
-    "address": "<your-email-address>",
-    "redirect_url": "https://app.macrocosmos.ai/",
-}
-
 response =  client.gravity.CreateGravityTask(
-    gravity_tasks=gravity_tasks, name="My First Gravity Task", notification_requests=[notification]
+    gravity_tasks=gravity_tasks, 
+    name="My First Gravity Task", 
+    notification_requests=[{"type": "email"}]
 )
 
 # Print the gravity task ID
@@ -158,22 +154,17 @@ print(response)
 ```
 
 ### Build Dataset
-If you do not want to wait 7-days for your data, you can request it earlier.  Add a notification to get notified when the build is complete or you can monitor the status by calling `GetDataset()`.  Once the dataset is built, the gravity task will be de-registered.  Calling `CancelDataset()` will cancel a build in-progress or, if it's already complete, will purge the created dataset.
+If you do not want to wait 7-days for your data, you can request it earlier. Once the dataset is built, you will receive a notification email to your Macrcocosmos sign-up address, and the gravity task will be de-registered.  Calling `CancelDataset()` will cancel a build in-progress or, if it's already complete, will purge the created dataset.
 
 ```py
 import macrocosmos as mc
 
 client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
-notification = {
-    "type": "email",
-    "address": "<your-email-address>",
-    "redirect_url": "https://app.macrocosmos.ai/",
-}
-
 response = client.gravity.BuildDataset(
-    crawler_id="<your-crawler-id>", notification_requests=[notification]
-)
+    crawler_id="<your-crawler-id>", 
+    notification_requests=[{"type": "email"}]
+    )
 
 # Print the dataset ID
 print(response)
