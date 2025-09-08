@@ -29,7 +29,8 @@ class AsyncSn13:
         keywords: List[str],
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        limit: int = 5,
+        limit: int = 100,
+        keyword_mode: Optional[str] = None,
     ) -> sn13_validator_pb2.OnDemandDataResponse:
         """
         Retrieves on-demand data from the SN13 API service asynchronously, based on the provided parameters.
@@ -41,6 +42,8 @@ class AsyncSn13:
             start_date (str): Date from which we want to start fetching data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             end_date (str): Date up to which we want to fetch data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             limit (int): Maximum number of results to return
+            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional): 
+                "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
 
         Returns:
             dict:
@@ -55,6 +58,7 @@ class AsyncSn13:
             start_date=start_date,
             end_date=end_date,
             limit=limit,
+            keyword_mode=keyword_mode,
         )
 
         return await self._make_request("OnDemandData", request)
@@ -129,7 +133,8 @@ class SyncSn13:
         keywords: List[str],
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        limit: int = 5,
+        limit: int = 100,
+        keyword_mode: Optional[str] = None,
     ) -> sn13_validator_pb2.OnDemandDataResponse:
         """
         Retrieves on-demand data from the SN13 API service synchronously, based on the provided parameters.
@@ -141,7 +146,8 @@ class SyncSn13:
             start_date (str): Date from which we want to start fetching data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             end_date (str): Date up to which we want to fetch data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             limit (int): Maximum number of results to return
-
+            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional): 
+                "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
         Returns:
             dict:
                 - status (str): The request status
@@ -156,5 +162,6 @@ class SyncSn13:
                 start_date=start_date,
                 end_date=end_date,
                 limit=limit,
+                keyword_mode=keyword_mode,
             )
         )

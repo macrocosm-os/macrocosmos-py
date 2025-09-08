@@ -71,6 +71,9 @@ message OnDemandDataRequest {
   optional string end_date = 5;
   // limit: maximum number of results to return
   optional int64 limit = 6;
+  // keyword_mode: defines how keywords should be used in selecting response posts (optional): 
+  // "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
+  optional string keyword_mode = 7;
 }
 
 // OnDemandDataResponse is the response from SN13 for an on-demand data request

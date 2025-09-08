@@ -77,6 +77,9 @@ class OnDemandDataRequest(BaseModel):
     end_date: typing.Optional[str] = Field(default="")
 # limit: maximum number of results to return
     limit: typing.Optional[int] = Field(default=0)
+# keyword_mode: defines how keywords should be used in selecting response posts (optional): 
+# "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
+    keyword_mode: typing.Optional[str] = Field(default="")
 
 class OnDemandDataResponse(BaseModel):
     """

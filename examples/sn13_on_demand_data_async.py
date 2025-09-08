@@ -11,6 +11,7 @@ As of data-universe release v1.9.8:
 import os
 import asyncio
 import time
+from typing import Optional
 
 import macrocosmos as mc
 
@@ -24,6 +25,7 @@ async def fetch_data(
     end_date: str,
     limit: int,
     request_id: int,
+    keyword_mode: Optional[str] = None,
 ):
     """Fetch data for a single request and track its timing."""
     start_time = time.time()
@@ -36,6 +38,7 @@ async def fetch_data(
         start_date=start_date,
         end_date=end_date,
         limit=limit,
+        keyword_mode=keyword_mode,
     )
 
     end_time = time.time()
@@ -49,7 +52,10 @@ async def main():
 
     # Create async sn13 client
     client = mc.AsyncSn13Client(
-        api_key=api_key, app_name="examples/sn13_on_demand_data_async.py"
+        api_key=api_key, 
+        app_name="examples/sn13_on_demand_data_async.py",
+        base_url="localhost:4000",
+        secure=False,
     )
 
     # Define multiple concurrent requests with different parameters
@@ -60,29 +66,35 @@ async def main():
             "keywords": [
                 "photo",
                 "space",
-            ],  # Posts including both keywords will be returned
+            ],  # Posts including either keyword will be returned
             "start_date": "2024-04-01",
             "end_date": "2024-04-30",
             "limit": 5,
             "request_id": 1,
+            "keyword_mode": "any",
         },
         {
             "source": "reddit",
-            "usernames": ["TheMuseumOfScience"],
-            "keywords": ["r/nasa", "vision"],  # First keyword is the subreddit
-            "start_date": "2025-04-01",
-            "end_date": "2025-08-25",
-            "limit": 1,
+            "usernames": [],
+            "keywords": ["r/CasualUK", 
+                         "moon",
+                         "tonight",
+                         "nice"
+            ],  # First keyword is the subreddit, next keywords should bother appear in returned posts
+            "start_date": "2025-09-01",
+            "end_date": "2025-09-08",
+            "limit": 5,
             "request_id": 2,
+            "keyword_mode": "all",
         },
         {
             "source": "youtube",
             "usernames": ["veritasium"],
             "keywords": [],  # YouTube does not currently support keywords, list left empty
-            "start_date": "2025-08-01",
-            "end_date": "2025-08-06",
+            "start_date": "2025-07-01",
+            "end_date": "2025-09-06",
             "limit": 1,
-            "request_id": 3,
+            "request_id": 4,
         },
     ]
 
