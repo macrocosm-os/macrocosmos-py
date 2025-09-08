@@ -76,11 +76,12 @@ async def main():
         {
             "source": "reddit",
             "usernames": [],
-            "keywords": ["r/CasualUK", 
-                         "moon",
-                         "tonight",
-                         "nice"
-            ],  # First keyword is the subreddit, next keywords should bother appear in returned posts
+            "keywords": [
+                "r/CasualUK", 
+                "moon",
+                "tonight",
+                "nice"
+            ],  # First keyword is the subreddit, next keywords should all appear in returned posts
             "start_date": "2025-09-01",
             "end_date": "2025-09-08",
             "limit": 5,
@@ -94,7 +95,7 @@ async def main():
             "start_date": "2025-07-01",
             "end_date": "2025-09-06",
             "limit": 1,
-            "request_id": 4,
+            "request_id": 3,
         },
     ]
 

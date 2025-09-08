@@ -23,7 +23,8 @@ response = client.sn13.OnDemandData(
     keywords=["photo", "space", "mars"],
     start_date="2024-04-01",
     end_date="2025-04-25",
-    limit=5
+    limit=5,
+    keyword_mode="any"
     )
 
 print(response)
