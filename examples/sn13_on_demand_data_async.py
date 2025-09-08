@@ -53,9 +53,7 @@ async def main():
     # Create async sn13 client
     client = mc.AsyncSn13Client(
         api_key=api_key, 
-        app_name="examples/sn13_on_demand_data_async.py",
-        base_url="localhost:4000",
-        secure=False,
+        app_name="examples/sn13_on_demand_data_async.py"
     )
 
     # Define multiple concurrent requests with different parameters
