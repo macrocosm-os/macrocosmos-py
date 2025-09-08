@@ -86,7 +86,7 @@ print(polled_response)
 SN13 is focused on large-scale data collection. With the OnDemandAPI, you can run precise, real-time queries against platforms like X (Twitter) and Reddit (YouTube forthcoming).
 
 As of the latest data-universe [release](https://github.com/macrocosm-os/data-universe/releases/):
-- User's may select two post-filtering modes via the `keyword_mode` parameter: 
+- Users may select two post-filtering modes via the `keyword_mode` parameter: 
     - `"any"`: Returns posts that contain any combination of the listed keywords.
     - `"all"`: Returns posts that contain all of the keywords (default).
 - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
