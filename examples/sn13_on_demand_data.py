@@ -24,7 +24,7 @@ response = client.sn13.OnDemandData(
     start_date="2024-04-01",
     end_date="2025-04-25",
     limit=5,
-    keyword_mode="any"
-    )
+    keyword_mode="any",
+)
 
 print(response)

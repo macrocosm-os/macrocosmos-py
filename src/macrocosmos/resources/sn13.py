@@ -42,7 +42,7 @@ class AsyncSn13:
             start_date (str): Date from which we want to start fetching data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             end_date (str): Date up to which we want to fetch data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             limit (int): Maximum number of results to return
-            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional): 
+            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional):
                 "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
 
         Returns:
@@ -146,7 +146,7 @@ class SyncSn13:
             start_date (str): Date from which we want to start fetching data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             end_date (str): Date up to which we want to fetch data. ISO 8601 formatted date string (e.g. "2024-01-01T00:00:00Z")
             limit (int): Maximum number of results to return
-            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional): 
+            keyword_mode (str): Defines how keywords should be used in selecting response posts (optional):
                 "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
         Returns:
             dict:

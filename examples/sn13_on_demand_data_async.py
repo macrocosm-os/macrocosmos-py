@@ -54,8 +54,7 @@ async def main():
 
     # Create async sn13 client
     client = mc.AsyncSn13Client(
-        api_key=api_key, 
-        app_name="examples/sn13_on_demand_data_async.py"
+        api_key=api_key, app_name="examples/sn13_on_demand_data_async.py"
     )
 
     # Define multiple concurrent requests with different parameters
@@ -77,10 +76,10 @@ async def main():
             "source": "reddit",
             "usernames": [],
             "keywords": [
-                "r/CasualUK", 
+                "r/CasualUK",
                 "moon",
                 "tonight",
-                "nice"
+                "nice",
             ],  # First keyword is the subreddit, next keywords should all appear in returned posts
             "start_date": "2025-09-01",
             "end_date": "2025-09-08",
