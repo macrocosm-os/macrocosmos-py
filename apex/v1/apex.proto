@@ -1,0 +1,652 @@
+syntax = "proto3";
+
+package apex.v1;
+
+option go_package = "macrocosm-os/rift/constellation_api/gen/apex/v1";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+
+
+service ApexService {
+  // ChatCompletion generates a completion for a given request.
+  rpc ChatCompletion(ChatCompletionRequest) returns (ChatCompletionResponse);
+
+  // ChatCompletionStream generates a stream of completions for a given request.
+  rpc ChatCompletionStream(ChatCompletionRequest) returns (stream ChatCompletionChunkResponse);
+
+  // WebRetrieval retrieves web search results for a given request.
+  rpc WebRetrieval(WebRetrievalRequest) returns (WebRetrievalResponse);
+
+  // SubmitDeepResearcherJob submits a new deep researcher job for processing.
+  rpc SubmitDeepResearcherJob(ChatCompletionRequest) returns (SubmitDeepResearcherJobResponse);
+
+  // GetDeepResearcherJob retrieves the status and results of a deep researcher job.
+  rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (GetDeepResearcherJobResponse);
+
+  // GetChatSessions retrieves a user's chats
+  rpc GetChatSessions(GetChatSessionsRequest) returns (GetChatSessionsResponse);
+
+  // GetStoredChatCompletions retrieves a chat's completions
+  rpc GetStoredChatCompletions(GetStoredChatCompletionsRequest) returns (GetStoredChatCompletionsResponse);
+
+  // GetChatCompletion retrieves a completion by its ID
+  rpc GetChatCompletion(GetChatCompletionRequest) returns (StoredChatCompletion);
+
+  // UpdateChatAttributes updates specified attributes of a chat
+  rpc UpdateChatAttributes(UpdateChatAttributesRequest) returns (UpdateChatAttributesResponse);
+
+  // DeleteChats removes chats based on the specified chat_ids
+  rpc DeleteChats(DeleteChatsRequest) returns (DeleteChatsResponse);
+
+  // CreateChatAndCompletion makes a new chat when completion present, otherwise sets as new chat
+  rpc CreateChatAndCompletion(CreateChatAndCompletionRequest) returns (CreateChatAndCompletionResponse);
+
+  // CreateCompletion creates a new completion for an existing chat
+  rpc CreateCompletion(CreateCompletionRequest) returns (CreateCompletionResponse);
+
+  // DeleteCompletions removes completions based on the specified completion_ids
+  rpc DeleteCompletions(DeleteCompletionsRequest) returns (DeleteCompletionsResponse);
+
+  // SearchChatIdsByPromptAndCompletionText searches for completions where the parent chat has the user's ID and either user_prompt_text OR completion_text matches the search_term
+  rpc SearchChatIdsByPromptAndCompletionText(SearchChatIdsByPromptAndCompletionTextRequest) returns (SearchChatIdsByPromptAndCompletionTextResponse);
+
+  //UpdateCompletionAttributes updates attribute for a given chat completion
+  rpc UpdateCompletionAttributes(UpdateCompletionAttributesRequest) returns (UpdateCompletionAttributesResponse);
+
+  //GetCompletionsWithDeepResearcherEntry returns a list of completions that contain metadata on deep researcher
+  rpc GetCompletionsWithDeepResearcherEntry(google.protobuf.Empty) returns (GetCompletionsWithDeepResearcherEntryResponse);
+}
+
+// A request to generate completions following Apex CompletionsRequest format.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message ChatCompletionRequest {
+  // uids: the miner UIDs that will be used to generate the completion (optional).
+  repeated int64 uids = 1;
+  // messages: the messages to generate completions for.
+  repeated ChatMessage messages = 2;
+  // seed: the seed to use for the completion.
+  optional int64 seed = 3;
+  // task: the task to generate completions for (e.g. "InferenceTask").
+  optional string task = 4;
+  // model: the LLM name to use for the completion. (optional, suggest leaving this empty as not all LLMs are supported)
+  optional string model = 5;
+  // test_time_inference: whether to use test time inference.
+  optional bool test_time_inference = 6;
+  // mixture: whether to use a mixture of miners to create a slower but better answer.
+  optional bool mixture = 7;
+  // sampling_parameters: the sampling parameters to use for the completion.
+  optional SamplingParameters sampling_parameters = 8;
+  // inference_mode: the inference mode to use for the completion.
+  optional string inference_mode = 9;
+  // json_format: whether to use JSON format for the completion.
+  optional bool json_format = 10;
+  // stream: whether to stream the completion.
+  optional bool stream = 11;
+  // timeout: the timeout for the completion in seconds.
+  optional int64 timeout = 12;
+}
+
+// The sampling parameters for the completion.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message SamplingParameters {
+  // temperature: the temperature to use for the completion.
+  double temperature = 1;
+  // top_p: the top_p to use for the completion.
+  double top_p = 2;
+  // top_k: the top_k to use for the completion.
+  optional double top_k = 3;
+  // max_new_tokens: the max_new_tokens to use for the completion.
+  int64 max_new_tokens = 4;
+  // do_sample: whether to do sample for the completion.
+  bool do_sample = 5;
+}
+
+// A chat completion response, following OpenAI's ChatCompletion format.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion.py
+message ChatCompletionResponse {
+  // id: the id of the completion.
+  string id = 1;
+  // choices: the choices of the completion.
+  repeated Choice choices = 2;
+  // created: the created time of the completion.
+  int64 created = 3;
+  // model: the model of the completion.
+  string model = 4;
+  // object: the object of the completion.
+  string object = 5;
+  // service_tier: the service tier of the completion. (not currently supported in Apex)
+  string service_tier = 6;
+  // system_fingerprint: the system fingerprint of the completion. (not currently supported in Apex)
+  string system_fingerprint = 7;
+  // usage: the usage of the completion. (not currently supported in Apex)
+  CompletionUsage usage = 8;
+}
+
+// The choice object containing the message response from the LLM for the completion.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion.py
+message Choice {
+  // finish_reason: the finish reason of the choice.
+  string finish_reason = 1;
+  // index: the index of the choice.
+  int64 index = 2;
+  // logprobs: the logprobs of the choice.
+  ChoiceLogprobs logprobs = 3;
+  // message: the message of the choice.
+  ChatCompletionMessage message = 4;
+}
+
+// The message response object from the LLM.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message ChatCompletionMessage {
+  // content: the content of the message.
+  string content = 1;
+  // refusal: the refusal of the message. (not currently supported in Apex)
+  string refusal = 2;
+  // role: the role of the message.
+  string role = 3;
+  // annotations: the annotations of the message. (not currently supported in Apex)
+  repeated Annotation annotations = 4;
+  // audio: the audio of the message. (not currently supported in Apex)
+  ChatCompletionAudio audio = 5;
+  // function_call: the function call of the message.
+  FunctionCall function_call = 6;
+  // tool_calls: the tool calls of the message.
+  repeated ChatCompletionMessageToolCall tool_calls = 7;
+}
+
+// The annotation object for the message. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message Annotation {
+  // content: the content of the annotation.
+  string content = 1;
+  // role: the role of the annotation.
+  string role = 2;
+}
+
+// The audio object for the message. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_audio.py
+message ChatCompletionAudio {
+  // id: the id of the audio.
+  string id = 1;
+  // data: the data of the audio.
+  string data = 2;
+  // expires_at: the expires at of the audio.
+  int64 expires_at = 3;
+  // transcript: the transcript of the audio.
+  string transcript = 4;
+}
+
+// The function call object for the message.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message.py
+message FunctionCall {
+  // arguments: the arguments of the function call.
+  repeated string arguments = 1;
+  // name: the name of the function call.
+  string name = 2;
+}
+
+// The tool call object for the message.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message_tool_call.py
+message ChatCompletionMessageToolCall {
+  // id: the id of the tool call.
+  string id = 1;
+  // function: the function object for the tool call.
+  Function function = 2;
+  // type: the type of the tool call.
+  string type = 3;
+}
+
+// The function object for the tool call.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_message_tool_call.py
+message Function {
+  // arguments: the arguments of the function.
+  repeated string arguments = 1;
+  // name: the name of the function.
+  string name = 2;
+}
+
+// A streaming chunk response, following OpenAI's ChatCompletionChunk format.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChatCompletionChunkResponse {
+  // id: the id of the chunk.
+  string id = 1;
+  // choices: the choices of the chunk.
+  repeated ChunkChoice choices = 2;
+  // created: the created time of the chunk.
+  int64 created = 3;
+  // model: the model of the chunk.
+  string model = 4;
+  // object: the object of the chunk. (not currently supported in Apex)
+  string object = 5;
+  // service_tier: the service tier of the chunk. (not currently supported in Apex)
+  string service_tier = 6;
+  // system_fingerprint: the system fingerprint of the chunk. (not currently supported in Apex)
+  string system_fingerprint = 7;
+  // usage: the usage of the chunk. (not currently supported in Apex)
+  CompletionUsage usage = 8;
+}
+
+// The choice object for the chunk.
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message ChatMessage {
+  // role: the role of the message.
+  string role = 1;
+  // content: the content of the message.
+  string content = 2;
+}
+
+// The choice object for the chunk.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChunkChoice {
+  // delta: the delta of the choice.
+  ChoiceDelta delta = 1;
+  // finish_reason: the finish reason of the choice.
+  string finish_reason = 2;
+  // index: the index of the choice.
+  int64 index = 3;
+  // logprobs: the logprobs of the choice. (not currently supported in Apex)
+  ChoiceLogprobs logprobs = 4;
+}
+
+// The logprobs object for the choice.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceLogprobs {
+  // content: the content of the logprobs.
+  repeated ChatCompletionTokenLogprob content = 1;
+  // refusal: the refusal of the logprobs.
+  repeated ChatCompletionTokenLogprob refusal = 2;
+}
+
+// The delta object for the choice.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDelta {
+  // content: the content of the delta.
+  string content = 1;
+  // function_call: the function call of the delta.
+  ChoiceDeltaFunctionCall function_call = 2;
+  // refusal: the refusal of the delta.
+  string refusal = 3;
+  // role: the role of the delta.
+  string role = 4;
+  // tool_calls: the tool calls of the delta.
+  repeated ChoiceDeltaToolCall tool_calls = 5;
+}
+
+// The function call object for the delta.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaFunctionCall {
+  // arguments: the arguments of the function call.
+  repeated string arguments = 1;
+  // name: the name of the function call.
+  string name = 2;
+}
+
+// The tool call object for the delta.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaToolCall {
+  // index: the index of the tool call.
+  int64 index = 1;
+  // id: the id of the tool call.
+  string id = 2;
+  // function: the function object for the tool call.
+  ChoiceDeltaToolCallFunction function = 3;
+  // type: the type of the tool call.
+  string type = 4;
+}
+
+// The function object for the tool call.
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_chunk.py
+message ChoiceDeltaToolCallFunction {
+  // arguments: the arguments of the function.
+  repeated string arguments = 1;
+  // name: the name of the function.
+  string name = 2;
+}
+
+// The chat completion token logprob object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_token_logprob.py
+message ChatCompletionTokenLogprob {
+  // token: the token of the logprob.
+  string token = 1;
+  // bytes: the bytes of the logprob.
+  repeated int64 bytes = 2;
+  // logprob: the logprob of the token.
+  double logprob = 3;
+  // top_logprobs: the top logprobs of the token.
+  repeated TopLogprob top_logprobs = 4;
+}
+
+// The top logprob object for the token. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/chat/chat_completion_token_logprob.py
+message TopLogprob {
+  // token: the token of the logprob.
+  string token = 1;
+  // bytes: the bytes of the logprob.
+  repeated int64 bytes = 2;
+  // logprob: the logprob of the token.
+  double logprob = 3;
+}
+
+// The completion usage object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message CompletionUsage {
+  // completion_tokens: the completion tokens of the usage.
+  int64 completion_tokens = 1;
+  // prompt_tokens: the prompt tokens of the usage.
+  int64 prompt_tokens = 2;
+  // total_tokens: the total tokens of the usage.
+  int64 total_tokens = 3;
+  // completion_tokens_details: the completion tokens details of the usage.
+  CompletionTokensDetails completion_tokens_details = 4;
+  // prompt_tokens_details: the prompt tokens details of the usage.
+  PromptTokensDetails prompt_tokens_details = 5;
+}
+
+// The completion tokens details object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message CompletionTokensDetails {
+  // accepted_prediction_tokens: the accepted prediction tokens of the details.
+  int64 accepted_prediction_tokens = 1;
+  // audio_tokens: the audio tokens of the details.
+  int64 audio_tokens = 2;
+  // reasoning_tokens: the reasoning tokens of the details.
+  int64 reasoning_tokens = 3;
+  // rejected_prediction_tokens: the rejected prediction tokens of the details.
+  int64 rejected_prediction_tokens = 4;
+}
+
+// The prompt tokens details object. (not currently supported in Apex)
+// Parsed from https://github.com/openai/openai-python/blob/main/src/openai/types/completion_usage.py
+message PromptTokensDetails {
+  // audio_tokens: the audio tokens of the details.
+  int64 audio_tokens = 1;
+  // cached_tokens: the cached tokens of the details.
+  int64 cached_tokens = 2;
+}
+
+// A web retrieval request from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebRetrievalRequest {
+  // uids: the miner UIDs that will be used to generate the completion (optional).
+  repeated int64 uids = 1;
+  // search_query: the search query.
+  string search_query = 2;
+  // n_miners: the number of miners to use for the query.
+  optional int64 n_miners = 3;
+  // n_results: the number of results to return.
+  optional int64 n_results = 4;
+  // max_response_time: the max response time to allow for the miners to respond in seconds.
+  optional int64 max_response_time = 5;
+  // timeout: the timeout for the web retrieval in seconds.
+  optional int64 timeout = 6;
+}
+
+// A web search result from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebSearchResult {
+  // url: the url of the result.
+  string url = 1;
+  // content: the entire page contents.
+  string content = 2;
+  // relevant: the relevant part of the page best fitting the query..
+  string relevant = 3;
+}
+
+// A web retrieval response from Apex
+// Parsed from https://github.com/macrocosm-os/prompting/blob/main/validator_api/serializers.py
+message WebRetrievalResponse {
+  // results: the results of the web retrieval.
+  repeated WebSearchResult results = 1;
+}
+
+// A response containing the deep researcher job submission details
+message SubmitDeepResearcherJobResponse {
+  // job_id: unique identifier for the submitted job
+  string job_id = 1;
+  // status: current status of the job
+  string status = 2;
+  // created_at: timestamp when the job was created
+  string created_at = 3;
+  // updated_at: timestamp when the job was last updated
+  string updated_at = 4;
+}
+
+// A response containing the deep researcher job status and results
+message GetDeepResearcherJobResponse {
+  // job_id: unique identifier for the job
+  string job_id = 1;
+  // status: current status of the job
+  string status = 2;
+  // created_at: timestamp when the job was created
+  string created_at = 3;
+  // updated_at: timestamp when the job was last updated
+  string updated_at = 4;
+  // result: array of result chunks
+  repeated DeepResearcherResultChunk result = 5;
+  // error: error message if the job failed
+  optional string error = 6;
+}
+
+// A chunk of the deep researcher result
+message DeepResearcherResultChunk {
+  // seq_id: sequence identifier for the chunk
+  int64 seq_id = 1;
+  // chunk: the content of the chunk
+  string chunk = 2;
+}
+
+// A request to get the status of a deep researcher job
+message GetDeepResearcherJobRequest {
+  // job_id: the ID of the job to retrieve
+  string job_id = 1;
+}
+
+// A GetChatSession message repeated in GetChatSessionsResponse
+message ChatSession {
+  // id: chat id
+  string id = 1;
+  // user_id: user id
+  string user_id = 2;
+  // title: title of chat
+  string title = 3;
+  // chat_type: e.g. apex
+  string chat_type = 4;
+  // created_at: when the chat was created
+  google.protobuf.Timestamp created_at = 5;
+  // updated_at: when the chat was updated
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// A GetChatSessionsResponse response
+message GetChatSessionsResponse {
+  // chat_sessions: the chat sessions
+  repeated ChatSession chat_sessions = 1;
+}
+
+// A GetChatSessionsRequest message
+message GetChatSessionsRequest {
+  // chat_type: type of chat (e.g. "apex" or "gravity")
+  string chat_type = 1;
+}
+
+// A GetStoredChatCompletionRequest request message
+message GetStoredChatCompletionsRequest {
+  // chat_id: a unique identifier for a chat
+  string chat_id = 1;
+}
+
+// A GetChatCompletionRequest request message
+message GetChatCompletionRequest {
+  // completion_id: a unique identifier for a completion
+  string completion_id = 1;
+}
+
+
+// A StoredChatCompletion message repeated in GetStoredChatCompletionsResponse
+message StoredChatCompletion {
+  // id: chat completion id
+  string id = 1;
+  // chat_id: chat id
+  string chat_id = 2;
+  // completion_type: type of completion
+  string completion_type = 3;  
+  // created_at: when the chat was created
+  google.protobuf.Timestamp created_at = 4;
+  // completed_at: when the chat was updated
+  google.protobuf.Timestamp completed_at = 5;
+  // user_prompt_text: user_prompt_text of chat
+  string user_prompt_text = 6;
+  // completion_text: completion_text of chat
+  string completion_text = 7;  
+  // metadata: metadata json blob
+  google.protobuf.Struct metadata = 8;
+  // error_message: error_message if any
+  string error_message = 9;    
+}
+
+// A GetChatStoredChatCompletionResponse response
+message GetStoredChatCompletionsResponse {
+  // chat_completions: the chat completions
+  repeated StoredChatCompletion chat_completions = 1;
+}
+
+// Directly model the attributes as a map
+message UpdateChatAttributesRequest {
+  // chat_id: the unique id associated to a users chat message
+  string chat_id = 1;
+  // attributes: the data attributes captured in the chat logging process
+  map<string, string> attributes = 2;
+}
+
+// A UpdateChatAttributes response
+message UpdateChatAttributesResponse {
+  // chat: the updated chat row from the chats table
+  ChatSession chat = 1;
+}
+
+// A DeleteChats request
+message DeleteChatsRequest{
+  // chat_ids: the unique ids associated to user chat messages that should be deleted
+  repeated string chat_ids = 1;
+}
+
+// A DeleteChats response
+message DeleteChatsResponse {
+  // success: indicates if the deletion was successful
+  bool success = 1;
+}
+
+// A ParsedChat message serving as part of the CreateChatAndCompletion response
+message ParsedChat {
+  // id: the chat_id
+  string id = 1;
+  // title: title of the chat
+  string title = 2;
+  // created_at: the time the chat was created
+  google.protobuf.Timestamp created_at = 3;
+  // chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+  string chat_type = 4;
+}
+
+// A ParsedCompletion message serving as part of the CreateChatAndCompletion response
+message ParsedCompletion {
+  // id: the completion_id
+  string id = 1;
+  //chat_id: the chat_id
+  string chat_id = 2;
+  // created_at: the time the completion was created
+  google.protobuf.Timestamp created_at = 3;
+  // user_prompt_text: the user's chat prompt text
+  string user_prompt_text = 4;
+  // completion_text: the user's completion text 
+  string completion_text = 5;
+  // completion_type: type of completion
+  string completion_type = 6;  
+  // metadata: metadata json blob
+  google.protobuf.Struct metadata = 7;
+}
+
+// A CreateChatAndCompletion request
+message CreateChatAndCompletionRequest {
+  // user_prompt: the prompt the user issues
+  string user_prompt = 1;
+  // chat_type: the service a single chat can be using (e.g.: "apex", "gravity")
+  string chat_type = 2;
+  // completion_type: specific to completions and might accompany specific kinds of metadata (e.g.: "basic", "combined")
+  string completion_type = 3;
+  // title: the title of the new chat (optional)
+  optional string title = 4;
+}
+
+// A CreateChatAndCompletion response
+message CreateChatAndCompletionResponse {
+  // parsed_chat: the chat row that was successfully created
+  ParsedChat parsed_chat = 1;
+  // parsed_completion: the completion row that was successfully created
+  ParsedCompletion parsed_completion = 2;
+}
+
+// A CreateCompletion request
+message CreateCompletionRequest {
+  // chat_id: the ID of the chat to create the completion for
+  string chat_id = 1;
+  // user_prompt: the prompt the user issues
+  string user_prompt = 2;
+  // completion_type: the completion type e.g. basic, reasoning etc.
+  string completion_type = 3;
+}
+
+// A CreateCompletion response
+message CreateCompletionResponse {
+  // parsed_completion: the completion row that was successfully created
+  ParsedCompletion parsed_completion = 1;
+}
+
+// A DeleteCompletions request
+message DeleteCompletionsRequest {
+  // completion_ids: the unique ids associated to user chat-completions that should be deleted
+  repeated string completion_ids = 1;
+}
+
+// A DeleteCompletions response
+message DeleteCompletionsResponse {
+  // success: indicates if the deletion was successful
+  bool success = 1;
+}
+
+// A SearchChatIdsByPromptAndCompletionText request
+message SearchChatIdsByPromptAndCompletionTextRequest {
+  // search_term: the user supplied search term
+  string search_term = 1;
+}
+
+// A SearchChatIdsByPromptAndCompletionText response
+message SearchChatIdsByPromptAndCompletionTextResponse {
+  // chat_ids: a list of chat_ids which adhere to the search criteria
+  repeated string chat_ids = 1;
+}
+
+// An UpdateCompletionAttributes request
+message UpdateCompletionAttributesRequest {
+  // completion_id: the chat completion id
+  string completion_id = 1;
+  // completion_text: the user's completion text (optional)
+  optional string completion_text = 2;
+  // metadata: metadata json blob (optional)
+  google.protobuf.Struct metadata = 3;
+  // user_prompt_text: the user's prompt text (optional)
+  optional string user_prompt_text = 4;
+}
+
+// An UpdateCompletionAttributes response
+message UpdateCompletionAttributesResponse {
+  // completion: the chat completion that has been updated
+  StoredChatCompletion completion = 1;
+}
+
+// A GetCompletionsWithDeepResearcherEntry response (request is not required)
+message GetCompletionsWithDeepResearcherEntryResponse {
+  // completions: a list of completion objects containing deep researcher metadata
+  repeated ParsedCompletion completions = 1;
+}
