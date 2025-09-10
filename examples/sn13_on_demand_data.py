@@ -1,8 +1,10 @@
 """
 Example of using the SN13 On Demand Data Streaming service with Macrocosmos SDK.
 
-As of data-universe release v1.9.8:
-    - All keywords in the OnDemandData request will be present in the returned post/comment data.
+As of the latest data-universe release:
+    - Users may select two post-filtering modes via the keyword_mode parameter:
+        - "any": Returns posts that contain any combination of the listed keywords.
+        - "all": Returns posts that contain all of the keywords (default, if field omitted).
     - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
     - For YouTube requests, only one username should be supplied - corresponding to the channel name - while keywords are ignored (empty list).
 """
@@ -21,7 +23,8 @@ response = client.sn13.OnDemandData(
     keywords=["photo", "space", "mars"],
     start_date="2024-04-01",
     end_date="2025-04-25",
-    limit=3,
+    limit=5,
+    keyword_mode="any",
 )
 
 print(response)

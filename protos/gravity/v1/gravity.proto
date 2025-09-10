@@ -3,6 +3,7 @@ syntax = "proto3";
 package gravity.v1;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "macrocosm-os/rift/constellation_api/gen/gravity/v1";
 
@@ -14,7 +15,8 @@ service GravityService {
   rpc GetCrawler(GetCrawlerRequest) returns (GetCrawlerResponse);
 
   // Create a new gravity task
-  rpc CreateGravityTask(CreateGravityTaskRequest) returns (CreateGravityTaskResponse);
+  rpc CreateGravityTask(CreateGravityTaskRequest)
+      returns (CreateGravityTaskResponse);
 
   // Build a dataset for a single crawler
   rpc BuildDataset(BuildDatasetRequest) returns (BuildDatasetResponse);
@@ -23,16 +25,58 @@ service GravityService {
   rpc GetDataset(GetDatasetRequest) returns (GetDatasetResponse);
 
   // Cancel a gravity task and any crawlers associated with it
-  rpc CancelGravityTask(CancelGravityTaskRequest) returns (CancelGravityTaskResponse);
+  rpc CancelGravityTask(CancelGravityTaskRequest)
+      returns (CancelGravityTaskResponse);
 
   // Cancel dataset build if it is in progress and purges the dataset
   rpc CancelDataset(CancelDatasetRequest) returns (CancelDatasetResponse);
 
   // Refund user if fewer rows are returned
-  rpc DatasetBillingCorrection(DatasetBillingCorrectionRequest) returns (DatasetBillingCorrectionResponse);
+  rpc DatasetBillingCorrection(DatasetBillingCorrectionRequest)
+      returns (DatasetBillingCorrectionResponse);
+
+  // Gets the available datsets for use in Dataset Marketplace
+  rpc GetMarketplaceDatasets(google.protobuf.Empty)
+      returns (GetMarketplaceDatasetsResponse);
+
+  // Gets all dataset files for a given gravity task
+  rpc GetGravityTaskDatasetFiles(GetGravityTaskDatasetFilesRequest)
+      returns (GetGravityTaskDatasetFilesResponse);
+
+  // Publishes a dataset into the Marketplace
+  rpc PublishDataset(PublishDatasetRequest) returns (UpsertResponse);
+
+  // Upserts a crawler into the Gravity state DB
+  rpc UpsertCrawler(UpsertCrawlerRequest) returns (UpsertResponse);
+
+  // Upserts a crawler criteria into the Gravity state DB
+  rpc InsertCrawlerCriteria(InsertCrawlerCriteriaRequest)
+      returns (UpsertResponse);
+
+  // Upserts a gravity task into the Gravity state DB
+  rpc UpsertGravityTask(UpsertGravityTaskRequest)
+      returns (UpsertGravityTaskResponse);
+  // Upserts a dataset into to the Gravity state DB
+  rpc UpsertDataset(UpsertDatasetRequest) returns (UpsertResponse);
+
+  // Inserts a dataset file row into the Gravity state DB
+  rpc InsertDatasetFile(InsertDatasetFileRequest) returns (UpsertResponse);
+
+  // Upserts a nebula into the Gravity nebula DB
+  rpc UpsertNebula(UpsertNebulaRequest) returns (UpsertResponse);
+
+  // Builds all datasets for a task (additionally cancels crawlers with no data)
+  rpc BuildAllDatasets(BuildAllDatasetsRequest) returns (BuildAllDatasetsResponse);
 }
 
-// Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
+// PublishDatasetRequest is the request message for publishing a dataset
+message PublishDatasetRequest {
+  // dataset_id: the ID of the dataset
+  string dataset_id = 1;
+}
+
+// Crawler is a single crawler workflow that registers a single job
+// (platform/topic) on SN13's dynamic desirability engine
 message Crawler {
   // crawler_id: the ID of the crawler
   string crawler_id = 1;
@@ -46,8 +90,62 @@ message Crawler {
   google.protobuf.Timestamp archive_time = 5;
   // state: the current state of the crawler
   CrawlerState state = 6;
-  // dataset_workflows: the IDs of the dataset workflows that are associated with the crawler
+  // dataset_workflows: the IDs of the dataset workflows that are associated
+  // with the crawler
   repeated string dataset_workflows = 7;
+}
+
+// UpsertCrawlerRequest for upserting a crawler and its criteria
+message UpsertCrawlerRequest {
+  // gravity_task_id: the parent workflow id -- in this case the multicrawler id
+  string gravity_task_id = 1;
+  // crawler: the crawler to upsert into the database
+  Crawler crawler = 2;
+}
+
+// UpsertResponse is the response message for upserting a crawler
+message UpsertResponse {
+  // message: the message of upserting a crawler (currently hardcoded to
+  // "success")
+  string message = 1;
+}
+
+// UpsertGravityTaskRequest for upserting a gravity task
+message UpsertGravityTaskRequest {
+  // gravity_task: the gravity task to upsert into the database
+  GravityTaskRequest gravity_task = 1;
+}
+
+// UpsertGravityTaskResponse is the response message for upserting a gravity
+// task
+message UpsertGravityTaskResponse {
+  // message: the message of upserting a gravity task (currently hardcoded to
+  // "success")
+  string message = 1;
+}
+
+// GravityTaskRequest represents the data needed to upsert a gravity task
+message GravityTaskRequest {
+  // id: the ID of the gravity task
+  string id = 1;
+  // name: the name of the gravity task
+  string name = 2;
+  // status: the status of the gravity task
+  string status = 3;
+  // start_time: the start time of the gravity task
+  google.protobuf.Timestamp start_time = 4;
+  // notification_to: the notification email address
+  string notification_to = 5;
+  // notification_link: the notification redirect link
+  string notification_link = 6;
+}
+
+// UpsertCrawlerCriteriaRequest for upserting a crawler and its criteria
+message InsertCrawlerCriteriaRequest {
+  // crawler_id: the id of the crawler
+  string crawler_id = 1;
+  // crawler_criteria: the crawler criteria to upsert into the database
+  CrawlerCriteria crawler_criteria = 2;
 }
 
 // CrawlerCriteria is the contents of the job and the notification details
@@ -117,21 +215,26 @@ message GravityTaskState {
   string status = 3;
   // start_time: the time the gravity task was created
   google.protobuf.Timestamp start_time = 4;
-  // crawler_ids: the IDs of the crawler workflows that are associated with the gravity task
+  // crawler_ids: the IDs of the crawler workflows that are associated with the
+  // gravity task
   repeated string crawler_ids = 5;
-  // crawler_workflows: the crawler workflows that are associated with the gravity task
+  // crawler_workflows: the crawler workflows that are associated with the
+  // gravity task
   repeated Crawler crawler_workflows = 6;
 }
 
-// GetGravityTasksRequest is the request message for listing gravity tasks for a user
+// GetGravityTasksRequest is the request message for listing gravity tasks for a
+// user
 message GetGravityTasksRequest {
-  // gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
+  // gravity_task_id: the ID of the gravity task (optional, if not provided, all
+  // gravity tasks for the user will be returned)
   optional string gravity_task_id = 1;
   // include_crawlers: whether to include the crawler states in the response
   optional bool include_crawlers = 2;
 }
 
-// GetGravityTasksResponse is the response message for listing gravity tasks for a user
+// GetGravityTasksResponse is the response message for listing gravity tasks for
+// a user
 message GetGravityTasksResponse {
   // gravity_task_states: the current states of the gravity tasks
   repeated GravityTaskState gravity_task_states = 1;
@@ -151,13 +254,17 @@ message GravityTask {
   optional google.protobuf.Timestamp post_end_datetime = 5;
 }
 
-// NotificationRequest is the request message for sending a notification to a user when a dataset is ready to download
+// NotificationRequest is the request message for sending a notification to a
+// user when a dataset is ready to download
 message NotificationRequest {
-  // type: the type of notification to send ('email' is only supported currently)
+  // type: the type of notification to send ('email' is only supported
+  // currently)
   string type = 1;
-  // address: the address to send the notification to (only email addresses are supported currently)
+  // address: the address to send the notification to (only email addresses are
+  // supported currently)
   string address = 2;
-  // redirect_url: the URL to include in the notication message that redirects the user to any built datasets
+  // redirect_url: the URL to include in the notication message that redirects
+  // the user to any built datasets
   optional string redirect_url = 3;
 }
 
@@ -173,42 +280,65 @@ message GetCrawlerResponse {
   Crawler crawler = 1;
 }
 
-// CreateGravityTaskRequest is the request message for creating a new gravity task
+// CreateGravityTaskRequest is the request message for creating a new gravity
+// task
 message CreateGravityTaskRequest {
   // gravity_tasks: the criteria for the crawlers that will be created
   repeated GravityTask gravity_tasks = 1;
-  // name: the name of the gravity task (optional, default will generate a random name)
+  // name: the name of the gravity task (optional, default will generate a
+  // random name)
   string name = 2;
-  // notification_requests: the details of the notification to be sent to the user when a dataset
-  //   that is automatically generated upon completion of the crawler is ready to download (optional)
+  // notification_requests: the details of the notification to be sent to the
+  // user when a dataset
+  //   that is automatically generated upon completion of the crawler is ready
+  //   to download (optional)
   repeated NotificationRequest notification_requests = 3;
-  // gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
+  // gravity_task_id: the ID of the gravity task (optional, default will
+  // generate a random ID)
   optional string gravity_task_id = 4;
 }
 
-// CreateGravityTaskResponse is the response message for creating a new gravity task
+// CreateGravityTaskResponse is the response message for creating a new gravity
+// task
 message CreateGravityTaskResponse {
   // gravity_task_id: the ID of the gravity task
   string gravity_task_id = 1;
 }
 
-// BuildDatasetRequest is the request message for manually requesting the building of a dataset for a single crawler
+// BuildDatasetRequest is the request message for manually requesting the
+// building of a dataset for a single crawler
 message BuildDatasetRequest {
   // crawler_id: the ID of the crawler that will be used to build the dataset
   string crawler_id = 1;
-  // notification_requests: the details of the notification to be sent to the user when the dataset is ready to download (optional)
+  // notification_requests: the details of the notification to be sent to the
+  // user when the dataset is ready to download (optional)
   repeated NotificationRequest notification_requests = 2;
-  // max_rows: the maximum number of rows to include in the dataset (optional, defaults to 500)
+  // max_rows: the maximum number of rows to include in the dataset (optional,
+  // defaults to 500)
   int64 max_rows = 3;
 }
 
-// BuildDatasetResponse is the response message for manually requesting the building of a dataset for a single crawler
+// BuildDatasetResponse is the response message for manually requesting the
+// building of a dataset for a single crawler
 // - dataset: the dataset that was built
 message BuildDatasetResponse {
   // dataset_id: the ID of the dataset
   string dataset_id = 1;
   // dataset: the dataset that was built
   Dataset dataset = 2;
+}
+
+// BuildAllDatasetsRequest is the request message for building all datasets
+// belonging to a workflow
+message BuildAllDatasetsRequest {
+  // gravityTaskId specifies which task to build
+  string gravity_task_id = 1;
+  // specifies how much of each crawler to build for workflow
+  repeated BuildDatasetRequest build_crawlers_config = 2;
+}
+message BuildAllDatasetsResponse {
+  string gravity_task_id = 1;
+  repeated Dataset datasets = 2;
 }
 
 message Nebula {
@@ -240,6 +370,34 @@ message Dataset {
   int64 total_steps = 8;
   // nebula: the details about the nebula that was built
   Nebula nebula = 9;
+}
+
+// UpsertDatasetRequest contains the dataset id to insert and the dataset
+// details
+message UpsertDatasetRequest {
+  // dataset_id: a unique id for the dataset
+  string dataset_id = 1;
+  // dataset: the details of the dataset
+  Dataset dataset = 2;
+}
+
+// UpsertNebulaRequest contains the dataset id and nebula details to upsert
+message UpsertNebulaRequest {
+  // dataset_id: a unique id for the dataset
+  string dataset_id = 1;
+  // nebula_id: a unique id for the nebula
+  string nebula_id = 2;
+  // nebula: the details of the nebula
+  Nebula nebula = 3;
+}
+
+// InsertDatasetFileRequest contains the dataset id to insert into and the
+// dataset file details
+message InsertDatasetFileRequest {
+  // dataset_id: the ID of the dataset to attach the file to
+  string dataset_id = 1;
+  // files: the dataset files to insert
+  repeated DatasetFile files = 2;
 }
 
 // DatasetFile contains the details about a dataset file
@@ -275,7 +433,8 @@ message GetDatasetRequest {
   string dataset_id = 1;
 }
 
-// GetDatasetResponse is the response message for getting the status of a dataset
+// GetDatasetResponse is the response message for getting the status of a
+// dataset
 message GetDatasetResponse {
   // dataset: the dataset that is being built
   Dataset dataset = 1;
@@ -287,9 +446,11 @@ message CancelGravityTaskRequest {
   string gravity_task_id = 1;
 }
 
-// CancelGravityTaskResponse is the response message for cancelling a gravity task
+// CancelGravityTaskResponse is the response message for cancelling a gravity
+// task
 message CancelGravityTaskResponse {
-  // message: the message of the cancellation of the gravity task (currently hardcoded to "success")
+  // message: the message of the cancellation of the gravity task (currently
+  // hardcoded to "success")
   string message = 1;
 }
 
@@ -301,7 +462,8 @@ message CancelDatasetRequest {
 
 // CancelDatasetResponse is the response message for cancelling a dataset build
 message CancelDatasetResponse {
-  // message: the message of the cancellation of the dataset build (currently hardcoded to "success")
+  // message: the message of the cancellation of the dataset build (currently
+  // hardcoded to "success")
   string message = 1;
 }
 
@@ -317,4 +479,53 @@ message DatasetBillingCorrectionRequest {
 message DatasetBillingCorrectionResponse {
   // refund_amount
   double refund_amount = 1;
+}
+
+// GetMarketplaceDatasetsResponse returns the dataset metadata to be used in
+// Marketplace
+message GetMarketplaceDatasetsResponse {
+  // datasets: list of marketplace datasets
+  repeated DatasetFile datasets = 1;
+}
+
+// GetGravityTaskDatasetFilesRequest is the request message for getting dataset
+// files for a gravity task
+message GetGravityTaskDatasetFilesRequest {
+  // gravity_task_id: the ID of the gravity task (required)
+  string gravity_task_id = 1;
+}
+
+// CrawlerDatasetFiles contains dataset files for a specific crawler
+message CrawlerDatasetFiles {
+  // crawler_id: the ID of the crawler
+  string crawler_id = 1;
+  // dataset_files: the dataset files associated with this crawler
+  repeated DatasetFileWithId dataset_files = 2;
+}
+
+// DatasetFileWithId extends DatasetFile to include the dataset ID
+message DatasetFileWithId {
+  // dataset_id: the ID of the dataset this file belongs to
+  string dataset_id = 1;
+  // file_name: the name of the file
+  string file_name = 2;
+  // file_size_bytes: the size of the file in bytes
+  uint64 file_size_bytes = 3;
+  // last_modified: the date the file was last modified
+  google.protobuf.Timestamp last_modified = 4;
+  // num_rows: the number of rows in the file
+  uint64 num_rows = 5;
+  // s3_key: the key of the file in S3 (internal use only)
+  string s3_key = 6;
+  // url: the URL of the file (public use)
+  string url = 7;
+}
+
+// GetGravityTaskDatasetFilesResponse is the response message for getting
+// dataset files for a gravity task
+message GetGravityTaskDatasetFilesResponse {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+  // crawler_dataset_files: dataset files grouped by crawler
+  repeated CrawlerDatasetFiles crawler_dataset_files = 2;
 }

@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1csn13/v1/sn13_validator.proto\x12\x07sn13.v1\x1a\x1cgoogle/protobuf/struct.proto\"#\n\x11ListTopicsRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\"k\n\x18ListTopicsResponseDetail\x12\x13\n\x0blabel_value\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontent_size_bytes\x18\x02 \x01(\x04\x12\x1e\n\x16\x61\x64j_content_size_bytes\x18\x03 \x01(\x04\"H\n\x12ListTopicsResponse\x12\x32\n\x07\x64\x65tails\x18\x01 \x03(\x0b\x32!.sn13.v1.ListTopicsResponseDetail\"+\n\x1aValidateRedditTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\"r\n\x1bValidateRedditTopicResponse\x12\x10\n\x08platform\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06\x65xists\x18\x03 \x01(\x08\x12\x0e\n\x06over18\x18\x04 \x01(\x08\x12\x12\n\nquarantine\x18\x05 \x01(\x08\"\xb4\x01\n\x13OnDemandDataRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\x12\x11\n\tusernames\x18\x02 \x03(\t\x12\x10\n\x08keywords\x18\x03 \x03(\t\x12\x17\n\nstart_date\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08\x65nd_date\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05limit\x18\x06 \x01(\x03H\x02\x88\x01\x01\x42\r\n\x0b_start_dateB\x0b\n\t_end_dateB\x08\n\x06_limit\"t\n\x14OnDemandDataResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12%\n\x04\x64\x61ta\x18\x02 \x03(\x0b\x32\x17.google.protobuf.Struct\x12%\n\x04meta\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2\x83\x02\n\x0bSn13Service\x12\x45\n\nListTopics\x12\x1a.sn13.v1.ListTopicsRequest\x1a\x1b.sn13.v1.ListTopicsResponse\x12`\n\x13ValidateRedditTopic\x12#.sn13.v1.ValidateRedditTopicRequest\x1a$.sn13.v1.ValidateRedditTopicResponse\x12K\n\x0cOnDemandData\x12\x1c.sn13.v1.OnDemandDataRequest\x1a\x1d.sn13.v1.OnDemandDataResponseB1Z/macrocosm-os/rift/constellation_api/gen/sn13/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1csn13/v1/sn13_validator.proto\x12\x07sn13.v1\x1a\x1cgoogle/protobuf/struct.proto\"#\n\x11ListTopicsRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\"k\n\x18ListTopicsResponseDetail\x12\x13\n\x0blabel_value\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontent_size_bytes\x18\x02 \x01(\x04\x12\x1e\n\x16\x61\x64j_content_size_bytes\x18\x03 \x01(\x04\"H\n\x12ListTopicsResponse\x12\x32\n\x07\x64\x65tails\x18\x01 \x03(\x0b\x32!.sn13.v1.ListTopicsResponseDetail\"+\n\x1aValidateRedditTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\"r\n\x1bValidateRedditTopicResponse\x12\x10\n\x08platform\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06\x65xists\x18\x03 \x01(\x08\x12\x0e\n\x06over18\x18\x04 \x01(\x08\x12\x12\n\nquarantine\x18\x05 \x01(\x08\"\xe0\x01\n\x13OnDemandDataRequest\x12\x0e\n\x06source\x18\x01 \x01(\t\x12\x11\n\tusernames\x18\x02 \x03(\t\x12\x10\n\x08keywords\x18\x03 \x03(\t\x12\x17\n\nstart_date\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08\x65nd_date\x18\x05 \x01(\tH\x01\x88\x01\x01\x12\x12\n\x05limit\x18\x06 \x01(\x03H\x02\x88\x01\x01\x12\x19\n\x0ckeyword_mode\x18\x07 \x01(\tH\x03\x88\x01\x01\x42\r\n\x0b_start_dateB\x0b\n\t_end_dateB\x08\n\x06_limitB\x0f\n\r_keyword_mode\"t\n\x14OnDemandDataResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12%\n\x04\x64\x61ta\x18\x02 \x03(\x0b\x32\x17.google.protobuf.Struct\x12%\n\x04meta\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2\x83\x02\n\x0bSn13Service\x12\x45\n\nListTopics\x12\x1a.sn13.v1.ListTopicsRequest\x1a\x1b.sn13.v1.ListTopicsResponse\x12`\n\x13ValidateRedditTopic\x12#.sn13.v1.ValidateRedditTopicRequest\x1a$.sn13.v1.ValidateRedditTopicResponse\x12K\n\x0cOnDemandData\x12\x1c.sn13.v1.OnDemandDataRequest\x1a\x1d.sn13.v1.OnDemandDataResponseB1Z/macrocosm-os/rift/constellation_api/gen/sn13/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -44,9 +44,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_VALIDATEREDDITTOPICRESPONSE']._serialized_start=336
   _globals['_VALIDATEREDDITTOPICRESPONSE']._serialized_end=450
   _globals['_ONDEMANDDATAREQUEST']._serialized_start=453
-  _globals['_ONDEMANDDATAREQUEST']._serialized_end=633
-  _globals['_ONDEMANDDATARESPONSE']._serialized_start=635
-  _globals['_ONDEMANDDATARESPONSE']._serialized_end=751
-  _globals['_SN13SERVICE']._serialized_start=754
-  _globals['_SN13SERVICE']._serialized_end=1013
+  _globals['_ONDEMANDDATAREQUEST']._serialized_end=677
+  _globals['_ONDEMANDDATARESPONSE']._serialized_start=679
+  _globals['_ONDEMANDDATARESPONSE']._serialized_end=795
+  _globals['_SN13SERVICE']._serialized_start=798
+  _globals['_SN13SERVICE']._serialized_end=1057
 # @@protoc_insertion_point(module_scope)

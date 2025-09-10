@@ -25,10 +25,13 @@ service ApexService {
   rpc GetDeepResearcherJob(GetDeepResearcherJobRequest) returns (GetDeepResearcherJobResponse);
 
   // GetChatSessions retrieves a user's chats
-  rpc GetChatSessions(google.protobuf.Empty) returns (GetChatSessionsResponse);
+  rpc GetChatSessions(GetChatSessionsRequest) returns (GetChatSessionsResponse);
 
   // GetStoredChatCompletions retrieves a chat's completions
   rpc GetStoredChatCompletions(GetStoredChatCompletionsRequest) returns (GetStoredChatCompletionsResponse);
+
+  // GetChatCompletion retrieves a completion by its ID
+  rpc GetChatCompletion(GetChatCompletionRequest) returns (StoredChatCompletion);
 
   // UpdateChatAttributes updates specified attributes of a chat
   rpc UpdateChatAttributes(UpdateChatAttributesRequest) returns (UpdateChatAttributesResponse);
@@ -461,10 +464,22 @@ message GetChatSessionsResponse {
   repeated ChatSession chat_sessions = 1;
 }
 
+// A GetChatSessionsRequest message
+message GetChatSessionsRequest {
+  // chat_type: type of chat (e.g. "apex" or "gravity")
+  string chat_type = 1;
+}
+
 // A GetStoredChatCompletionRequest request message
 message GetStoredChatCompletionsRequest {
   // chat_id: a unique identifier for a chat
   string chat_id = 1;
+}
+
+// A GetChatCompletionRequest request message
+message GetChatCompletionRequest {
+  // completion_id: a unique identifier for a completion
+  string completion_id = 1;
 }
 
 
@@ -620,6 +635,8 @@ message UpdateCompletionAttributesRequest {
   optional string completion_text = 2;
   // metadata: metadata json blob (optional)
   google.protobuf.Struct metadata = 3;
+  // user_prompt_text: the user's prompt text (optional)
+  optional string user_prompt_text = 4;
 }
 
 // An UpdateCompletionAttributes response
