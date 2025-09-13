@@ -140,18 +140,11 @@ class GravityWorkflow:
                 {"topic": self.reddit_subreddit, "platform": "reddit"},
             ]
 
-            # User info for notifications
-            notification = {
-                "type": "email",
-                "address": self.email,
-                "redirect_url": "https://app.macrocosmos.ai/",
-            }
-
             # Create the task
             response = await self.client.gravity.CreateGravityTask(
                 gravity_tasks=gravity_tasks,
                 name=self.task_name,
-                notification_requests=[notification],
+                notification_requests=[{"type": "email"}],
             )
 
             self.task_id = response.gravity_task_id
@@ -258,18 +251,11 @@ class GravityWorkflow:
 
         for crawler_id in crawler_ids:
             try:
-                # Notification for dataset completion
-                notification = {
-                    "type": "email",
-                    "address": self.email,
-                    "redirect_url": "https://app.macrocosmos.ai/gravity/tasks",
-                }
-
                 # Build dataset
                 response = await self.client.gravity.BuildDataset(
                     crawler_id=crawler_id,
                     max_rows=self.max_rows,
-                    notification_requests=[notification],
+                    notification_requests=[{"type": "email"}],
                 )
 
                 if response and response.dataset_id:
