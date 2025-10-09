@@ -7,7 +7,7 @@ As of the latest data-universe release:
         - "any": Returns posts that contain any combination of the listed keywords.
         - "all": Returns posts that contain all of the keywords (default, if field omitted).
     - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
-    - For YouTube requests, only one of the following should be applied: One username (corresponding to YouTube channel name) or one keyword 
+    - For YouTube requests, only one of the following should be applied: One username (corresponding to YouTube channel name) or one keyword
       (corresponding to one YouTube video URL).
 """
 
@@ -79,7 +79,7 @@ async def main():
             "keywords": [
                 "r/nasa",
                 "satellites",
-                "recover"
+                "recover",
             ],  # First keyword is the subreddit, next keywords should all appear in returned posts
             "start_date": "2025-10-01",
             "end_date": "2025-10-08",
@@ -101,7 +101,7 @@ async def main():
             "usernames": [],
             "keywords": [
                 "https://www.youtube.com/watch?v=fnjIoWh7yAc",
-            ], # usernames list left empty as a single keyword (video URL) is provided
+            ],  # usernames list left empty as a single keyword (video URL) is provided
             "start_date": "2025-07-01",
             "end_date": "2025-09-06",
             "limit": 1,
