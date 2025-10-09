@@ -6,7 +6,8 @@ As of the latest data-universe release:
         - "any": Returns posts that contain any combination of the listed keywords.
         - "all": Returns posts that contain all of the keywords (default, if field omitted).
     - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
-    - For YouTube requests, only one username should be supplied - corresponding to the channel name - while keywords are ignored (empty list).
+    - For YouTube requests, only one of the following should be applied: One username (corresponding to YouTube channel name) or one keyword 
+      (corresponding to one YouTube video URL)
 """
 
 import os
