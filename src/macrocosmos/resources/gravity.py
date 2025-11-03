@@ -8,7 +8,7 @@ from macrocosmos.types import MacrocosmosError
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources._utils import run_sync_threadsafe
 
- 
+
 # Allowed topic prefixes by platform for client-side validation convenience.
 _ALLOWED_TOPIC_PREFIXES: Dict[str, List[str]] = {
     "x": ["#", "$"],
@@ -30,9 +30,7 @@ def _validate_topic_prefix_if_applicable(platform: str, topic: str) -> None:
     for prefix in allowed:
         if topic.startswith(prefix):
             return
-    raise ValueError(
-        f"invalid topic: must start with one of: {', '.join(allowed)}"
-    )
+    raise ValueError(f"invalid topic: must start with one of: {', '.join(allowed)}")
 
 
 class AsyncGravity:
@@ -121,7 +119,9 @@ class AsyncGravity:
                     )
                 elif isinstance(task, dict):
                     if task.get("topic"):
-                        _validate_topic_prefix_if_applicable(task.get("platform"), task.get("topic"))
+                        _validate_topic_prefix_if_applicable(
+                            task.get("platform"), task.get("topic")
+                        )
                     proto_gravity_tasks.append(gravity_pb2.GravityTask(**task))
                 else:
                     raise TypeError(f"Invalid type for gravity task: {type(task)}")
