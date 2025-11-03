@@ -9,6 +9,30 @@ from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources._utils import run_sync_threadsafe
 
 
+# Allowed topic prefixes by platform for client-side validation convenience.
+_ALLOWED_TOPIC_PREFIXES: Dict[str, List[str]] = {
+    "x": ["#", "$"],
+    "reddit": ["r/"],
+}
+
+
+def _validate_topic_prefix_if_applicable(platform: str, topic: str) -> None:
+    """
+    Validate the topic prefix if applicable.
+
+    Args:
+        platform: The platform of the topic.
+        topic: The topic to validate.
+    """
+    allowed = _ALLOWED_TOPIC_PREFIXES.get(platform.lower())
+    if not allowed:
+        return
+    for prefix in allowed:
+        if topic.startswith(prefix):
+            return
+    raise ValueError(f"invalid topic: must start with one of: {', '.join(allowed)}")
+
+
 class AsyncGravity:
     """Asynchronous Gravity resource for the Data Universe (subnet 13) API on Bittensor."""
 
@@ -88,10 +112,16 @@ class AsyncGravity:
         if gravity_tasks:
             for task in gravity_tasks:
                 if isinstance(task, gravity_p2p.GravityTask):
+                    if task.topic:
+                        _validate_topic_prefix_if_applicable(task.platform, task.topic)
                     proto_gravity_tasks.append(
                         gravity_pb2.GravityTask(**task.model_dump())
                     )
                 elif isinstance(task, dict):
+                    if task.get("topic"):
+                        _validate_topic_prefix_if_applicable(
+                            task.get("platform"), task.get("topic")
+                        )
                     proto_gravity_tasks.append(gravity_pb2.GravityTask(**task))
                 else:
                     raise TypeError(f"Invalid type for gravity task: {type(task)}")
