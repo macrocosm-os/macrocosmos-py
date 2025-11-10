@@ -80,6 +80,8 @@ class OnDemandDataRequest(BaseModel):
 # keyword_mode: defines how keywords should be used in selecting response posts (optional): 
 # "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
     keyword_mode: typing.Optional[str] = Field(default="")
+# url: single URL for URL search mode (X or YouTube)
+    url: typing.Optional[str] = Field(default="")
 
 class OnDemandDataResponse(BaseModel):
     """

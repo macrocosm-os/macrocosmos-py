@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+
 from macrocosmos.generated.logger.v1 import logger_pb2 as logger_dot_v1_dot_logger__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'

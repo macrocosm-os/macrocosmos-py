@@ -9,6 +9,14 @@ from pydantic import Field
 import typing
 
 
+class PublishDatasetRequest(BaseModel):
+    """
+     PublishDatasetRequest is the request message for publishing a dataset
+    """
+
+# dataset_id: the ID of the dataset
+    dataset_id: str = Field(default="")
+
 class CrawlerNotification(BaseModel):
     """
      CrawlerNotification is the details of the notification to be sent to the user
@@ -76,7 +84,8 @@ class CrawlerState(BaseModel):
 
 class Crawler(BaseModel):
     """
-     Crawler is a single crawler workflow that registers a single job (platform/topic) on SN13's dynamic desirability engine
+     Crawler is a single crawler workflow that registers a single job
+ (platform/topic) on SN13's dynamic desirability engine
     """
 
 # crawler_id: the ID of the crawler
@@ -91,8 +100,74 @@ class Crawler(BaseModel):
     archive_time: datetime = Field(default_factory=datetime.now)
 # state: the current state of the crawler
     state: CrawlerState = Field(default_factory=CrawlerState)
-# dataset_workflows: the IDs of the dataset workflows that are associated with the crawler
+# dataset_workflows: the IDs of the dataset workflows that are associated
+# with the crawler
     dataset_workflows: typing.List[str] = Field(default_factory=list)
+
+class UpsertCrawlerRequest(BaseModel):
+    """
+     UpsertCrawlerRequest for upserting a crawler and its criteria
+    """
+
+# gravity_task_id: the parent workflow id -- in this case the multicrawler id
+    gravity_task_id: str = Field(default="")
+# crawler: the crawler to upsert into the database
+    crawler: Crawler = Field(default_factory=Crawler)
+
+class UpsertResponse(BaseModel):
+    """
+     UpsertResponse is the response message for upserting a crawler
+    """
+
+# message: the message of upserting a crawler (currently hardcoded to
+# "success")
+    message: str = Field(default="")
+
+class GravityTaskRequest(BaseModel):
+    """
+     GravityTaskRequest represents the data needed to upsert a gravity task
+    """
+
+# id: the ID of the gravity task
+    id: str = Field(default="")
+# name: the name of the gravity task
+    name: str = Field(default="")
+# status: the status of the gravity task
+    status: str = Field(default="")
+# start_time: the start time of the gravity task
+    start_time: datetime = Field(default_factory=datetime.now)
+# notification_to: the notification email address
+    notification_to: str = Field(default="")
+# notification_link: the notification redirect link
+    notification_link: str = Field(default="")
+
+class UpsertGravityTaskRequest(BaseModel):
+    """
+     UpsertGravityTaskRequest for upserting a gravity task
+    """
+
+# gravity_task: the gravity task to upsert into the database
+    gravity_task: GravityTaskRequest = Field(default_factory=GravityTaskRequest)
+
+class UpsertGravityTaskResponse(BaseModel):
+    """
+     UpsertGravityTaskResponse is the response message for upserting a gravity
+ task
+    """
+
+# message: the message of upserting a gravity task (currently hardcoded to
+# "success")
+    message: str = Field(default="")
+
+class InsertCrawlerCriteriaRequest(BaseModel):
+    """
+     UpsertCrawlerCriteriaRequest for upserting a crawler and its criteria
+    """
+
+# crawler_id: the id of the crawler
+    crawler_id: str = Field(default="")
+# crawler_criteria: the crawler criteria to upsert into the database
+    crawler_criteria: CrawlerCriteria = Field(default_factory=CrawlerCriteria)
 
 class GravityTaskState(BaseModel):
     """
@@ -107,24 +182,29 @@ class GravityTaskState(BaseModel):
     status: str = Field(default="")
 # start_time: the time the gravity task was created
     start_time: datetime = Field(default_factory=datetime.now)
-# crawler_ids: the IDs of the crawler workflows that are associated with the gravity task
+# crawler_ids: the IDs of the crawler workflows that are associated with the
+# gravity task
     crawler_ids: typing.List[str] = Field(default_factory=list)
-# crawler_workflows: the crawler workflows that are associated with the gravity task
+# crawler_workflows: the crawler workflows that are associated with the
+# gravity task
     crawler_workflows: typing.List[Crawler] = Field(default_factory=list)
 
 class GetGravityTasksRequest(BaseModel):
     """
-     GetGravityTasksRequest is the request message for listing gravity tasks for a user
+     GetGravityTasksRequest is the request message for listing gravity tasks for a
+ user
     """
 
-# gravity_task_id: the ID of the gravity task (optional, if not provided, all gravity tasks for the user will be returned)
+# gravity_task_id: the ID of the gravity task (optional, if not provided, all
+# gravity tasks for the user will be returned)
     gravity_task_id: typing.Optional[str] = Field(default="")
 # include_crawlers: whether to include the crawler states in the response
     include_crawlers: typing.Optional[bool] = Field(default=False)
 
 class GetGravityTasksResponse(BaseModel):
     """
-     GetGravityTasksResponse is the response message for listing gravity tasks for a user
+     GetGravityTasksResponse is the response message for listing gravity tasks for
+ a user
     """
 
 # gravity_task_states: the current states of the gravity tasks
@@ -148,14 +228,18 @@ class GravityTask(BaseModel):
 
 class NotificationRequest(BaseModel):
     """
-     NotificationRequest is the request message for sending a notification to a user when a dataset is ready to download
+     NotificationRequest is the request message for sending a notification to a
+ user when a dataset is ready to download
     """
 
-# type: the type of notification to send ('email' is only supported currently)
+# type: the type of notification to send ('email' is only supported
+# currently)
     type: str = Field(default="")
-# address: the address to send the notification to (only email addresses are supported currently)
+# address: the address to send the notification to (only email addresses are
+# supported currently)
     address: str = Field(default="")
-# redirect_url: the URL to include in the notication message that redirects the user to any built datasets
+# redirect_url: the URL to include in the notication message that redirects
+# the user to any built datasets
     redirect_url: typing.Optional[str] = Field(default="")
 
 class GetCrawlerRequest(BaseModel):
@@ -176,22 +260,28 @@ class GetCrawlerResponse(BaseModel):
 
 class CreateGravityTaskRequest(BaseModel):
     """
-     CreateGravityTaskRequest is the request message for creating a new gravity task
+     CreateGravityTaskRequest is the request message for creating a new gravity
+ task
     """
 
 # gravity_tasks: the criteria for the crawlers that will be created
     gravity_tasks: typing.List[GravityTask] = Field(default_factory=list)
-# name: the name of the gravity task (optional, default will generate a random name)
+# name: the name of the gravity task (optional, default will generate a
+# random name)
     name: str = Field(default="")
-# notification_requests: the details of the notification to be sent to the user when a dataset
-#   that is automatically generated upon completion of the crawler is ready to download (optional)
+# notification_requests: the details of the notification to be sent to the
+# user when a dataset
+#   that is automatically generated upon completion of the crawler is ready
+#   to download (optional)
     notification_requests: typing.List[NotificationRequest] = Field(default_factory=list)
-# gravity_task_id: the ID of the gravity task (optional, default will generate a random ID)
+# gravity_task_id: the ID of the gravity task (optional, default will
+# generate a random ID)
     gravity_task_id: typing.Optional[str] = Field(default="")
 
 class CreateGravityTaskResponse(BaseModel):
     """
-     CreateGravityTaskResponse is the response message for creating a new gravity task
+     CreateGravityTaskResponse is the response message for creating a new gravity
+ task
     """
 
 # gravity_task_id: the ID of the gravity task
@@ -199,14 +289,17 @@ class CreateGravityTaskResponse(BaseModel):
 
 class BuildDatasetRequest(BaseModel):
     """
-     BuildDatasetRequest is the request message for manually requesting the building of a dataset for a single crawler
+     BuildDatasetRequest is the request message for manually requesting the
+ building of a dataset for a single crawler
     """
 
 # crawler_id: the ID of the crawler that will be used to build the dataset
     crawler_id: str = Field(default="")
-# notification_requests: the details of the notification to be sent to the user when the dataset is ready to download (optional)
+# notification_requests: the details of the notification to be sent to the
+# user when the dataset is ready to download (optional)
     notification_requests: typing.List[NotificationRequest] = Field(default_factory=list)
-# max_rows: the maximum number of rows to include in the dataset (optional, defaults to 500)
+# max_rows: the maximum number of rows to include in the dataset (optional,
+# defaults to 500)
     max_rows: int = Field(default=0)
 
 class DatasetFile(BaseModel):
@@ -274,7 +367,8 @@ class Dataset(BaseModel):
 
 class BuildDatasetResponse(BaseModel):
     """
-     BuildDatasetResponse is the response message for manually requesting the building of a dataset for a single crawler
+     BuildDatasetResponse is the response message for manually requesting the
+ building of a dataset for a single crawler
  - dataset: the dataset that was built
     """
 
@@ -282,6 +376,55 @@ class BuildDatasetResponse(BaseModel):
     dataset_id: str = Field(default="")
 # dataset: the dataset that was built
     dataset: Dataset = Field(default_factory=Dataset)
+
+class BuildAllDatasetsRequest(BaseModel):
+    """
+     BuildAllDatasetsRequest is the request message for building all datasets
+ belonging to a workflow
+    """
+
+# gravityTaskId specifies which task to build
+    gravity_task_id: str = Field(default="")
+# specifies how much of each crawler to build for workflow
+    build_crawlers_config: typing.List[BuildDatasetRequest] = Field(default_factory=list)
+
+class BuildAllDatasetsResponse(BaseModel):
+    gravity_task_id: str = Field(default="")
+    datasets: typing.List[Dataset] = Field(default_factory=list)
+
+class UpsertDatasetRequest(BaseModel):
+    """
+     UpsertDatasetRequest contains the dataset id to insert and the dataset
+ details
+    """
+
+# dataset_id: a unique id for the dataset
+    dataset_id: str = Field(default="")
+# dataset: the details of the dataset
+    dataset: Dataset = Field(default_factory=Dataset)
+
+class UpsertNebulaRequest(BaseModel):
+    """
+     UpsertNebulaRequest contains the dataset id and nebula details to upsert
+    """
+
+# dataset_id: a unique id for the dataset
+    dataset_id: str = Field(default="")
+# nebula_id: a unique id for the nebula
+    nebula_id: str = Field(default="")
+# nebula: the details of the nebula
+    nebula: Nebula = Field(default_factory=Nebula)
+
+class InsertDatasetFileRequest(BaseModel):
+    """
+     InsertDatasetFileRequest contains the dataset id to insert into and the
+ dataset file details
+    """
+
+# dataset_id: the ID of the dataset to attach the file to
+    dataset_id: str = Field(default="")
+# files: the dataset files to insert
+    files: typing.List[DatasetFile] = Field(default_factory=list)
 
 class GetDatasetRequest(BaseModel):
     """
@@ -293,7 +436,8 @@ class GetDatasetRequest(BaseModel):
 
 class GetDatasetResponse(BaseModel):
     """
-     GetDatasetResponse is the response message for getting the status of a dataset
+     GetDatasetResponse is the response message for getting the status of a
+ dataset
     """
 
 # dataset: the dataset that is being built
@@ -309,10 +453,12 @@ class CancelGravityTaskRequest(BaseModel):
 
 class CancelGravityTaskResponse(BaseModel):
     """
-     CancelGravityTaskResponse is the response message for cancelling a gravity task
+     CancelGravityTaskResponse is the response message for cancelling a gravity
+ task
     """
 
-# message: the message of the cancellation of the gravity task (currently hardcoded to "success")
+# message: the message of the cancellation of the gravity task (currently
+# hardcoded to "success")
     message: str = Field(default="")
 
 class CancelDatasetRequest(BaseModel):
@@ -328,7 +474,8 @@ class CancelDatasetResponse(BaseModel):
      CancelDatasetResponse is the response message for cancelling a dataset build
     """
 
-# message: the message of the cancellation of the dataset build (currently hardcoded to "success")
+# message: the message of the cancellation of the dataset build (currently
+# hardcoded to "success")
     message: str = Field(default="")
 
 class DatasetBillingCorrectionRequest(BaseModel):
@@ -348,3 +495,62 @@ class DatasetBillingCorrectionResponse(BaseModel):
 
 # refund_amount
     refund_amount: float = Field(default=0.0)
+
+class GetMarketplaceDatasetsResponse(BaseModel):
+    """
+     GetMarketplaceDatasetsResponse returns the dataset metadata to be used in
+ Marketplace
+    """
+
+# datasets: list of marketplace datasets
+    datasets: typing.List[DatasetFile] = Field(default_factory=list)
+
+class GetGravityTaskDatasetFilesRequest(BaseModel):
+    """
+     GetGravityTaskDatasetFilesRequest is the request message for getting dataset
+ files for a gravity task
+    """
+
+# gravity_task_id: the ID of the gravity task (required)
+    gravity_task_id: str = Field(default="")
+
+class DatasetFileWithId(BaseModel):
+    """
+     DatasetFileWithId extends DatasetFile to include the dataset ID
+    """
+
+# dataset_id: the ID of the dataset this file belongs to
+    dataset_id: str = Field(default="")
+# file_name: the name of the file
+    file_name: str = Field(default="")
+# file_size_bytes: the size of the file in bytes
+    file_size_bytes: int = Field(default=0)
+# last_modified: the date the file was last modified
+    last_modified: datetime = Field(default_factory=datetime.now)
+# num_rows: the number of rows in the file
+    num_rows: int = Field(default=0)
+# s3_key: the key of the file in S3 (internal use only)
+    s3_key: str = Field(default="")
+# url: the URL of the file (public use)
+    url: str = Field(default="")
+
+class CrawlerDatasetFiles(BaseModel):
+    """
+     CrawlerDatasetFiles contains dataset files for a specific crawler
+    """
+
+# crawler_id: the ID of the crawler
+    crawler_id: str = Field(default="")
+# dataset_files: the dataset files associated with this crawler
+    dataset_files: typing.List[DatasetFileWithId] = Field(default_factory=list)
+
+class GetGravityTaskDatasetFilesResponse(BaseModel):
+    """
+     GetGravityTaskDatasetFilesResponse is the response message for getting
+ dataset files for a gravity task
+    """
+
+# gravity_task_id: the ID of the gravity task
+    gravity_task_id: str = Field(default="")
+# crawler_dataset_files: dataset files grouped by crawler
+    crawler_dataset_files: typing.List[CrawlerDatasetFiles] = Field(default_factory=list)

@@ -479,6 +479,14 @@ class GetChatSessionsResponse(BaseModel):
 # chat_sessions: the chat sessions
     chat_sessions: typing.List[ChatSession] = Field(default_factory=list)
 
+class GetChatSessionsRequest(BaseModel):
+    """
+     A GetChatSessionsRequest message
+    """
+
+# chat_type: type of chat (e.g. "apex" or "gravity")
+    chat_type: str = Field(default="")
+
 class GetStoredChatCompletionsRequest(BaseModel):
     """
      A GetStoredChatCompletionRequest request message
@@ -486,6 +494,14 @@ class GetStoredChatCompletionsRequest(BaseModel):
 
 # chat_id: a unique identifier for a chat
     chat_id: str = Field(default="")
+
+class GetChatCompletionRequest(BaseModel):
+    """
+     A GetChatCompletionRequest request message
+    """
+
+# completion_id: a unique identifier for a completion
+    completion_id: str = Field(default="")
 
 class StoredChatCompletion(BaseModel):
     """
@@ -674,6 +690,8 @@ class UpdateCompletionAttributesRequest(BaseModel):
     completion_text: typing.Optional[str] = Field(default="")
 # metadata: metadata json blob (optional)
     metadata: typing.Dict[str, typing.Any] = Field(default_factory=dict)
+# user_prompt_text: the user's prompt text (optional)
+    user_prompt_text: typing.Optional[str] = Field(default="")
 
 class UpdateCompletionAttributesResponse(BaseModel):
     """

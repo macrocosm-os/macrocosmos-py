@@ -388,11 +388,23 @@ class GetChatSessionsResponse(_message.Message):
     chat_sessions: _containers.RepeatedCompositeFieldContainer[ChatSession]
     def __init__(self, chat_sessions: _Optional[_Iterable[_Union[ChatSession, _Mapping]]] = ...) -> None: ...
 
+class GetChatSessionsRequest(_message.Message):
+    __slots__ = ("chat_type",)
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    chat_type: str
+    def __init__(self, chat_type: _Optional[str] = ...) -> None: ...
+
 class GetStoredChatCompletionsRequest(_message.Message):
     __slots__ = ("chat_id",)
     CHAT_ID_FIELD_NUMBER: _ClassVar[int]
     chat_id: str
     def __init__(self, chat_id: _Optional[str] = ...) -> None: ...
+
+class GetChatCompletionRequest(_message.Message):
+    __slots__ = ("completion_id",)
+    COMPLETION_ID_FIELD_NUMBER: _ClassVar[int]
+    completion_id: str
+    def __init__(self, completion_id: _Optional[str] = ...) -> None: ...
 
 class StoredChatCompletion(_message.Message):
     __slots__ = ("id", "chat_id", "completion_type", "created_at", "completed_at", "user_prompt_text", "completion_text", "metadata", "error_message")
@@ -546,14 +558,16 @@ class SearchChatIdsByPromptAndCompletionTextResponse(_message.Message):
     def __init__(self, chat_ids: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class UpdateCompletionAttributesRequest(_message.Message):
-    __slots__ = ("completion_id", "completion_text", "metadata")
+    __slots__ = ("completion_id", "completion_text", "metadata", "user_prompt_text")
     COMPLETION_ID_FIELD_NUMBER: _ClassVar[int]
     COMPLETION_TEXT_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
+    USER_PROMPT_TEXT_FIELD_NUMBER: _ClassVar[int]
     completion_id: str
     completion_text: str
     metadata: _struct_pb2.Struct
-    def __init__(self, completion_id: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    user_prompt_text: str
+    def __init__(self, completion_id: _Optional[str] = ..., completion_text: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., user_prompt_text: _Optional[str] = ...) -> None: ...
 
 class UpdateCompletionAttributesResponse(_message.Message):
     __slots__ = ("completion",)

@@ -1,10 +1,17 @@
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
+
+class PublishDatasetRequest(_message.Message):
+    __slots__ = ("dataset_id",)
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    def __init__(self, dataset_id: _Optional[str] = ...) -> None: ...
 
 class Crawler(_message.Message):
     __slots__ = ("crawler_id", "criteria", "start_time", "deregistration_time", "archive_time", "state", "dataset_workflows")
@@ -23,6 +30,56 @@ class Crawler(_message.Message):
     state: CrawlerState
     dataset_workflows: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, crawler_id: _Optional[str] = ..., criteria: _Optional[_Union[CrawlerCriteria, _Mapping]] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., deregistration_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., archive_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., state: _Optional[_Union[CrawlerState, _Mapping]] = ..., dataset_workflows: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class UpsertCrawlerRequest(_message.Message):
+    __slots__ = ("gravity_task_id", "crawler")
+    GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    CRAWLER_FIELD_NUMBER: _ClassVar[int]
+    gravity_task_id: str
+    crawler: Crawler
+    def __init__(self, gravity_task_id: _Optional[str] = ..., crawler: _Optional[_Union[Crawler, _Mapping]] = ...) -> None: ...
+
+class UpsertResponse(_message.Message):
+    __slots__ = ("message",)
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    message: str
+    def __init__(self, message: _Optional[str] = ...) -> None: ...
+
+class UpsertGravityTaskRequest(_message.Message):
+    __slots__ = ("gravity_task",)
+    GRAVITY_TASK_FIELD_NUMBER: _ClassVar[int]
+    gravity_task: GravityTaskRequest
+    def __init__(self, gravity_task: _Optional[_Union[GravityTaskRequest, _Mapping]] = ...) -> None: ...
+
+class UpsertGravityTaskResponse(_message.Message):
+    __slots__ = ("message",)
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    message: str
+    def __init__(self, message: _Optional[str] = ...) -> None: ...
+
+class GravityTaskRequest(_message.Message):
+    __slots__ = ("id", "name", "status", "start_time", "notification_to", "notification_link")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    START_TIME_FIELD_NUMBER: _ClassVar[int]
+    NOTIFICATION_TO_FIELD_NUMBER: _ClassVar[int]
+    NOTIFICATION_LINK_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    name: str
+    status: str
+    start_time: _timestamp_pb2.Timestamp
+    notification_to: str
+    notification_link: str
+    def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., status: _Optional[str] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., notification_to: _Optional[str] = ..., notification_link: _Optional[str] = ...) -> None: ...
+
+class InsertCrawlerCriteriaRequest(_message.Message):
+    __slots__ = ("crawler_id", "crawler_criteria")
+    CRAWLER_ID_FIELD_NUMBER: _ClassVar[int]
+    CRAWLER_CRITERIA_FIELD_NUMBER: _ClassVar[int]
+    crawler_id: str
+    crawler_criteria: CrawlerCriteria
+    def __init__(self, crawler_id: _Optional[str] = ..., crawler_criteria: _Optional[_Union[CrawlerCriteria, _Mapping]] = ...) -> None: ...
 
 class CrawlerCriteria(_message.Message):
     __slots__ = ("platform", "topic", "notification", "mock", "user_id", "keyword", "post_start_datetime", "post_end_datetime")
@@ -176,6 +233,22 @@ class BuildDatasetResponse(_message.Message):
     dataset: Dataset
     def __init__(self, dataset_id: _Optional[str] = ..., dataset: _Optional[_Union[Dataset, _Mapping]] = ...) -> None: ...
 
+class BuildAllDatasetsRequest(_message.Message):
+    __slots__ = ("gravity_task_id", "build_crawlers_config")
+    GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    BUILD_CRAWLERS_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    gravity_task_id: str
+    build_crawlers_config: _containers.RepeatedCompositeFieldContainer[BuildDatasetRequest]
+    def __init__(self, gravity_task_id: _Optional[str] = ..., build_crawlers_config: _Optional[_Iterable[_Union[BuildDatasetRequest, _Mapping]]] = ...) -> None: ...
+
+class BuildAllDatasetsResponse(_message.Message):
+    __slots__ = ("gravity_task_id", "datasets")
+    GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASETS_FIELD_NUMBER: _ClassVar[int]
+    gravity_task_id: str
+    datasets: _containers.RepeatedCompositeFieldContainer[Dataset]
+    def __init__(self, gravity_task_id: _Optional[str] = ..., datasets: _Optional[_Iterable[_Union[Dataset, _Mapping]]] = ...) -> None: ...
+
 class Nebula(_message.Message):
     __slots__ = ("error", "file_size_bytes", "url")
     ERROR_FIELD_NUMBER: _ClassVar[int]
@@ -207,6 +280,32 @@ class Dataset(_message.Message):
     total_steps: int
     nebula: Nebula
     def __init__(self, crawler_workflow_id: _Optional[str] = ..., create_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., expire_date: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ..., status: _Optional[str] = ..., status_message: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[DatasetStep, _Mapping]]] = ..., total_steps: _Optional[int] = ..., nebula: _Optional[_Union[Nebula, _Mapping]] = ...) -> None: ...
+
+class UpsertDatasetRequest(_message.Message):
+    __slots__ = ("dataset_id", "dataset")
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASET_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    dataset: Dataset
+    def __init__(self, dataset_id: _Optional[str] = ..., dataset: _Optional[_Union[Dataset, _Mapping]] = ...) -> None: ...
+
+class UpsertNebulaRequest(_message.Message):
+    __slots__ = ("dataset_id", "nebula_id", "nebula")
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    NEBULA_ID_FIELD_NUMBER: _ClassVar[int]
+    NEBULA_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    nebula_id: str
+    nebula: Nebula
+    def __init__(self, dataset_id: _Optional[str] = ..., nebula_id: _Optional[str] = ..., nebula: _Optional[_Union[Nebula, _Mapping]] = ...) -> None: ...
+
+class InsertDatasetFileRequest(_message.Message):
+    __slots__ = ("dataset_id", "files")
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    FILES_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    files: _containers.RepeatedCompositeFieldContainer[DatasetFile]
+    def __init__(self, dataset_id: _Optional[str] = ..., files: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ...) -> None: ...
 
 class DatasetFile(_message.Message):
     __slots__ = ("file_name", "file_size_bytes", "last_modified", "num_rows", "s3_key", "url")
@@ -283,3 +382,49 @@ class DatasetBillingCorrectionResponse(_message.Message):
     REFUND_AMOUNT_FIELD_NUMBER: _ClassVar[int]
     refund_amount: float
     def __init__(self, refund_amount: _Optional[float] = ...) -> None: ...
+
+class GetMarketplaceDatasetsResponse(_message.Message):
+    __slots__ = ("datasets",)
+    DATASETS_FIELD_NUMBER: _ClassVar[int]
+    datasets: _containers.RepeatedCompositeFieldContainer[DatasetFile]
+    def __init__(self, datasets: _Optional[_Iterable[_Union[DatasetFile, _Mapping]]] = ...) -> None: ...
+
+class GetGravityTaskDatasetFilesRequest(_message.Message):
+    __slots__ = ("gravity_task_id",)
+    GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    gravity_task_id: str
+    def __init__(self, gravity_task_id: _Optional[str] = ...) -> None: ...
+
+class CrawlerDatasetFiles(_message.Message):
+    __slots__ = ("crawler_id", "dataset_files")
+    CRAWLER_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASET_FILES_FIELD_NUMBER: _ClassVar[int]
+    crawler_id: str
+    dataset_files: _containers.RepeatedCompositeFieldContainer[DatasetFileWithId]
+    def __init__(self, crawler_id: _Optional[str] = ..., dataset_files: _Optional[_Iterable[_Union[DatasetFileWithId, _Mapping]]] = ...) -> None: ...
+
+class DatasetFileWithId(_message.Message):
+    __slots__ = ("dataset_id", "file_name", "file_size_bytes", "last_modified", "num_rows", "s3_key", "url")
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    FILE_NAME_FIELD_NUMBER: _ClassVar[int]
+    FILE_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    LAST_MODIFIED_FIELD_NUMBER: _ClassVar[int]
+    NUM_ROWS_FIELD_NUMBER: _ClassVar[int]
+    S3_KEY_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    dataset_id: str
+    file_name: str
+    file_size_bytes: int
+    last_modified: _timestamp_pb2.Timestamp
+    num_rows: int
+    s3_key: str
+    url: str
+    def __init__(self, dataset_id: _Optional[str] = ..., file_name: _Optional[str] = ..., file_size_bytes: _Optional[int] = ..., last_modified: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., num_rows: _Optional[int] = ..., s3_key: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
+
+class GetGravityTaskDatasetFilesResponse(_message.Message):
+    __slots__ = ("gravity_task_id", "crawler_dataset_files")
+    GRAVITY_TASK_ID_FIELD_NUMBER: _ClassVar[int]
+    CRAWLER_DATASET_FILES_FIELD_NUMBER: _ClassVar[int]
+    gravity_task_id: str
+    crawler_dataset_files: _containers.RepeatedCompositeFieldContainer[CrawlerDatasetFiles]
+    def __init__(self, gravity_task_id: _Optional[str] = ..., crawler_dataset_files: _Optional[_Iterable[_Union[CrawlerDatasetFiles, _Mapping]]] = ...) -> None: ...

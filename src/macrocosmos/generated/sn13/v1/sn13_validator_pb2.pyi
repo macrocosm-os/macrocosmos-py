@@ -49,7 +49,7 @@ class ValidateRedditTopicResponse(_message.Message):
     def __init__(self, platform: _Optional[str] = ..., topic: _Optional[str] = ..., exists: bool = ..., over18: bool = ..., quarantine: bool = ...) -> None: ...
 
 class OnDemandDataRequest(_message.Message):
-    __slots__ = ("source", "usernames", "keywords", "start_date", "end_date", "limit", "keyword_mode")
+    __slots__ = ("source", "usernames", "keywords", "start_date", "end_date", "limit", "keyword_mode", "url")
     SOURCE_FIELD_NUMBER: _ClassVar[int]
     USERNAMES_FIELD_NUMBER: _ClassVar[int]
     KEYWORDS_FIELD_NUMBER: _ClassVar[int]
@@ -57,6 +57,7 @@ class OnDemandDataRequest(_message.Message):
     END_DATE_FIELD_NUMBER: _ClassVar[int]
     LIMIT_FIELD_NUMBER: _ClassVar[int]
     KEYWORD_MODE_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
     source: str
     usernames: _containers.RepeatedScalarFieldContainer[str]
     keywords: _containers.RepeatedScalarFieldContainer[str]
@@ -64,7 +65,8 @@ class OnDemandDataRequest(_message.Message):
     end_date: str
     limit: int
     keyword_mode: str
-    def __init__(self, source: _Optional[str] = ..., usernames: _Optional[_Iterable[str]] = ..., keywords: _Optional[_Iterable[str]] = ..., start_date: _Optional[str] = ..., end_date: _Optional[str] = ..., limit: _Optional[int] = ..., keyword_mode: _Optional[str] = ...) -> None: ...
+    url: str
+    def __init__(self, source: _Optional[str] = ..., usernames: _Optional[_Iterable[str]] = ..., keywords: _Optional[_Iterable[str]] = ..., start_date: _Optional[str] = ..., end_date: _Optional[str] = ..., limit: _Optional[int] = ..., keyword_mode: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
 
 class OnDemandDataResponse(_message.Message):
     __slots__ = ("status", "data", "meta")
