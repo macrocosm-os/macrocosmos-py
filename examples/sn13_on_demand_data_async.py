@@ -91,7 +91,7 @@ async def main():
         },
         {
             "source": "youtube",
-            "usernames": ["veritasium"], # single username/channel is provided
+            "usernames": ["veritasium"],  # single username/channel is provided
             "start_date": "2025-07-01",
             "end_date": "2025-09-04",
             "limit": 1,
@@ -99,7 +99,7 @@ async def main():
         },
         {
             "source": "youtube",
-            "url":"https://www.youtube.com/watch?v=fnjIoWh7yAc",
+            "url": "https://www.youtube.com/watch?v=fnjIoWh7yAc",
             "start_date": "2025-07-01",
             "end_date": "2025-09-04",
             "limit": 1,

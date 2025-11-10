@@ -166,7 +166,7 @@ class SyncSn13:
                 start_date=start_date,
                 end_date=end_date,
                 limit=limit,
-                keyword_mode=keyword_mode,  
+                keyword_mode=keyword_mode,
                 url=url,
             )
         )
