@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+
 from macrocosmos.generated.billing.v1 import billing_pb2 as billing_dot_v1_dot_billing__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'

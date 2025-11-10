@@ -74,6 +74,8 @@ message OnDemandDataRequest {
   // keyword_mode: defines how keywords should be used in selecting response posts (optional): 
   // "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
   optional string keyword_mode = 7;
+  // url: single URL for URL search mode (X or YouTube)
+  optional string url = 8;
 }
 
 // OnDemandDataResponse is the response from SN13 for an on-demand data request

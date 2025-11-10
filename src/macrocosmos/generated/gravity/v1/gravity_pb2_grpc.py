@@ -2,6 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from macrocosmos.generated.gravity.v1 import gravity_pb2 as gravity_dot_v1_dot_gravity__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
@@ -73,6 +75,56 @@ class GravityServiceStub(object):
                 request_serializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.SerializeToString,
                 response_deserializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.FromString,
                 _registered_method=True)
+        self.GetMarketplaceDatasets = channel.unary_unary(
+                '/gravity.v1.GravityService/GetMarketplaceDatasets',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetMarketplaceDatasetsResponse.FromString,
+                _registered_method=True)
+        self.GetGravityTaskDatasetFiles = channel.unary_unary(
+                '/gravity.v1.GravityService/GetGravityTaskDatasetFiles',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesResponse.FromString,
+                _registered_method=True)
+        self.PublishDataset = channel.unary_unary(
+                '/gravity.v1.GravityService/PublishDataset',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.PublishDatasetRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.UpsertCrawler = channel.unary_unary(
+                '/gravity.v1.GravityService/UpsertCrawler',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertCrawlerRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.InsertCrawlerCriteria = channel.unary_unary(
+                '/gravity.v1.GravityService/InsertCrawlerCriteria',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.InsertCrawlerCriteriaRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.UpsertGravityTask = channel.unary_unary(
+                '/gravity.v1.GravityService/UpsertGravityTask',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskResponse.FromString,
+                _registered_method=True)
+        self.UpsertDataset = channel.unary_unary(
+                '/gravity.v1.GravityService/UpsertDataset',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertDatasetRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.InsertDatasetFile = channel.unary_unary(
+                '/gravity.v1.GravityService/InsertDatasetFile',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.InsertDatasetFileRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.UpsertNebula = channel.unary_unary(
+                '/gravity.v1.GravityService/UpsertNebula',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertNebulaRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+                _registered_method=True)
+        self.BuildAllDatasets = channel.unary_unary(
+                '/gravity.v1.GravityService/BuildAllDatasets',
+                request_serializer=gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsRequest.SerializeToString,
+                response_deserializer=gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsResponse.FromString,
+                _registered_method=True)
 
 
 class GravityServiceServicer(object):
@@ -134,6 +186,76 @@ class GravityServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetMarketplaceDatasets(self, request, context):
+        """Gets the available datsets for use in Dataset Marketplace
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetGravityTaskDatasetFiles(self, request, context):
+        """Gets all dataset files for a given gravity task
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PublishDataset(self, request, context):
+        """Publishes a dataset into the Marketplace
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpsertCrawler(self, request, context):
+        """Upserts a crawler into the Gravity state DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def InsertCrawlerCriteria(self, request, context):
+        """Upserts a crawler criteria into the Gravity state DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpsertGravityTask(self, request, context):
+        """Upserts a gravity task into the Gravity state DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpsertDataset(self, request, context):
+        """Upserts a dataset into to the Gravity state DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def InsertDatasetFile(self, request, context):
+        """Inserts a dataset file row into the Gravity state DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpsertNebula(self, request, context):
+        """Upserts a nebula into the Gravity nebula DB
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def BuildAllDatasets(self, request, context):
+        """Builds all datasets for a task (additionally cancels crawlers with no data)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_GravityServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -176,6 +298,56 @@ def add_GravityServiceServicer_to_server(servicer, server):
                     servicer.DatasetBillingCorrection,
                     request_deserializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.FromString,
                     response_serializer=gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.SerializeToString,
+            ),
+            'GetMarketplaceDatasets': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetMarketplaceDatasets,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.GetMarketplaceDatasetsResponse.SerializeToString,
+            ),
+            'GetGravityTaskDatasetFiles': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetGravityTaskDatasetFiles,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesResponse.SerializeToString,
+            ),
+            'PublishDataset': grpc.unary_unary_rpc_method_handler(
+                    servicer.PublishDataset,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.PublishDatasetRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'UpsertCrawler': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpsertCrawler,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertCrawlerRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'InsertCrawlerCriteria': grpc.unary_unary_rpc_method_handler(
+                    servicer.InsertCrawlerCriteria,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.InsertCrawlerCriteriaRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'UpsertGravityTask': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpsertGravityTask,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskResponse.SerializeToString,
+            ),
+            'UpsertDataset': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpsertDataset,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertDatasetRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'InsertDatasetFile': grpc.unary_unary_rpc_method_handler(
+                    servicer.InsertDatasetFile,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.InsertDatasetFileRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'UpsertNebula': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpsertNebula,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.UpsertNebulaRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.UpsertResponse.SerializeToString,
+            ),
+            'BuildAllDatasets': grpc.unary_unary_rpc_method_handler(
+                    servicer.BuildAllDatasets,
+                    request_deserializer=gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsRequest.FromString,
+                    response_serializer=gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -394,6 +566,276 @@ class GravityService(object):
             '/gravity.v1.GravityService/DatasetBillingCorrection',
             gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionRequest.SerializeToString,
             gravity_dot_v1_dot_gravity__pb2.DatasetBillingCorrectionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetMarketplaceDatasets(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/GetMarketplaceDatasets',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.GetMarketplaceDatasetsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetGravityTaskDatasetFiles(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/GetGravityTaskDatasetFiles',
+            gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.GetGravityTaskDatasetFilesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PublishDataset(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/PublishDataset',
+            gravity_dot_v1_dot_gravity__pb2.PublishDatasetRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpsertCrawler(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/UpsertCrawler',
+            gravity_dot_v1_dot_gravity__pb2.UpsertCrawlerRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def InsertCrawlerCriteria(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/InsertCrawlerCriteria',
+            gravity_dot_v1_dot_gravity__pb2.InsertCrawlerCriteriaRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpsertGravityTask(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/UpsertGravityTask',
+            gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertGravityTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpsertDataset(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/UpsertDataset',
+            gravity_dot_v1_dot_gravity__pb2.UpsertDatasetRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def InsertDatasetFile(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/InsertDatasetFile',
+            gravity_dot_v1_dot_gravity__pb2.InsertDatasetFileRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpsertNebula(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/UpsertNebula',
+            gravity_dot_v1_dot_gravity__pb2.UpsertNebulaRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.UpsertResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def BuildAllDatasets(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/gravity.v1.GravityService/BuildAllDatasets',
+            gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsRequest.SerializeToString,
+            gravity_dot_v1_dot_gravity__pb2.BuildAllDatasetsResponse.FromString,
             options,
             channel_credentials,
             insecure,

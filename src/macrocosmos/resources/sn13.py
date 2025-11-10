@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from google.protobuf.json_format import MessageToDict
 
 import grpc
@@ -25,13 +25,14 @@ class AsyncSn13:
     async def OnDemandData(
         self,
         source: str,
-        usernames: List[str],
-        keywords: List[str],
+        usernames: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         limit: int = 100,
         keyword_mode: Optional[str] = None,
-    ) -> sn13_validator_pb2.OnDemandDataResponse:
+        url: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Retrieves on-demand data from the SN13 API service asynchronously, based on the provided parameters.
 
@@ -44,7 +45,7 @@ class AsyncSn13:
             limit (int): Maximum number of results to return
             keyword_mode (str): Defines how keywords should be used in selecting response posts (optional):
                 "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
-
+            url (str): Single URL for URL search mode (X or YouTube)
         Returns:
             dict:
                 - status (str): The request status
@@ -53,12 +54,13 @@ class AsyncSn13:
         """
         request = sn13_validator_pb2.OnDemandDataRequest(
             source=source,
-            usernames=usernames,
-            keywords=keywords,
+            usernames=usernames or [],
+            keywords=keywords or [],
             start_date=start_date,
             end_date=end_date,
             limit=limit,
             keyword_mode=keyword_mode,
+            url=url,
         )
 
         return await self._make_request("OnDemandData", request)
@@ -129,13 +131,14 @@ class SyncSn13:
     def OnDemandData(
         self,
         source: str,
-        usernames: List[str],
-        keywords: List[str],
+        usernames: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         limit: int = 100,
         keyword_mode: Optional[str] = None,
-    ) -> sn13_validator_pb2.OnDemandDataResponse:
+        url: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Retrieves on-demand data from the SN13 API service synchronously, based on the provided parameters.
 
@@ -148,6 +151,7 @@ class SyncSn13:
             limit (int): Maximum number of results to return
             keyword_mode (str): Defines how keywords should be used in selecting response posts (optional):
                 "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
+            url (str): Single URL for URL search mode (X or YouTube)
         Returns:
             dict:
                 - status (str): The request status
@@ -157,11 +161,12 @@ class SyncSn13:
         return run_sync_threadsafe(
             self._async_sn13.OnDemandData(
                 source=source,
-                usernames=usernames,
-                keywords=keywords,
+                usernames=usernames or [],
+                keywords=keywords or [],
                 start_date=start_date,
                 end_date=end_date,
                 limit=limit,
-                keyword_mode=keyword_mode,
+                keyword_mode=keyword_mode,  
+                url=url,
             )
         )

@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+
 from macrocosmos.generated.apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
@@ -61,13 +62,18 @@ class ApexServiceStub(object):
                 _registered_method=True)
         self.GetChatSessions = channel.unary_unary(
                 '/apex.v1.ApexService/GetChatSessions',
-                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                request_serializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsRequest.SerializeToString,
                 response_deserializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.FromString,
                 _registered_method=True)
         self.GetStoredChatCompletions = channel.unary_unary(
                 '/apex.v1.ApexService/GetStoredChatCompletions',
                 request_serializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.SerializeToString,
                 response_deserializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.FromString,
+                _registered_method=True)
+        self.GetChatCompletion = channel.unary_unary(
+                '/apex.v1.ApexService/GetChatCompletion',
+                request_serializer=apex_dot_v1_dot_apex__pb2.GetChatCompletionRequest.SerializeToString,
+                response_deserializer=apex_dot_v1_dot_apex__pb2.StoredChatCompletion.FromString,
                 _registered_method=True)
         self.UpdateChatAttributes = channel.unary_unary(
                 '/apex.v1.ApexService/UpdateChatAttributes',
@@ -163,6 +169,13 @@ class ApexServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetChatCompletion(self, request, context):
+        """GetChatCompletion retrieves a completion by its ID
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def UpdateChatAttributes(self, request, context):
         """UpdateChatAttributes updates specified attributes of a chat
         """
@@ -249,13 +262,18 @@ def add_ApexServiceServicer_to_server(servicer, server):
             ),
             'GetChatSessions': grpc.unary_unary_rpc_method_handler(
                     servicer.GetChatSessions,
-                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsRequest.FromString,
                     response_serializer=apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.SerializeToString,
             ),
             'GetStoredChatCompletions': grpc.unary_unary_rpc_method_handler(
                     servicer.GetStoredChatCompletions,
                     request_deserializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.FromString,
                     response_serializer=apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.SerializeToString,
+            ),
+            'GetChatCompletion': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetChatCompletion,
+                    request_deserializer=apex_dot_v1_dot_apex__pb2.GetChatCompletionRequest.FromString,
+                    response_serializer=apex_dot_v1_dot_apex__pb2.StoredChatCompletion.SerializeToString,
             ),
             'UpdateChatAttributes': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateChatAttributes,
@@ -458,7 +476,7 @@ class ApexService(object):
             request,
             target,
             '/apex.v1.ApexService/GetChatSessions',
-            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.GetChatSessionsRequest.SerializeToString,
             apex_dot_v1_dot_apex__pb2.GetChatSessionsResponse.FromString,
             options,
             channel_credentials,
@@ -487,6 +505,33 @@ class ApexService(object):
             '/apex.v1.ApexService/GetStoredChatCompletions',
             apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsRequest.SerializeToString,
             apex_dot_v1_dot_apex__pb2.GetStoredChatCompletionsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetChatCompletion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/apex.v1.ApexService/GetChatCompletion',
+            apex_dot_v1_dot_apex__pb2.GetChatCompletionRequest.SerializeToString,
+            apex_dot_v1_dot_apex__pb2.StoredChatCompletion.FromString,
             options,
             channel_credentials,
             insecure,

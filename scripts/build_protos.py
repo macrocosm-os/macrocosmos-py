@@ -90,9 +90,9 @@ def fix_imports(compile_pkg_name, output_dir):
                 return match.group(0)
 
             if alias:
-                return f"from {compile_pkg_name}.{package_path} import {module_name} as {alias}"
+                return f"\nfrom {compile_pkg_name}.{package_path} import {module_name} as {alias}"
             else:
-                return f"from {compile_pkg_name}.{package_path} import {module_name}"
+                return f"\nfrom {compile_pkg_name}.{package_path} import {module_name}"
 
         # direct import matched
         full_import = groups[4]
@@ -103,9 +103,9 @@ def fix_imports(compile_pkg_name, output_dir):
             return match.group(0)
 
         if alias:
-            return f"import {compile_pkg_name}.{full_import} as {alias}"
+            return f"\nimport {compile_pkg_name}.{full_import} as {alias}"
         else:
-            return f"import {compile_pkg_name}.{full_import}"
+            return f"\nimport {compile_pkg_name}.{full_import}"
 
     for py_file in glob.glob(str(output_dir / "**/*.py"), recursive=True):
         with open(py_file, "r") as file:

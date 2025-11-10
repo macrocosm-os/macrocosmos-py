@@ -91,6 +91,7 @@ As of the latest data-universe [release](https://github.com/macrocosm-os/data-un
     - `"all"`: Returns posts that contain all of the keywords (default).
 - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
 - For YouTube requests, only one of the following should be applied: One username (corresponding to YouTube channel name) or one keyword (corresponding to one YouTube video URL).
+- URL mode is mutually exclusive with `usernames` and `keywords` fields. If `url` is provided, `usernames` and `keywords` must be empty or omitted.
 
 Use the synchronous `Sn13Client` to query historical or current data based on users, keywords, and time range.
 
