@@ -39,13 +39,37 @@ class BillingServiceStub(object):
                 request_serializer=billing_dot_v1_dot_billing__pb2.GetUsageRequest.SerializeToString,
                 response_deserializer=billing_dot_v1_dot_billing__pb2.GetUsageResponse.FromString,
                 _registered_method=True)
+        self.ChargeUserForUsage = channel.unary_unary(
+                '/billing.v1.BillingService/ChargeUserForUsage',
+                request_serializer=billing_dot_v1_dot_billing__pb2.ChargeUserForUsageRequest.SerializeToString,
+                response_deserializer=billing_dot_v1_dot_billing__pb2.ChargeUserForUsageResponse.FromString,
+                _registered_method=True)
+        self.UserHasEnoughAllowanceAndCredits = channel.unary_unary(
+                '/billing.v1.BillingService/UserHasEnoughAllowanceAndCredits',
+                request_serializer=billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsRequest.SerializeToString,
+                response_deserializer=billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsResponse.FromString,
+                _registered_method=True)
 
 
 class BillingServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetUsage(self, request, context):
-        """Get the usage of the user's credits
+        """Get the usage of the user's credits with subscription-aware billing
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ChargeUserForUsage(self, request, context):
+        """ChargeUserForUsage charges a user for gravity data usage (testing endpoint)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UserHasEnoughAllowanceAndCredits(self, request, context):
+        """Check if a user has enough allowance and credits to cover a charge (testing endpoint)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -58,6 +82,16 @@ def add_BillingServiceServicer_to_server(servicer, server):
                     servicer.GetUsage,
                     request_deserializer=billing_dot_v1_dot_billing__pb2.GetUsageRequest.FromString,
                     response_serializer=billing_dot_v1_dot_billing__pb2.GetUsageResponse.SerializeToString,
+            ),
+            'ChargeUserForUsage': grpc.unary_unary_rpc_method_handler(
+                    servicer.ChargeUserForUsage,
+                    request_deserializer=billing_dot_v1_dot_billing__pb2.ChargeUserForUsageRequest.FromString,
+                    response_serializer=billing_dot_v1_dot_billing__pb2.ChargeUserForUsageResponse.SerializeToString,
+            ),
+            'UserHasEnoughAllowanceAndCredits': grpc.unary_unary_rpc_method_handler(
+                    servicer.UserHasEnoughAllowanceAndCredits,
+                    request_deserializer=billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsRequest.FromString,
+                    response_serializer=billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -87,6 +121,60 @@ class BillingService(object):
             '/billing.v1.BillingService/GetUsage',
             billing_dot_v1_dot_billing__pb2.GetUsageRequest.SerializeToString,
             billing_dot_v1_dot_billing__pb2.GetUsageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ChargeUserForUsage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/billing.v1.BillingService/ChargeUserForUsage',
+            billing_dot_v1_dot_billing__pb2.ChargeUserForUsageRequest.SerializeToString,
+            billing_dot_v1_dot_billing__pb2.ChargeUserForUsageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UserHasEnoughAllowanceAndCredits(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/billing.v1.BillingService/UserHasEnoughAllowanceAndCredits',
+            billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsRequest.SerializeToString,
+            billing_dot_v1_dot_billing__pb2.UserHasEnoughAllowanceAndCreditsResponse.FromString,
             options,
             channel_credentials,
             insecure,

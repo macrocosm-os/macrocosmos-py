@@ -5,8 +5,14 @@ package billing.v1;
 option go_package = "macrocosm-os/rift/constellation_api/gen/billing/v1";
 
 service BillingService {
-  // Get the usage of the user's credits
+  // Get the usage of the user's credits with subscription-aware billing
   rpc GetUsage(GetUsageRequest) returns (GetUsageResponse);
+  
+  // ChargeUserForUsage charges a user for gravity data usage (testing endpoint)
+  rpc ChargeUserForUsage(ChargeUserForUsageRequest) returns (ChargeUserForUsageResponse);
+  
+  // Check if a user has enough allowance and credits to cover a charge (testing endpoint)
+  rpc UserHasEnoughAllowanceAndCredits(UserHasEnoughAllowanceAndCreditsRequest) returns (UserHasEnoughAllowanceAndCreditsResponse);
 }
 
 // GetUsageRequest is the request message for getting the usage of the user's credits
@@ -15,9 +21,9 @@ message GetUsageRequest {
   optional string product_type = 1;
 }
 
-// ProductPlan is details of the subscription plan for a product
+// BillingRate is the billing rate for a product
 message BillingRate {
-  // product_type: the type of the product (i.e. "gravity")
+  // rate_type: the type of the billing rate (i.e. "gravity")
   string rate_type = 1;
   // unit_size: the size of the unit of the subscription (e.g. 1000, 10000, 100000)
   int64 unit_size = 2;
@@ -27,6 +33,22 @@ message BillingRate {
   float price_per_unit = 4;
   // currency: the currency of the subscription
   string currency = 5;
+}
+
+// SubscriptionInfo contains the active subscription details
+message SubscriptionInfo {
+  // external_id: the external ID of the subscription
+  string external_id = 1;
+  // plan_code: the plan code of the subscription
+  string plan_code = 2;
+  // plan_tier: the tier of the plan (0=Free, 1=Astronaut, 2=Cosmonaut)
+  int32 plan_tier = 3;
+  // free_allowance_usd: the total free allowance in USD per month for the active subscription
+  float free_allowance_usd = 4;
+  // free_allowance_remaining_usd: the remaining free allowance in USD for the current period
+  float free_allowance_remaining_usd = 5;
+  // usage_in_usd: the current usage amount in USD for the billing period
+  float usage_in_usd = 6;
 }
 
 // GetUsageResponse is the response message for getting the usage of the user's credits
@@ -39,4 +61,48 @@ message GetUsageResponse {
   float remaining_credits = 3;
   // subscription: the subscription that the user has
   repeated BillingRate billing_rates = 4;
+  // active_subscription: the currently active subscription
+  optional SubscriptionInfo active_subscription = 5;
+}
+
+// ChargeUserForUsageRequest is the request message for charging a user for usage
+message ChargeUserForUsageRequest {
+  // transaction_id: unique identifier for this transaction
+  string transaction_id = 1;
+  // channel: the gravity service channel ("dataset" or "on_demand")
+  string channel = 2;
+  // rows: the number of rows to charge for (can be negative for refunds)
+  int64 rows = 3;
+}
+
+// ChargeUserForUsageResponse is the response message for charging a user for usage
+message ChargeUserForUsageResponse {
+  // charge_cents: the amount charged in cents
+  float charge_cents = 1;
+  // transaction_id: the transaction ID
+  string transaction_id = 2;
+  // channel: the channel that was charged
+  string channel = 3;
+  // rows: the number of rows charged
+  int64 rows = 4;
+}
+
+// UserHasEnoughAllowanceAndCreditsRequest is the request message for checking if a user has enough allowance and credits
+message UserHasEnoughAllowanceAndCreditsRequest {
+  // channel: the gravity service channel ("dataset" or "on_demand")
+  string channel = 1;
+  // rows: the number of rows to check for
+  int64 rows = 2;
+}
+
+// UserHasEnoughAllowanceAndCreditsResponse is the response message for checking if a user has enough allowance and credits
+message UserHasEnoughAllowanceAndCreditsResponse {
+  // has_enough: whether the user has enough allowance and credits
+  bool has_enough = 1;
+  // charge_cents: the amount that would be charged in cents
+  float charge_cents = 2;
+  // channel: the channel that would be charged
+  string channel = 3;
+  // rows: the number of rows that would be charged
+  int64 rows = 4;
 }
