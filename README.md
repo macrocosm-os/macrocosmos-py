@@ -1,6 +1,6 @@
 # Macrocosmos Python SDK
 
-The offical Python SDK for [Macrocosmos](https://www.macrocosmos.ai/).
+The official Python SDK for [Macrocosmos](https://www.macrocosmos.ai/).
 
 # Installation
 
@@ -16,70 +16,6 @@ uv add macrocosmos
 
 # Usage
 For a comprehensive overview of available functionality and integration patterns, refer to the [Macrocosmos SDK guide](https://docs.macrocosmos.ai/developers/macrocosmos-sdk).
-
-## Apex
-Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).
-
-Use the synchronous `ApexClient` or asynchronous `AsyncApexClient` for inferencing tasks. See the examples for additional features and functionality.
-
-### Chat Completions
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-response = client.chat.completions.create(
-    messages=[{"role": "user", "content": "Write a short story about a cosmonaut learning to paint."}],
-)
-
-print(response)
-```
-
-### Web Search
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-response = client.web_search.search(
-    search_query="What is Bittensor?",
-    max_results_per_miner=3,
-    max_response_time=20,
-)
-
-print(response)
-```
-
-### Deep Researcher
-
-#### Submit a deep researcher job
-
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-submitted_response = client.deep_research.create_job(
-        messages=[
-            {
-                "role": "user",
-                "content": """Can you propose a mechanism by which a decentralized network 
-                of AI agents could achieve provable alignment on abstract ethical principles 
-                without relying on human-defined ontologies or centralized arbitration?""",
-            }
-        ]
-    )
-
-print(submitted_response)
-```
-
-#### Retrieve the results of a deep researcher job
-
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-polled_response = client.deep_research.get_job_results(job_id="<your-job-id>")
-
-print(polled_response)
-```
 
 ## SN13 OnDemandAPI
 

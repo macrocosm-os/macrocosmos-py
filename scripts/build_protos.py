@@ -67,8 +67,8 @@ def fix_imports(compile_pkg_name, output_dir):
     """Fix imports in all generated Python files recursively.
 
     e.g.
-    Replace this: from apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
-    With this: from macrocosmos.generated.apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
+    Replace this: from gravity.v1 import gravity_pb2 as gravity_dot_v1_dot_gravity__pb2
+    With this: from macrocosmos.generated.gravity.v1 import gravity_pb2 as gravity_dot_v1_dot_gravity__pb2
     """
 
     from_import_pattern = r"\nfrom ([\w.]+) import ([\w_]+_pb2)(?:\s+as\s+([\w_]+))?"
