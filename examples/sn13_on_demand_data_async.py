@@ -23,10 +23,10 @@ import macrocosmos as mc
 async def fetch_data(
     client: mc.AsyncSn13Client,
     source: str,
-    start_date: str,
-    end_date: str,
-    limit: int,
     request_id: int,
+    limit: int = 100,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     keyword_mode: Optional[str] = None,
     url: Optional[str] = None,
     keywords: Optional[list] = None,
@@ -131,7 +131,7 @@ async def main():
             print(f"\n[{completed}/{len(tasks)}] completed at {elapsed:.2f} seconds")
             print("\n--------------------------------")
             print(f"\nResponse {completed}:")
-            print(f"Status: {response.get('status', 'unknown')}")
+            print(f"Status: {response.get('status', 'completed')}")
             print(f"Number of results: {len(response.get('data', []))}")
             print(f"Data: {response.get('data', [])}")
         except Exception as e:
