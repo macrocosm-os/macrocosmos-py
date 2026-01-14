@@ -69,14 +69,8 @@ gravity_tasks = [
     {"topic": "r/MachineLearning", "platform": "reddit"},
 ]
 
-notification = {
-    "type": "email",
-    "address": "<your-email-address>",
-    "redirect_url": "https://app.macrocosmos.ai/",
-}
-
 response =  client.gravity.CreateGravityTask(
-    gravity_tasks=gravity_tasks, name="My First Gravity Task", notification_requests=[notification]
+    gravity_tasks=gravity_tasks, name="My First Gravity Task"
 )
 
 # Print the gravity task ID
@@ -105,16 +99,37 @@ import macrocosmos as mc
 
 client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
-notification = {
-    "type": "email",
-    "address": "<your-email-address>",
-    "redirect_url": "https://app.macrocosmos.ai/",
-}
-
 response = client.gravity.BuildDataset(
-    crawler_id="<your-crawler-id>", notification_requests=[notification]
+    crawler_id="<your-crawler-id>"
 )
 
 # Print the dataset ID
+print(response)
+```
+
+
+### Build All Datasets
+If a Gravity task was launched with multiple crawlers, you can build multiple datasets simultaneously with this function call. Simply supply the the maximum rows to retrieve from each crawler's dataset via `build_crawlers_config` (you can obtain the crawler IDs via the `GetGravityTasks` call above). Example below for a two-crawler gravity task:
+
+```py
+import macrocosmos as mc
+
+client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
+
+response = client.gravity.BuildAllDatasets(
+    gravity_task_id="your-gravity-task-id",
+    build_crawlers_config=[
+        {
+            "crawler_id": f"crawler-0-your-gravity-task-id",
+            "max_rows": 100,
+        },
+        {
+            "crawler_id": f"crawler-1-your-gravity-task-id",
+            "max_rows": 200,
+        },
+        ],
+    )
+
+# Prints the gravity task ID for the datasets built
 print(response)
 ```
