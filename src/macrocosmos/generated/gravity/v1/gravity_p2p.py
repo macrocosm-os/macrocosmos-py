@@ -9,6 +9,18 @@ from pydantic import Field
 import typing
 
 
+class UpsertRawMinerFilesRequest(BaseModel):
+    """
+     UpsertRawMinerFilesRequest is the request message for UpsertRawMinerFiles
+    """
+
+# crawler_id: the ID of the crawler
+    crawler_id: str = Field(default="")
+# parquet_paths: the paths to the raw miner files collected
+    parquet_paths: typing.List[str] = Field(default_factory=list)
+# path_sizes: the sizes of the raw miner files collected
+    path_sizes: typing.List[int] = Field(default_factory=list)
+
 class GetHotkeysResponse(BaseModel):
     """
      GetHotkeysResponse is the response message for getting hotkeys
@@ -114,23 +126,6 @@ class PublishDatasetRequest(BaseModel):
 # dataset_id: the ID of the dataset
     dataset_id: str = Field(default="")
 
-class PersistentDatasetWorkflow(BaseModel):
-    """
-     PersistentDatasetWorkflow
-    """
-
-# dataset_id: the ID of the dataset workflow
-    dataset_id: str = Field(default="")
-# status: the status of the dataset workflow
-    status: str = Field(default="")
-
-class AddPersistentDatasetWorkflowsRequest(BaseModel):
-    """
-     AddPersistentDatasetWorkflowsRequest
-    """
-
-    dataset_workflows: typing.List[PersistentDatasetWorkflow] = Field(default_factory=list)
-
 class UpsertMarketplaceTaskMetadataRequest(BaseModel):
     """
      UpsertMarketplaceTaskMetadataRequest
@@ -154,13 +149,6 @@ class GetMarketplaceDatasetsRequest(BaseModel):
 
 # popular: whether to return popular datasets
     popular: bool = Field(default=False)
-
-class GetPersistentDatasetWorkflowsResponse(BaseModel):
-    """
-     GetPersistentDatasetWorkflowsResponse returns recent dataset workflows
-    """
-
-    dataset_workflows: typing.List[PersistentDatasetWorkflow] = Field(default_factory=list)
 
 class CrawlerNotification(BaseModel):
     """
@@ -251,25 +239,6 @@ class Crawler(BaseModel):
 # parquet_paths: the paths to the raw miner files collected
     parquet_paths: typing.List[str] = Field(default_factory=list)
 
-class PersistentGravityTask(BaseModel):
-    """
-     PersistentGravityTask: a single persistent gravity task
-    """
-
-# gravity_task_id: the id of the gravity task
-    gravity_task_id: str = Field(default="")
-# ingest_dt: the date the task was ingested
-    ingest_dt: str = Field(default="")
-
-class GetPersistentGravityTasksResponse(BaseModel):
-    """
-     GetPersistentGravityTasksResponse: message containing persistent task ids and
- their ingest dt
-    """
-
-# persistent_gravity_tasks: the persistent gravity tasks
-    persistent_gravity_tasks: typing.List[PersistentGravityTask] = Field(default_factory=list)
-
 class UpsertCrawlerRequest(BaseModel):
     """
      UpsertCrawlerRequest for upserting a crawler and its criteria
@@ -334,20 +303,6 @@ class InsertCrawlerCriteriaRequest(BaseModel):
     crawler_id: str = Field(default="")
 # crawler_criteria: the crawler criteria to upsert into the database
     crawler_criteria: CrawlerCriteria = Field(default_factory=CrawlerCriteria)
-
-class PersistentTopic(BaseModel):
-    """
-     PersistentTopic is the contents of the persistent topic
-    """
-
-# platform: the platform of the job ('x' or 'reddit')
-    platform: str = Field(default="")
-# topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-    topic: typing.Optional[str] = Field(default="")
-
-class PersistentTopicResponse(BaseModel):
-# persistent_topics: the persistent topics
-    persistent_topics: typing.List[PersistentTopic] = Field(default_factory=list)
 
 class GravityTaskState(BaseModel):
     """
@@ -533,8 +488,8 @@ class BuildDatasetRequest(BaseModel):
 # max_rows: the maximum number of rows to include in the dataset (optional,
 # defaults to 500)
     max_rows: int = Field(default=0)
-# is_marketplace: determines whether the dataset to build is for marketplace 
-    is_marketplace: typing.Optional[bool] = Field(default=False)
+# is_periodic: determines whether the datasets to build are for periodic build
+    is_periodic: typing.Optional[bool] = Field(default=False)
 
 class DatasetFile(BaseModel):
     """
@@ -621,16 +576,20 @@ class BuildAllDatasetsRequest(BaseModel):
     gravity_task_id: str = Field(default="")
 # specifies how much of each crawler to build for workflow
     build_crawlers_config: typing.List[BuildDatasetRequest] = Field(default_factory=list)
-# is_marketplace: determines whether the datasets to build are for marketplace 
-    is_marketplace: typing.Optional[bool] = Field(default=False)
 
 class BuildAllDatasetsResponse(BaseModel):
     gravity_task_id: str = Field(default="")
     datasets: typing.List[Dataset] = Field(default_factory=list)
 
-class AddPersistentGravityTaskRequest(BaseModel):
-# gravity_task_id: the ID of the gravity task
-    gravity_task_id: str = Field(default="")
+class ChargeForDatasetRowsRequest(BaseModel):
+    """
+     ChargeForDatasetRowsRequest is the request message for charging a user for dataset rows
+    """
+
+# crawler_id: the ID of the crawler that was used to build the dataset
+    crawler_id: str = Field(default="")
+# row_count: the number of rows to charge for
+    row_count: int = Field(default=0)
 
 class UpsertDatasetRequest(BaseModel):
     """
@@ -795,6 +754,8 @@ class CrawlerRawMinerFilesResponse(BaseModel):
     crawler_id: str = Field(default="")
 # s3_paths: the S3 paths associated with this crawler
     s3_paths: typing.List[str] = Field(default_factory=list)
+# file_size_bytes: the sizes of the raw miner files collected
+    file_size_bytes: typing.List[int] = Field(default_factory=list)
 
 class GetGravityTaskDatasetFilesResponse(BaseModel):
     """
@@ -859,17 +820,17 @@ class GetCrawlerHistoryResponse(BaseModel):
 # crawlers: the crawlers with their criteria and history
     crawlers: typing.List[CrawlerCriteriaAndHistory] = Field(default_factory=list)
 
-class GetCrawlerDataForDDSubmissionRequest(BaseModel):
+class GetMarketplaceCrawlerDataForDDSubmissionRequest(BaseModel):
     """
-     GetCrawlerDataForDDSubmissionRequest is the request message for getting crawler data
+     GetMarketplaceCrawlerDataForDDSubmissionRequest is the request message for getting crawler data for the marketplace user
     """
 
-# dsns: list of database connection strings to query
-    dsns: typing.List[str] = Field(default_factory=list)
+# marketplace_user_id: the ID of the marketplace user (required)
+    marketplace_user_id: str = Field(default="")
 
-class CrawlerDataForDD(BaseModel):
+class MarketplaceCrawlerDataForDDSubmission(BaseModel):
     """
-     CrawlerDataForDD contains crawler information for DD submission
+     MarketplaceCrawlerDataForDDSubmission contains crawler information for DD submission with all fields needed for UpsertDynamicDesirabilityEntry
     """
 
     crawler_id: str = Field(default="")
@@ -878,11 +839,89 @@ class CrawlerDataForDD(BaseModel):
     keyword: typing.Optional[str] = Field(default="")
     post_start_datetime: typing.Optional[str] = Field(default="")
     post_end_datetime: typing.Optional[str] = Field(default="")
+# Additional fields needed for UpsertDynamicDesirabilityEntry
+    start_time: datetime = Field(default_factory=datetime.now)
+    deregistration_time: datetime = Field(default_factory=datetime.now)
+    archive_time: datetime = Field(default_factory=datetime.now)
+    status: str = Field(default="")
+    bytes_collected: int = Field(default=0)
+    records_collected: int = Field(default=0)
+    notification_to: str = Field(default="")
+    notification_link: str = Field(default="")
+    user_id: str = Field(default="")
 
-class GetCrawlerDataForDDSubmissionResponse(BaseModel):
+class GetMarketplaceCrawlerDataForDDSubmissionResponse(BaseModel):
     """
-     GetCrawlerDataForDDSubmissionResponse is the response message for crawler data
+     GetMarketplaceCrawlerDataForDDSubmissionResponse is the response message for marketplace crawler data
     """
 
-# crawlers: list of crawler data for DD submission
-    crawlers: typing.List[CrawlerDataForDD] = Field(default_factory=list)
+# crawlers: list of marketplace crawler data for DD submission
+    crawlers: typing.List[MarketplaceCrawlerDataForDDSubmission] = Field(default_factory=list)
+
+class ActiveUserCrawler(BaseModel):
+    """
+     ActiveUserCrawler contains active user crawler information
+    """
+
+# crawler_id: the id of the crawler
+    crawler_id: str = Field(default="")
+# row_count: the number of rows collected by the crawler
+    row_count: int = Field(default=0)
+
+class ActiveUserTask(BaseModel):
+    """
+     ActiveUserTask contains active user task information
+    """
+
+# gravity_task_id: the id of the gravity_task
+    gravity_task_id: str = Field(default="")
+# crawlers: list of active user crawlers
+    crawlers: typing.List[ActiveUserCrawler] = Field(default_factory=list)
+
+class GetActiveUserTasksResponse(BaseModel):
+    """
+     GetActiveUserTasksResponse is the response message for active user tasks
+    """
+
+# active_user_tasks: list of active user tasks
+    active_user_tasks: typing.List[ActiveUserTask] = Field(default_factory=list)
+
+class UpsertPreBuiltUserDatasetsRequest(BaseModel):
+    """
+     UpsertPreBuiltUserDatasetsRequest is the request message for upserting pre-built user datasets
+    """
+
+# gravity_task_id: the ID of the gravity task
+    gravity_task_id: str = Field(default="")
+# crawler_id: the ID of the crawler
+    crawler_id: str = Field(default="")
+# row_count: the number of rows in the pre-built dataset
+    row_count: int = Field(default=0)
+
+class GetPreBuiltUserDatasetsRequest(BaseModel):
+    """
+     GetPreBuiltUserDatasetsRequest is the request message for getting pre-built user datasets
+    """
+
+# gravity_task_id: the ID of the gravity task
+    gravity_task_id: str = Field(default="")
+
+class PreBuiltUserDataset(BaseModel):
+    """
+     PreBuiltUserDataset represents a single pre-built user dataset record
+    """
+
+# gravity_task_id: the ID of the gravity task
+    gravity_task_id: str = Field(default="")
+# crawler_id: the ID of the crawler
+    crawler_id: str = Field(default="")
+# row_count: the number of rows in the pre-built dataset
+    row_count: int = Field(default=0)
+
+class GetPreBuiltUserDatasetsResponse(BaseModel):
+    """
+     GetPreBuiltUserDatasetsResponse is the response message for getting pre-built user datasets
+    """
+
+# datasets: list of pre-built user datasets for the gravity task
+    datasets: typing.List[PreBuiltUserDataset] = Field(default_factory=list)

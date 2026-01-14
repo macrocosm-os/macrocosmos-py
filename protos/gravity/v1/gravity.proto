@@ -23,22 +23,6 @@ service GravityService {
   // Get the parent workflow id (the id of the ui workflow) for this crawler
   rpc GetCrawlerParentTaskId(GetCrawlerRequest) returns (CreateGravityTaskResponse);
 
-  // Add a persistent gravity task to the Gravity state DB
-  rpc AddPersistentGravityTask(AddPersistentGravityTaskRequest)
-      returns (UpsertResponse);
-
-  // Add a persistent dataset workflow to the Gravity state DB
-  rpc AddPersistentDatasetWorkflows(AddPersistentDatasetWorkflowsRequest)
-      returns (UpsertResponse);
-
-  // Retrieve recent persistent dataset workflows (last 7 days, non-Completed)
-  rpc GetPersistentDatasetWorkflows(google.protobuf.Empty)
-      returns (GetPersistentDatasetWorkflowsResponse);
-
-  // Retrieve all persistent gravity tasks from the Gravity state DB
-  rpc GetPersistentGravityTasks(google.protobuf.Empty)
-      returns (GetPersistentGravityTasksResponse);
-
   // Get a single crawler by its ID
   rpc GetCrawler(GetCrawlerRequest) returns (GetCrawlerResponse);
 
@@ -55,14 +39,15 @@ service GravityService {
   rpc CreateGravityTask(CreateGravityTaskRequest)
       returns (CreateGravityTaskResponse);
 
+  // Gets all dataset files for a given marketplace gravity task (no user_id check, validates against marketplace tasks table)
+  rpc GetGravityMarketplaceTaskDatasetFiles(GetGravityTaskDatasetFilesRequest)
+  returns (GetGravityTaskDatasetFilesResponse);
+
   // Build a dataset for a single crawler
   rpc BuildDataset(BuildDatasetRequest) returns (BuildDatasetResponse);
 
   // Get the dataset build status and results
   rpc GetDataset(GetDatasetRequest) returns (GetDatasetResponse);
-
-  // Add a persistent topic to the Gravity state DB
-  rpc AddPersistentTopic(PersistentTopic) returns (UpsertResponse);
 
   // Cancel a gravity task and any crawlers associated with it
   rpc CancelGravityTask(CancelGravityTaskRequest)
@@ -83,16 +68,16 @@ service GravityService {
   rpc GetGravityTaskDatasetFiles(GetGravityTaskDatasetFilesRequest)
       returns (GetGravityTaskDatasetFilesResponse);
 
-  // Gets all dataset files for a given persistent gravity task (no user_id check, validates against persistent tasks table)
-  rpc GetGravityMarketplaceTaskDatasetFiles(GetGravityTaskDatasetFilesRequest)
-      returns (GetGravityTaskDatasetFilesResponse);
-
   // Publishes a dataset into the Marketplace
   rpc PublishDataset(PublishDatasetRequest) returns (UpsertResponse);
 
   // Get crawler data for DD submission
-  rpc GetCrawlerDataForDDSubmission(GetCrawlerDataForDDSubmissionRequest)
-      returns (GetCrawlerDataForDDSubmissionResponse);
+  rpc GetActiveUserTasks(google.protobuf.Empty)
+      returns (GetActiveUserTasksResponse);
+
+  // Get crawler data for DD submission for the marketplace user
+  rpc GetMarketplaceCrawlerDataForDDSubmission(GetMarketplaceCrawlerDataForDDSubmissionRequest)
+      returns (GetMarketplaceCrawlerDataForDDSubmissionResponse);      
 
   // Upserts a crawler into the Gravity state DB
   rpc UpsertCrawler(UpsertCrawlerRequest) returns (UpsertResponse);
@@ -117,9 +102,13 @@ service GravityService {
   rpc BuildAllDatasets(BuildAllDatasetsRequest)
       returns (BuildAllDatasetsResponse);
 
-  // Gets all persistent topics from the Gravity state DB
-  rpc GetPersistentTopics(google.protobuf.Empty)
-      returns (PersistentTopicResponse);
+  // Builds datasets for multiple crawlers within a single gravity task periodically
+  rpc BuildUserDatasetsPeriodically(BuildAllDatasetsRequest)
+      returns (BuildAllDatasetsResponse);
+
+  // Charges a user for dataset rows
+  rpc ChargeForDatasetRows(ChargeForDatasetRowsRequest)
+      returns (UpsertResponse);
 
   // Gets crawler history for a gravity task
   rpc GetCrawlerHistory(GetCrawlerHistoryRequest)
@@ -129,7 +118,7 @@ service GravityService {
   rpc CompleteCrawler(CompleteCrawlerRequest) returns (UpsertResponse);      
 
   // Upserts raw miner files (parquet paths) for a crawler
-  rpc UpsertRawMinerFiles(Crawler) returns (UpsertResponse);
+  rpc UpsertRawMinerFiles(UpsertRawMinerFilesRequest) returns (UpsertResponse);
 
   // Upserts raw miner files (parquet paths) for a crawler
   rpc UpsertHotkeys(UpsertHotkeysRequest) returns (UpsertResponse);
@@ -144,8 +133,23 @@ service GravityService {
   // Get all marketplace datasets owned by the authenticated user
   rpc GetUserMarketplaceDatasets(google.protobuf.Empty)
       returns (GetUserMarketplaceDatasetsResponse);
+
+  // Upserts pre-built user dataset records
+  rpc UpsertPreBuiltUserDatasets(UpsertPreBuiltUserDatasetsRequest) returns (UpsertResponse);
+
+  // Gets pre-built user dataset records for a gravity task
+  rpc GetPreBuiltUserDatasets(GetPreBuiltUserDatasetsRequest) returns (GetPreBuiltUserDatasetsResponse);
 }
 
+// UpsertRawMinerFilesRequest is the request message for UpsertRawMinerFiles
+message UpsertRawMinerFilesRequest {
+  // crawler_id: the ID of the crawler
+  string crawler_id = 1;
+  // parquet_paths: the paths to the raw miner files collected
+  repeated string parquet_paths = 2;
+  // path_sizes: the sizes of the raw miner files collected
+  repeated int64 path_sizes = 3;
+}
 // GetHotkeysResponse is the response message for getting hotkeys
 message GetHotkeysResponse {
   // hotkeys: the hotkeys
@@ -228,19 +232,6 @@ message PublishDatasetRequest {
   string dataset_id = 1;
 }
 
-// PersistentDatasetWorkflow
-message PersistentDatasetWorkflow {
-  // dataset_id: the ID of the dataset workflow
-  string dataset_id = 1;
-  // status: the status of the dataset workflow
-  string status = 2;
-}
-
-// AddPersistentDatasetWorkflowsRequest
-message AddPersistentDatasetWorkflowsRequest {
-  repeated PersistentDatasetWorkflow dataset_workflows = 1;
-}
-
 // UpsertMarketplaceTaskMetadataRequest
 message UpsertMarketplaceTaskMetadataRequest {
   // gravity_task_id: the id of the gravity task 
@@ -259,10 +250,7 @@ message GetMarketplaceDatasetsRequest {
   // popular: whether to return popular datasets
   bool popular = 1;
 }
-// GetPersistentDatasetWorkflowsResponse returns recent dataset workflows
-message GetPersistentDatasetWorkflowsResponse {
-  repeated PersistentDatasetWorkflow dataset_workflows = 1;
-}
+
 // Crawler is a single crawler workflow that registers a single job
 // (platform/topic) on SN13's dynamic desirability engine
 message Crawler {
@@ -283,21 +271,6 @@ message Crawler {
   repeated string dataset_workflows = 7;
   // parquet_paths: the paths to the raw miner files collected
   repeated string parquet_paths = 8;
-}
-
-// PersistentGravityTask: a single persistent gravity task
-message PersistentGravityTask {
-  // gravity_task_id: the id of the gravity task
-  string gravity_task_id = 1;
-  // ingest_dt: the date the task was ingested
-  string ingest_dt = 2;
-}
-
-// GetPersistentGravityTasksResponse: message containing persistent task ids and
-// their ingest dt
-message GetPersistentGravityTasksResponse {
-  // persistent_gravity_tasks: the persistent gravity tasks
-  repeated PersistentGravityTask persistent_gravity_tasks = 1;
 }
 
 // UpsertCrawlerRequest for upserting a crawler and its criteria
@@ -371,19 +344,6 @@ message CrawlerCriteria {
   optional google.protobuf.Timestamp post_start_datetime = 7;
   // post_end_datetime: the end date of the job (optional)
   optional google.protobuf.Timestamp post_end_datetime = 8;
-}
-
-// PersistentTopic is the contents of the persistent topic
-message PersistentTopic {
-  // platform: the platform of the job ('x' or 'reddit')
-  string platform = 1;
-  // topic: the topic of the job (e.g. '#ai' for X, 'r/ai' for Reddit)
-  optional string topic = 2;
-}
-
-message PersistentTopicResponse {
-  // persistent_topics: the persistent topics
-  repeated PersistentTopic persistent_topics = 1;
 }
 
 // CrawlerNotification is the details of the notification to be sent to the user
@@ -582,8 +542,8 @@ message BuildDatasetRequest {
   // max_rows: the maximum number of rows to include in the dataset (optional,
   // defaults to 500)
   int64 max_rows = 3;
-  // is_marketplace: determines whether the dataset to build is for marketplace 
-  optional bool is_marketplace = 4;
+  // is_periodic: determines whether the datasets to build are for periodic build
+  optional bool is_periodic = 4;
 }
 
 // BuildDatasetResponse is the response message for manually requesting the
@@ -603,8 +563,6 @@ message BuildAllDatasetsRequest {
   string gravity_task_id = 1;
   // specifies how much of each crawler to build for workflow
   repeated BuildDatasetRequest build_crawlers_config = 2;
-  // is_marketplace: determines whether the datasets to build are for marketplace 
-  optional bool is_marketplace = 3;
 }
 
 message BuildAllDatasetsResponse {
@@ -612,9 +570,12 @@ message BuildAllDatasetsResponse {
   repeated Dataset datasets = 2;
 }
 
-message AddPersistentGravityTaskRequest {
-  // gravity_task_id: the ID of the gravity task
-  string gravity_task_id = 1;
+// ChargeForDatasetRowsRequest is the request message for charging a user for dataset rows
+message ChargeForDatasetRowsRequest {
+  // crawler_id: the ID of the crawler that was used to build the dataset
+  string crawler_id = 1;
+  // row_count: the number of rows to charge for
+  int64 row_count = 2;
 }
 
 message Nebula {
@@ -785,6 +746,8 @@ message CrawlerRawMinerFilesResponse {
   string crawler_id = 1;
   // s3_paths: the S3 paths associated with this crawler
   repeated string s3_paths = 2;
+  // file_size_bytes: the sizes of the raw miner files collected
+  repeated int64 file_size_bytes = 3;
 }
 
 // DatasetFileWithId extends DatasetFile to include the dataset ID
@@ -860,24 +823,90 @@ message GetCrawlerHistoryResponse {
   repeated CrawlerCriteriaAndHistory crawlers = 2;
 }
 
-// GetCrawlerDataForDDSubmissionRequest is the request message for getting crawler data
-message GetCrawlerDataForDDSubmissionRequest {
-  // dsns: list of database connection strings to query
-  repeated string dsns = 1;
+// GetMarketplaceCrawlerDataForDDSubmissionRequest is the request message for getting crawler data for the marketplace user
+message GetMarketplaceCrawlerDataForDDSubmissionRequest {
+  // marketplace_user_id: the ID of the marketplace user (required)
+  string marketplace_user_id = 1;
 }
 
-// GetCrawlerDataForDDSubmissionResponse is the response message for crawler data
-message GetCrawlerDataForDDSubmissionResponse {
-  // crawlers: list of crawler data for DD submission
-  repeated CrawlerDataForDD crawlers = 1;
+// GetMarketplaceCrawlerDataForDDSubmissionResponse is the response message for marketplace crawler data
+message GetMarketplaceCrawlerDataForDDSubmissionResponse {
+  // crawlers: list of marketplace crawler data for DD submission
+  repeated MarketplaceCrawlerDataForDDSubmission crawlers = 1;
 }
 
-// CrawlerDataForDD contains crawler information for DD submission
-message CrawlerDataForDD {
+// MarketplaceCrawlerDataForDDSubmission contains crawler information for DD submission with all fields needed for UpsertDynamicDesirabilityEntry
+message MarketplaceCrawlerDataForDDSubmission {
   string crawler_id = 1;
   string platform = 2;
   optional string topic = 3;
   optional string keyword = 4;
   optional string post_start_datetime = 5;
   optional string post_end_datetime = 6;
+  // Additional fields needed for UpsertDynamicDesirabilityEntry
+  google.protobuf.Timestamp start_time = 7;
+  google.protobuf.Timestamp deregistration_time = 8;
+  google.protobuf.Timestamp archive_time = 9;
+  string status = 10;
+  uint64 bytes_collected = 11;
+  uint64 records_collected = 12;
+  string notification_to = 13;
+  string notification_link = 14;
+  string user_id = 15;
 }
+
+// GetActiveUserTasksResponse is the response message for active user tasks
+message GetActiveUserTasksResponse {
+  // active_user_tasks: list of active user tasks
+  repeated ActiveUserTask active_user_tasks = 1;
+}
+
+// ActiveUserCrawler contains active user crawler information
+message ActiveUserCrawler {
+  // crawler_id: the id of the crawler
+  string crawler_id = 1;
+  // row_count: the number of rows collected by the crawler
+  uint64 row_count = 2;
+}
+
+// ActiveUserTask contains active user task information
+message ActiveUserTask {
+  // gravity_task_id: the id of the gravity_task
+  string gravity_task_id = 1;
+  // crawlers: list of active user crawlers
+  repeated ActiveUserCrawler crawlers = 2;
+}
+
+// UpsertPreBuiltUserDatasetsRequest is the request message for upserting pre-built user datasets
+message UpsertPreBuiltUserDatasetsRequest {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+  // crawler_id: the ID of the crawler
+  string crawler_id = 2;
+  // row_count: the number of rows in the pre-built dataset
+  int64 row_count = 3;
+}
+
+// GetPreBuiltUserDatasetsRequest is the request message for getting pre-built user datasets
+message GetPreBuiltUserDatasetsRequest {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+}
+
+// PreBuiltUserDataset represents a single pre-built user dataset record
+message PreBuiltUserDataset {
+  // gravity_task_id: the ID of the gravity task
+  string gravity_task_id = 1;
+  // crawler_id: the ID of the crawler
+  string crawler_id = 2;
+  // row_count: the number of rows in the pre-built dataset
+  int64 row_count = 3;
+}
+
+// GetPreBuiltUserDatasetsResponse is the response message for getting pre-built user datasets
+message GetPreBuiltUserDatasetsResponse {
+  // datasets: list of pre-built user datasets for the gravity task
+  repeated PreBuiltUserDataset datasets = 1;
+}
+
+

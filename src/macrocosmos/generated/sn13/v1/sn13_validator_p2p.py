@@ -65,7 +65,7 @@ class OnDemandDataRequest(BaseModel):
      OnDemandDataRequest is a request to SN13 to retrieve data
     """
 
-# source: the data source (X or Reddit)
+# source: the data source (X, Reddit or Youtube)
     source: str = Field(default="")
 # usernames: list of usernames to fetch data from
     usernames: typing.List[str] = Field(default_factory=list)
@@ -80,7 +80,7 @@ class OnDemandDataRequest(BaseModel):
 # keyword_mode: defines how keywords should be used in selecting response posts (optional): 
 # "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
     keyword_mode: typing.Optional[str] = Field(default="")
-# url: single URL for URL search mode (X or YouTube)
+# url: single URL for URL search mode (X)
     url: typing.Optional[str] = Field(default="")
 
 class OnDemandDataResponse(BaseModel):
