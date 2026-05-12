@@ -92,7 +92,7 @@ print(response)
 ```
 
 ### Build Dataset
-If you do not want to wait 7-days for your data, you can request it earlier.  Add a notification to get notified when the build is complete or you can monitor the status by calling `GetDataset()`.  Once the dataset is built, the gravity task will be de-registered.  Calling `CancelDataset()` will cancel a build in-progress or, if it's already complete, will purge the created dataset.
+If you do not want to wait 7-days for your data, you can request it earlier. Once the dataset is built, you will receive a notification email to your Macrcocosmos sign-up address, and the gravity task will be de-registered.  Calling `CancelDataset()` will cancel a build in-progress or, if it's already complete, will purge the created dataset.
 
 ```py
 import macrocosmos as mc
