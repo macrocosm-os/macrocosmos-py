@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x62illing/v1/billing.proto\x12\nbilling.v1\"=\n\x0fGetUsageRequest\x12\x19\n\x0cproduct_type\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0f\n\r_product_type\"p\n\x0b\x42illingRate\x12\x11\n\trate_type\x18\x01 \x01(\t\x12\x11\n\tunit_size\x18\x02 \x01(\x03\x12\x11\n\tunit_type\x18\x03 \x01(\t\x12\x16\n\x0eprice_per_unit\x18\x04 \x01(\x02\x12\x10\n\x08\x63urrency\x18\x05 \x01(\t\"\x8e\x01\n\x10GetUsageResponse\x12\x19\n\x11\x61vailable_credits\x18\x01 \x01(\x02\x12\x14\n\x0cused_credits\x18\x02 \x01(\x02\x12\x19\n\x11remaining_credits\x18\x03 \x01(\x02\x12.\n\rbilling_rates\x18\x04 \x03(\x0b\x32\x17.billing.v1.BillingRate2W\n\x0e\x42illingService\x12\x45\n\x08GetUsage\x12\x1b.billing.v1.GetUsageRequest\x1a\x1c.billing.v1.GetUsageResponseB4Z2macrocosm-os/rift/constellation_api/gen/billing/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x62illing/v1/billing.proto\x12\nbilling.v1\"=\n\x0fGetUsageRequest\x12\x19\n\x0cproduct_type\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0f\n\r_product_type\"p\n\x0b\x42illingRate\x12\x11\n\trate_type\x18\x01 \x01(\t\x12\x11\n\tunit_size\x18\x02 \x01(\x03\x12\x11\n\tunit_type\x18\x03 \x01(\t\x12\x16\n\x0eprice_per_unit\x18\x04 \x01(\x02\x12\x10\n\x08\x63urrency\x18\x05 \x01(\t\"\xa5\x01\n\x10SubscriptionInfo\x12\x13\n\x0b\x65xternal_id\x18\x01 \x01(\t\x12\x11\n\tplan_code\x18\x02 \x01(\t\x12\x11\n\tplan_tier\x18\x03 \x01(\x05\x12\x1a\n\x12\x66ree_allowance_usd\x18\x04 \x01(\x02\x12$\n\x1c\x66ree_allowance_remaining_usd\x18\x05 \x01(\x02\x12\x14\n\x0cusage_in_usd\x18\x06 \x01(\x02\"\xe6\x01\n\x10GetUsageResponse\x12\x19\n\x11\x61vailable_credits\x18\x01 \x01(\x02\x12\x14\n\x0cused_credits\x18\x02 \x01(\x02\x12\x19\n\x11remaining_credits\x18\x03 \x01(\x02\x12.\n\rbilling_rates\x18\x04 \x03(\x0b\x32\x17.billing.v1.BillingRate\x12>\n\x13\x61\x63tive_subscription\x18\x05 \x01(\x0b\x32\x1c.billing.v1.SubscriptionInfoH\x00\x88\x01\x01\x42\x16\n\x14_active_subscription\"R\n\x19\x43hargeUserForUsageRequest\x12\x16\n\x0etransaction_id\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\x0c\n\x04rows\x18\x03 \x01(\x03\"i\n\x1a\x43hargeUserForUsageResponse\x12\x14\n\x0c\x63harge_cents\x18\x01 \x01(\x02\x12\x16\n\x0etransaction_id\x18\x02 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x03 \x01(\t\x12\x0c\n\x04rows\x18\x04 \x01(\x03\"H\n\'UserHasEnoughAllowanceAndCreditsRequest\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\t\x12\x0c\n\x04rows\x18\x02 \x01(\x03\"s\n(UserHasEnoughAllowanceAndCreditsResponse\x12\x12\n\nhas_enough\x18\x01 \x01(\x08\x12\x14\n\x0c\x63harge_cents\x18\x02 \x01(\x02\x12\x0f\n\x07\x63hannel\x18\x03 \x01(\t\x12\x0c\n\x04rows\x18\x04 \x01(\x03\x32\xcc\x02\n\x0e\x42illingService\x12\x45\n\x08GetUsage\x12\x1b.billing.v1.GetUsageRequest\x1a\x1c.billing.v1.GetUsageResponse\x12\x63\n\x12\x43hargeUserForUsage\x12%.billing.v1.ChargeUserForUsageRequest\x1a&.billing.v1.ChargeUserForUsageResponse\x12\x8d\x01\n UserHasEnoughAllowanceAndCredits\x12\x33.billing.v1.UserHasEnoughAllowanceAndCreditsRequest\x1a\x34.billing.v1.UserHasEnoughAllowanceAndCreditsResponseB4Z2macrocosm-os/rift/constellation_api/gen/billing/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,8 +36,18 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETUSAGEREQUEST']._serialized_end=101
   _globals['_BILLINGRATE']._serialized_start=103
   _globals['_BILLINGRATE']._serialized_end=215
-  _globals['_GETUSAGERESPONSE']._serialized_start=218
-  _globals['_GETUSAGERESPONSE']._serialized_end=360
-  _globals['_BILLINGSERVICE']._serialized_start=362
-  _globals['_BILLINGSERVICE']._serialized_end=449
+  _globals['_SUBSCRIPTIONINFO']._serialized_start=218
+  _globals['_SUBSCRIPTIONINFO']._serialized_end=383
+  _globals['_GETUSAGERESPONSE']._serialized_start=386
+  _globals['_GETUSAGERESPONSE']._serialized_end=616
+  _globals['_CHARGEUSERFORUSAGEREQUEST']._serialized_start=618
+  _globals['_CHARGEUSERFORUSAGEREQUEST']._serialized_end=700
+  _globals['_CHARGEUSERFORUSAGERESPONSE']._serialized_start=702
+  _globals['_CHARGEUSERFORUSAGERESPONSE']._serialized_end=807
+  _globals['_USERHASENOUGHALLOWANCEANDCREDITSREQUEST']._serialized_start=809
+  _globals['_USERHASENOUGHALLOWANCEANDCREDITSREQUEST']._serialized_end=881
+  _globals['_USERHASENOUGHALLOWANCEANDCREDITSRESPONSE']._serialized_start=883
+  _globals['_USERHASENOUGHALLOWANCEANDCREDITSRESPONSE']._serialized_end=998
+  _globals['_BILLINGSERVICE']._serialized_start=1001
+  _globals['_BILLINGSERVICE']._serialized_end=1333
 # @@protoc_insertion_point(module_scope)

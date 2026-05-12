@@ -9,6 +9,30 @@ from macrocosmos.resources._client import BaseClient
 from macrocosmos.resources._utils import run_sync_threadsafe
 
 
+# Allowed topic prefixes by platform for client-side validation convenience.
+_ALLOWED_TOPIC_PREFIXES: Dict[str, List[str]] = {
+    "x": ["#", "$"],
+    "reddit": ["r/"],
+}
+
+
+def _validate_topic_prefix_if_applicable(platform: str, topic: str) -> None:
+    """
+    Validate the topic prefix if applicable.
+
+    Args:
+        platform: The platform of the topic.
+        topic: The topic to validate.
+    """
+    allowed = _ALLOWED_TOPIC_PREFIXES.get(platform.lower())
+    if not allowed:
+        return
+    for prefix in allowed:
+        if topic.startswith(prefix):
+            return
+    raise ValueError(f"invalid topic: must start with one of: {', '.join(allowed)}")
+
+
 class AsyncGravity:
     """Asynchronous Gravity resource for the Data Universe (subnet 13) API on Bittensor."""
 
@@ -88,10 +112,16 @@ class AsyncGravity:
         if gravity_tasks:
             for task in gravity_tasks:
                 if isinstance(task, gravity_p2p.GravityTask):
+                    if task.topic:
+                        _validate_topic_prefix_if_applicable(task.platform, task.topic)
                     proto_gravity_tasks.append(
                         gravity_pb2.GravityTask(**task.model_dump())
                     )
                 elif isinstance(task, dict):
+                    if task.get("topic"):
+                        _validate_topic_prefix_if_applicable(
+                            task.get("platform"), task.get("topic")
+                        )
                     proto_gravity_tasks.append(gravity_pb2.GravityTask(**task))
                 else:
                     raise TypeError(f"Invalid type for gravity task: {type(task)}")
@@ -167,6 +197,47 @@ class AsyncGravity:
         )
 
         return await self._make_request("BuildDataset", request)
+
+    async def BuildAllDatasets(
+        self,
+        gravity_task_id: str,
+        build_crawlers_config: list[Union[gravity_p2p.BuildDatasetRequest, Dict]],
+    ) -> gravity_pb2.BuildAllDatasetsResponse:
+        """
+        Build all datasets from a Gravity task.
+
+        Args:
+            gravity_task_id: The ID of the gravity task to build datasets for.
+            build_crawlers_config: list of BuildDatasetRequest objects or dictionaries.
+        Returns:
+            A BuildAllDatasetsResponse object containing the gravity task id and datasets.
+        """
+        if not gravity_task_id:
+            raise AttributeError("gravity_task_id is a required parameter")
+        if not build_crawlers_config:
+            raise AttributeError("build_crawlers_config is a required parameter")
+
+        proto_build_crawlers_config = []
+        for config in build_crawlers_config:
+            if isinstance(config, gravity_p2p.BuildDatasetRequest):
+                proto_build_crawlers_config.append(
+                    gravity_pb2.BuildDatasetRequest(**config.model_dump())
+                )
+            elif isinstance(config, dict):
+                proto_build_crawlers_config.append(
+                    gravity_pb2.BuildDatasetRequest(**config)
+                )
+            else:
+                raise TypeError(
+                    f"Invalid type for build_crawlers_config item: {type(config)}"
+                )
+
+        request = gravity_pb2.BuildAllDatasetsRequest(
+            gravity_task_id=gravity_task_id,
+            build_crawlers_config=proto_build_crawlers_config,
+        )
+
+        return await self._make_request("BuildAllDatasets", request)
 
     async def GetDataset(
         self,
@@ -370,6 +441,28 @@ class SyncGravity:
                 crawler_id=crawler_id,
                 max_rows=max_rows,
                 notification_requests=notification_requests,
+            )
+        )
+
+    def BuildAllDatasets(
+        self,
+        gravity_task_id: str,
+        build_crawlers_config: list[Union[gravity_p2p.BuildDatasetRequest, Dict]],
+    ) -> gravity_pb2.BuildAllDatasetsResponse:
+        """
+        Build all datasets from a Gravity task synchronously.
+
+        Args:
+            gravity_task_id: The ID of the gravity task to build datasets for.
+            build_crawlers_config: list of BuildDatasetRequest objects or dictionaries.
+
+        Returns:
+            A BuildAllDatasetsResponse object containing the gravity task id and datasets.
+        """
+        return run_sync_threadsafe(
+            self._async_gravity.BuildAllDatasets(
+                gravity_task_id=gravity_task_id,
+                build_crawlers_config=build_crawlers_config,
             )
         )
 

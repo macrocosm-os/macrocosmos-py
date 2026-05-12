@@ -1,6 +1,6 @@
 # Macrocosmos Python SDK
 
-The offical Python SDK for [Macrocosmos](https://www.macrocosmos.ai/).
+The official Python SDK for [Macrocosmos](https://www.macrocosmos.ai/).
 
 # Installation
 
@@ -17,78 +17,17 @@ uv add macrocosmos
 # Usage
 For a comprehensive overview of available functionality and integration patterns, refer to the [Macrocosmos SDK guide](https://docs.macrocosmos.ai/developers/macrocosmos-sdk).
 
-## Apex
-Apex is a decentralized agentic inference engine powered by Subnet 1 on the Bittensor network.  You can read more about this subnet on the [Macrocosmos Apex page](https://www.macrocosmos.ai/sn1).
-
-Use the synchronous `ApexClient` or asynchronous `AsyncApexClient` for inferencing tasks. See the examples for additional features and functionality.
-
-### Chat Completions
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-response = client.chat.completions.create(
-    messages=[{"role": "user", "content": "Write a short story about a cosmonaut learning to paint."}],
-)
-
-print(response)
-```
-
-### Web Search
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-response = client.web_search.search(
-    search_query="What is Bittensor?",
-    max_results_per_miner=3,
-    max_response_time=20,
-)
-
-print(response)
-```
-
-### Deep Researcher
-
-#### Submit a deep researcher job
-
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-submitted_response = client.deep_research.create_job(
-        messages=[
-            {
-                "role": "user",
-                "content": """Can you propose a mechanism by which a decentralized network 
-                of AI agents could achieve provable alignment on abstract ethical principles 
-                without relying on human-defined ontologies or centralized arbitration?""",
-            }
-        ]
-    )
-
-print(submitted_response)
-```
-
-#### Retrieve the results of a deep researcher job
-
-```py
-import macrocosmos as mc
-
-client = mc.ApexClient(api_key="<your-api-key>", app_name="my_app")
-polled_response = client.deep_research.get_job_results(job_id="<your-job-id>")
-
-print(polled_response)
-```
-
 ## SN13 OnDemandAPI
 
-SN13 is focused on large-scale data collection. With the OnDemandAPI, you can run precise, real-time queries against platforms like X (Twitter) and Reddit (YouTube forthcoming).
+SN13 is focused on large-scale data collection. With the OnDemandAPI, you can run precise, real-time queries against platforms like X (Twitter), Reddit and YouTube.
 
-As of data-universe release [v1.9.8](https://github.com/macrocosm-os/data-universe/releases/tag/v1.9.8):
-- All keywords in the OnDemandData request will be present in the returned post/comment data.
+As of the latest data-universe [release](https://github.com/macrocosm-os/data-universe/releases/):
+- Users may select two post-filtering modes via the `keyword_mode` parameter: 
+    - `"any"`: Returns posts that contain any combination of the listed keywords.
+    - `"all"`: Returns posts that contain all of the keywords (default).
 - For Reddit requests, the first keyword in the list corresponds to the requested subreddit, and subsequent keywords are treated as normal.
-- For YouTube requests, only one username should be supplied - corresponding to the channel name - while keywords are ignored (empty list).
+- For YouTube requests, only one of the following should be applied: One username (corresponding to YouTube channel name) or one keyword (corresponding to one YouTube video URL).
+- URL mode is mutually exclusive with `usernames` and `keywords` fields. If `url` is provided, `usernames` and `keywords` must be empty or omitted.
 
 Use the synchronous `Sn13Client` to query historical or current data based on users, keywords, and time range.
 
@@ -105,7 +44,8 @@ response = client.sn13.OnDemandData(
     keywords=["galaxy"],        # Optional, up to 5 keywords
     start_date='2025-04-15',    # Defaults to 24h range if not specified
     end_date='2025-05-15',      # Defaults to current time if not specified
-    limit=1000                  # Optional, up to 1000 results
+    limit=1000,                 # Optional, up to 1000 results
+    keyword_mode='any'          # Optional, "any" or "all"
 )
 
 print(response)
@@ -130,9 +70,7 @@ gravity_tasks = [
 ]
 
 response =  client.gravity.CreateGravityTask(
-    gravity_tasks=gravity_tasks, 
-    name="My First Gravity Task", 
-    notification_requests=[{"type": "email"}]
+    gravity_tasks=gravity_tasks, name="My First Gravity Task"
 )
 
 # Print the gravity task ID
@@ -162,10 +100,36 @@ import macrocosmos as mc
 client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
 
 response = client.gravity.BuildDataset(
-    crawler_id="<your-crawler-id>", 
-    notification_requests=[{"type": "email"}]
-    )
+    crawler_id="<your-crawler-id>"
+)
 
 # Print the dataset ID
+print(response)
+```
+
+
+### Build All Datasets
+If a Gravity task was launched with multiple crawlers, you can build multiple datasets simultaneously with this function call. Simply supply the the maximum rows to retrieve from each crawler's dataset via `build_crawlers_config` (you can obtain the crawler IDs via the `GetGravityTasks` call above). Example below for a two-crawler gravity task:
+
+```py
+import macrocosmos as mc
+
+client = mc.GravityClient(api_key="<your-api-key>", app_name="my_app")
+
+response = client.gravity.BuildAllDatasets(
+    gravity_task_id="your-gravity-task-id",
+    build_crawlers_config=[
+        {
+            "crawler_id": f"crawler-0-your-gravity-task-id",
+            "max_rows": 100,
+        },
+        {
+            "crawler_id": f"crawler-1-your-gravity-task-id",
+            "max_rows": 200,
+        },
+        ],
+    )
+
+# Prints the gravity task ID for the datasets built
 print(response)
 ```

@@ -67,8 +67,8 @@ def fix_imports(compile_pkg_name, output_dir):
     """Fix imports in all generated Python files recursively.
 
     e.g.
-    Replace this: from apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
-    With this: from macrocosmos.generated.apex.v1 import apex_pb2 as apex_dot_v1_dot_apex__pb2
+    Replace this: from gravity.v1 import gravity_pb2 as gravity_dot_v1_dot_gravity__pb2
+    With this: from macrocosmos.generated.gravity.v1 import gravity_pb2 as gravity_dot_v1_dot_gravity__pb2
     """
 
     from_import_pattern = r"\nfrom ([\w.]+) import ([\w_]+_pb2)(?:\s+as\s+([\w_]+))?"
@@ -90,9 +90,9 @@ def fix_imports(compile_pkg_name, output_dir):
                 return match.group(0)
 
             if alias:
-                return f"from {compile_pkg_name}.{package_path} import {module_name} as {alias}"
+                return f"\nfrom {compile_pkg_name}.{package_path} import {module_name} as {alias}"
             else:
-                return f"from {compile_pkg_name}.{package_path} import {module_name}"
+                return f"\nfrom {compile_pkg_name}.{package_path} import {module_name}"
 
         # direct import matched
         full_import = groups[4]
@@ -103,9 +103,9 @@ def fix_imports(compile_pkg_name, output_dir):
             return match.group(0)
 
         if alias:
-            return f"import {compile_pkg_name}.{full_import} as {alias}"
+            return f"\nimport {compile_pkg_name}.{full_import} as {alias}"
         else:
-            return f"import {compile_pkg_name}.{full_import}"
+            return f"\nimport {compile_pkg_name}.{full_import}"
 
     for py_file in glob.glob(str(output_dir / "**/*.py"), recursive=True):
         with open(py_file, "r") as file:

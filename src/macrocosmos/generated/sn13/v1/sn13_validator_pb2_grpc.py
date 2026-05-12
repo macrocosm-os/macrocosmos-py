@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+
 from macrocosmos.generated.sn13.v1 import sn13_validator_pb2 as sn13_dot_v1_dot_sn13__validator__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'

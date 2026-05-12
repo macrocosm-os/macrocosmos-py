@@ -59,7 +59,7 @@ message ValidateRedditTopicResponse {
 
 // OnDemandDataRequest is a request to SN13 to retrieve data
 message OnDemandDataRequest {
-  // source: the data source (X or Reddit)
+  // source: the data source (X, Reddit or Youtube)
   string source = 1;
   // usernames: list of usernames to fetch data from
   repeated string usernames = 2;
@@ -71,6 +71,11 @@ message OnDemandDataRequest {
   optional string end_date = 5;
   // limit: maximum number of results to return
   optional int64 limit = 6;
+  // keyword_mode: defines how keywords should be used in selecting response posts (optional): 
+  // "all" (posts must include all keywords) or "any" (posts can include any combination of keywords)
+  optional string keyword_mode = 7;
+  // url: single URL for URL search mode (X)
+  optional string url = 8;
 }
 
 // OnDemandDataResponse is the response from SN13 for an on-demand data request
