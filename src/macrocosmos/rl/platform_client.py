@@ -17,6 +17,12 @@ import httpx
 from macrocosmos import __package_name__, __version__
 from macrocosmos.types._exceptions import MacrocosmosError
 
+# How long `wait` polls a request before giving up, in seconds. Free to raise:
+# waiting longer doesn't load the API, only how often it polls does.
+WAIT_TIMEOUT_S = 600.0
+# How often `wait` polls, in seconds.
+POLL_INTERVAL_S = 1.0
+
 
 class RlPlatformClient:
     def __init__(
@@ -56,8 +62,14 @@ class RlPlatformClient:
             body["adapter"] = adapter
         return _json(self._http.post("/platform/rl/inference", json=body))["handle"]
 
-    def wait(self, handle: str, *, timeout: float = 600, interval: float = 1.0) -> list[dict[str, Any]]:
-        """Poll until the batch has finished; returns one result per prompt."""
+    def wait(
+        self,
+        handle: str,
+        *,
+        timeout: float = WAIT_TIMEOUT_S,
+        interval: float = POLL_INTERVAL_S,
+    ) -> list[dict[str, Any]]:
+        """Poll until the request has finished; returns one result per prompt."""
         deadline = time.monotonic() + timeout
         while True:
             results = _json(self._http.get(f"/platform/rl/inference/{handle}"))["results"]

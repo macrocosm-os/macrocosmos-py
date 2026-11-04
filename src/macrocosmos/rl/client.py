@@ -27,13 +27,20 @@ class RlClient(BaseClient):
 
         Args:
             api_key: The API key, from an approved Macrocosmos org. Defaults to
-                RL_API_KEY, then MACROCOSMOS_API_KEY.
+                IOTA_API_KEY, then LC_API_KEY. Not MACROCOSMOS_API_KEY: that is
+                the other services' key (Gravity, SN13).
             base_url: The Macrocosmos API base URL. Defaults to MACROCOSMOS_RL_BASE_URL.
             timeout: Time to wait for each HTTP response in seconds. (default: 30)
             app_name: The name of the application using the client.
         """
         if not api_key:
-            api_key = os.environ.get("RL_API_KEY")
+            api_key = (os.environ.get("IOTA_API_KEY") or os.environ.get("LC_API_KEY") or "").strip()
+            if not api_key:
+                # Checked here so BaseClient never falls back to MACROCOSMOS_API_KEY.
+                raise MacrocosmosError(
+                    "The api_key client option must be set either by passing api_key to the client "
+                    "or by setting the IOTA_API_KEY (or LC_API_KEY) environment variable"
+                )
 
         # The RL endpoints are HTTP, not the gRPC host the other clients default to.
         if not base_url:
@@ -54,10 +61,10 @@ class RlClient(BaseClient):
         self,
         training_client: tinker.TrainingClient,
         *,
-        min_gpus: int = 1,
         max_gpus: int = 1,
+        min_gpus: Optional[int] = None,
         gpu_type: Optional[Sequence[str]] = None,
-        max_context_tokens: Optional[int] = None,
+        max_output_tokens: Optional[int] = None,
         base_model: Optional[str] = None,
     ) -> RlSession:
         """Open an RL session around a Tinker training client.
@@ -65,9 +72,11 @@ class RlClient(BaseClient):
         Args:
             training_client: The Tinker LoRA training client. Its base model and
                 LoRA rank are sent with the session.
-            min_gpus / max_gpus: The GPU workers the session wants serving it.
+            max_gpus: The most GPU workers the session may use.
+            min_gpus: GPU workers kept for the session even while idle. Only
+                staff or an org Admin may set it; left unset, Macrocosmos uses 1.
             gpu_type: Preferred GPU types. Not sent yet.
-            max_context_tokens: The longest prompt + completion a sequence may reach.
+            max_output_tokens: The most tokens one completion may produce.
             base_model: Overrides the base model read from the training client.
         """
         return RlSession(
@@ -76,7 +85,7 @@ class RlClient(BaseClient):
             min_gpus=min_gpus,
             max_gpus=max_gpus,
             gpu_type=gpu_type,
-            max_context_tokens=max_context_tokens,
+            max_output_tokens=max_output_tokens,
             base_model=base_model,
         )
 
@@ -93,10 +102,10 @@ class RlClient(BaseClient):
 def wrap(
     training_client: tinker.TrainingClient,
     *,
-    min_gpus: int = 1,
     max_gpus: int = 1,
+    min_gpus: Optional[int] = None,
     gpu_type: Optional[Sequence[str]] = None,
-    max_context_tokens: Optional[int] = None,
+    max_output_tokens: Optional[int] = None,
     base_model: Optional[str] = None,
     client: Optional[RlClient] = None,
 ) -> RlSession:
@@ -110,7 +119,7 @@ def wrap(
         min_gpus=min_gpus,
         max_gpus=max_gpus,
         gpu_type=gpu_type,
-        max_context_tokens=max_context_tokens,
+        max_output_tokens=max_output_tokens,
         base_model=base_model,
         owns_platform=owned,
     )
