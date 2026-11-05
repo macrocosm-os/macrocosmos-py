@@ -3,23 +3,23 @@ from typing import Optional, Sequence
 
 import tinker
 
-from macrocosmos.resources._client import BaseClient
 from macrocosmos.types._exceptions import MacrocosmosError
 
 from ._platform import RlPlatform
 from .session import RlSession
 
 
-class RlClient(BaseClient):
+class RlClient:
     """
     Client for RL on Macrocosmos: train with Tinker, sample on Macrocosmos GPUs.
+    Plain HTTP, so it doesn't use the gRPC `BaseClient` the other clients share.
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        timeout: Optional[int] = 30,
+        timeout: float = 30,
         app_name: Optional[str] = None,
     ):
         """
@@ -36,13 +36,11 @@ class RlClient(BaseClient):
         if not api_key:
             api_key = (os.environ.get("IOTA_API_KEY") or os.environ.get("LC_API_KEY") or "").strip()
             if not api_key:
-                # Checked here so BaseClient never falls back to MACROCOSMOS_API_KEY.
                 raise MacrocosmosError(
                     "The api_key client option must be set either by passing api_key to the client "
                     "or by setting the IOTA_API_KEY (or LC_API_KEY) environment variable"
                 )
 
-        # The RL endpoints are HTTP, not the gRPC host the other clients default to.
         if not base_url:
             base_url = (os.environ.get("MACROCOSMOS_RL_BASE_URL") or "").strip()
             if not base_url:
@@ -51,10 +49,12 @@ class RlClient(BaseClient):
                     "or by setting the MACROCOSMOS_RL_BASE_URL environment variable"
                 )
 
-        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout, app_name=app_name)
-
+        self.api_key = api_key.strip()
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self.app_name = app_name
         self.platform = RlPlatform(
-            api_key=self.api_key, base_url=self.base_url, timeout=timeout or 30, app_name=app_name
+            api_key=self.api_key, base_url=self.base_url, timeout=timeout, app_name=app_name
         )
 
     def wrap(
@@ -113,13 +113,13 @@ def wrap(
     given. A client made here is closed with the session."""
     owned = client is None
     client = client or RlClient()
-    return RlSession(
+    session = client.wrap(
         training_client,
-        platform=client.platform,
-        min_gpus=min_gpus,
         max_gpus=max_gpus,
+        min_gpus=min_gpus,
         gpu_type=gpu_type,
         max_output_tokens=max_output_tokens,
         base_model=base_model,
-        owns_platform=owned,
     )
+    session._owns_platform = owned
+    return session

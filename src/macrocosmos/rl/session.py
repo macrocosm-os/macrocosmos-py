@@ -16,11 +16,9 @@ session's tasks to the workers hosting it.
 
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import threading
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Sequence
 
 import tinker
@@ -29,13 +27,15 @@ from tinker.lib.public_interfaces.api_future import AwaitableConcurrentFuture
 
 from macrocosmos.types._exceptions import MacrocosmosError
 
-from ._platform import POLL_INTERVAL_S, WAIT_TIMEOUT_S, RlPlatform
+from ._platform import RlPlatform
 
 # How long an exported adapter's download links stay valid.
 ADAPTER_TTL_SECONDS = 24 * 3600
-# Samples waited on at once (each waits on its own request).
-_SAMPLE_THREADS = 64
-_executor = ThreadPoolExecutor(max_workers=_SAMPLE_THREADS, thread_name_prefix="mc-rl-sample")
+# How long `sample` waits for a result before giving up, in seconds. Free to
+# raise: waiting longer doesn't load the API, only how often it polls does.
+WAIT_TIMEOUT_S = 600.0
+# How often `sample` checks for the result, in seconds.
+POLL_INTERVAL_S = 1.0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -73,31 +73,21 @@ class RlSamplingClient:
         used. Each token's logprob comes back unless `logprobs=False`; the workers
         leave them out unless asked, and RL losses need them. `timeout` is how
         long to wait for the result; `poll_interval` how often to check."""
-        tokens = self._tokens(prompt)
-        return AwaitableConcurrentFuture(
-            _executor.submit(
-                self._sample, tokens, num_samples, sampling_params, timeout, poll_interval, logprobs
-            )
-        )
-
-    async def sample_async(self, prompt, num_samples: int = 1, sampling_params=None, **kw):
-        return await asyncio.wrap_future(self.sample(prompt, num_samples, sampling_params, **kw)._future)
-
-    def _sample(
-        self,
-        tokens: list[int],
-        num_samples: int,
-        sampling_params: types.SamplingParams | None,
-        timeout: float,
-        poll_interval: float,
-        logprobs: bool,
-    ) -> RlSampleResponse:
-        platform = self._session._platform
         params = sampling_params.model_dump(exclude_none=True) if sampling_params else {}
         if isinstance(params.get("stop"), str):
             params["stop"] = [params["stop"]]
-        prompt_entry = {"prompt_tokens": tokens, "n": num_samples, "logprobs": logprobs, **params}
+        prompt_entry = {
+            "prompt_tokens": self._tokens(prompt), "n": num_samples, "logprobs": logprobs, **params,
+        }
+        return AwaitableConcurrentFuture(
+            self._session._platform.executor.submit(self._sample, prompt_entry, timeout, poll_interval)
+        )
 
+    async def sample_async(self, prompt, num_samples: int = 1, sampling_params=None, **kw):
+        return await self.sample(prompt, num_samples, sampling_params, **kw)
+
+    def _sample(self, prompt_entry: dict[str, Any], timeout: float, poll_interval: float) -> RlSampleResponse:
+        platform = self._session._platform
         # Into the work pool through Macrocosmos, then poll it for the result.
         handle = platform.submit(
             session_id=self._session.session_id, prompts=[prompt_entry], adapter=self.adapter
@@ -188,20 +178,27 @@ class RlSession:
         """Export the trainer's current LoRA from Tinker and return a sampler
         that samples with it on Macrocosmos. Tinker's method of the same name,
         with the sampling moved to Macrocosmos."""
-        # Each export gets its own, higher version, even when called from
-        # several threads at once.
-        with self._version_lock:
-            self._adapter_version += 1
-            version = self._adapter_version
-            if self._rest is None:
-                self._rest = _rest_client_for(self.trainer)
+        version, rest = self._next_version()
         name = name or f"mc-rl-{version:06d}"
         saved = self.trainer.save_weights_external(name, ttl_seconds=ADAPTER_TTL_SECONDS).result()
-        urls = self._rest.get_external_weights_urls(saved.path).result().urls
+        urls = rest.get_external_weights_urls(saved.path).result().urls
         return RlSamplingClient(self, {"urls": dict(urls), "version": version})
 
     async def save_weights_and_get_sampling_client_async(self, name: str | None = None) -> RlSamplingClient:
-        return await asyncio.to_thread(self.save_weights_and_get_sampling_client, name)
+        version, rest = self._next_version()
+        name = name or f"mc-rl-{version:06d}"
+        saved = await self.trainer.save_weights_external_async(name, ttl_seconds=ADAPTER_TTL_SECONDS)
+        urls = (await rest.get_external_weights_urls_async((await saved).path)).urls
+        return RlSamplingClient(self, {"urls": dict(urls), "version": version})
+
+    def _next_version(self) -> tuple[int, tinker.RestClient]:
+        """The next adapter version, unique even across threads, and the REST
+        client to fetch its download links with."""
+        with self._version_lock:
+            self._adapter_version += 1
+            if self._rest is None:
+                self._rest = _rest_client_for(self.trainer)
+            return self._adapter_version, self._rest
 
     def create_sampling_client(self) -> RlSamplingClient:
         """A sampler for the base model, with no adapter."""

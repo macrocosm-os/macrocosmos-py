@@ -10,6 +10,7 @@ task has finished, then one result per prompt.
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import httpx
@@ -17,11 +18,8 @@ import httpx
 from macrocosmos import __package_name__, __version__
 from macrocosmos.types._exceptions import MacrocosmosError
 
-# How long `wait` polls a request before giving up, in seconds. Free to raise:
-# waiting longer doesn't load the API, only how often it polls does.
-WAIT_TIMEOUT_S = 600.0
-# How often `wait` polls, in seconds.
-POLL_INTERVAL_S = 1.0
+# Requests waited on at once; each waits in its own thread.
+MAX_IN_FLIGHT = 64
 
 
 class RlPlatform:
@@ -35,9 +33,18 @@ class RlPlatform:
         }
         if app_name:
             headers["x-source"] = app_name
-        self._http = httpx.Client(base_url=base_url.rstrip("/"), headers=headers, timeout=timeout)
+        self._http = httpx.Client(
+            base_url=base_url,
+            headers=headers,
+            timeout=timeout,
+            # One kept-alive connection per thread that may be waiting.
+            limits=httpx.Limits(max_keepalive_connections=MAX_IN_FLIGHT),
+        )
+        # Runs blocking submit-and-wait calls so callers get a future back.
+        self.executor = ThreadPoolExecutor(max_workers=MAX_IN_FLIGHT, thread_name_prefix="mc-rl")
 
     def close(self) -> None:
+        self.executor.shutdown(wait=False)
         self._http.close()
 
     def open_session(self, *, base_model: str, requirements: dict[str, Any]) -> dict[str, Any]:
@@ -45,9 +52,9 @@ class RlPlatform:
         body = {"base_model": base_model, "requirements": requirements}
         return _json(self._http.post("/platform/rl/sessions", json=body))
 
-    def close_session(self, session_id: str) -> dict[str, Any]:
+    def close_session(self, session_id: str) -> None:
         """Close an RL session. Closing an already closed one is fine."""
-        return _json(self._http.post(f"/platform/rl/sessions/{session_id}/close"))
+        _json(self._http.post(f"/platform/rl/sessions/{session_id}/close"))
 
     def submit(
         self,
@@ -62,13 +69,7 @@ class RlPlatform:
             body["adapter"] = adapter
         return _json(self._http.post("/platform/rl/inference", json=body))["handle"]
 
-    def wait(
-        self,
-        handle: str,
-        *,
-        timeout: float = WAIT_TIMEOUT_S,
-        interval: float = POLL_INTERVAL_S,
-    ) -> list[dict[str, Any]]:
+    def wait(self, handle: str, *, timeout: float, interval: float) -> list[dict[str, Any]]:
         """Poll until the request has finished; returns one result per prompt."""
         deadline = time.monotonic() + timeout
         while True:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Sequence
 
-import numpy as np
 from tinker import types
 
 
@@ -42,17 +41,14 @@ def score(
     data = []
     for seq, r in zip(result.sequences, rewards):
         tokens = prompt_tokens + seq.tokens
+        # Datum turns these lists into int64 tokens and float32 logprobs/advantages.
         data.append(
             types.Datum(
                 model_input=types.ModelInput.from_ints(tokens[:-1]),
                 loss_fn_inputs={
-                    "target_tokens": types.TensorData.from_numpy(np.array(tokens[1:])),
-                    "logprobs": types.TensorData.from_numpy(
-                        np.array([0.0] * n_prompt + list(seq.logprobs), dtype=np.float32)
-                    ),
-                    "advantages": types.TensorData.from_numpy(
-                        np.array([0.0] * n_prompt + [r - mean] * len(seq.tokens), dtype=np.float32)
-                    ),
+                    "target_tokens": tokens[1:],
+                    "logprobs": [0.0] * n_prompt + list(seq.logprobs),
+                    "advantages": [0.0] * n_prompt + [r - mean] * len(seq.tokens),
                 },
             )
         )
