@@ -6,7 +6,7 @@ import tinker
 from macrocosmos.resources._client import BaseClient
 from macrocosmos.types._exceptions import MacrocosmosError
 
-from .platform_client import RlPlatformClient
+from ._platform import RlPlatform
 from .session import RlSession
 
 
@@ -53,7 +53,7 @@ class RlClient(BaseClient):
 
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout, app_name=app_name)
 
-        self.platform = RlPlatformClient(
+        self.platform = RlPlatform(
             api_key=self.api_key, base_url=self.base_url, timeout=timeout or 30, app_name=app_name
         )
 

@@ -24,7 +24,7 @@ WAIT_TIMEOUT_S = 600.0
 POLL_INTERVAL_S = 1.0
 
 
-class RlPlatformClient:
+class RlPlatform:
     def __init__(
         self, *, api_key: str, base_url: str, timeout: float = 30, app_name: str | None = None
     ) -> None:
