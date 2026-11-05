@@ -2,8 +2,8 @@
 
     from macrocosmos.rl import RlClient
 
-    client = RlClient(app_name="my-rl-script")                     # IOTA_API_KEY / LC_API_KEY
-    with client.wrap(training_client) as session:
+    with RlClient(app_name="my-rl-script") as client, client.wrap(training_client) as session:
+        # The key comes from MACROCOSMOS_RL_API_KEY
         sampler = session.save_weights_and_get_sampling_client()   # current LoRA -> Macrocosmos
         result = sampler.sample(prompt, num_samples=8).result()    # served by Macrocosmos
         ...                                                        # score, then train

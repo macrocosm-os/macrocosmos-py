@@ -20,6 +20,8 @@ from macrocosmos.types._exceptions import MacrocosmosError
 
 # Requests waited on at once; each waits in its own thread.
 MAX_IN_FLIGHT = 64
+# Statuses a poll retries: the service briefly unavailable.
+_RETRY_STATUS = frozenset({502, 503, 504})
 
 
 class RlPlatform:
@@ -50,11 +52,11 @@ class RlPlatform:
     def open_session(self, *, base_model: str, requirements: dict[str, Any]) -> dict[str, Any]:
         """Open an RL session; returns it, including its `session_id`."""
         body = {"base_model": base_model, "requirements": requirements}
-        return _json(self._http.post("/platform/rl/sessions", json=body))
+        return _json(self._request("POST", "/platform/rl/sessions", json=body))
 
     def close_session(self, session_id: str) -> None:
         """Close an RL session. Closing an already closed one is fine."""
-        _json(self._http.post(f"/platform/rl/sessions/{session_id}/close"))
+        _json(self._request("POST", f"/platform/rl/sessions/{session_id}/close"))
 
     def submit(
         self,
@@ -67,24 +69,46 @@ class RlPlatform:
         body: dict[str, Any] = {"session_id": session_id, "prompts": prompts}
         if adapter:
             body["adapter"] = adapter
-        return _json(self._http.post("/platform/rl/inference", json=body))["handle"]
+        return _json(self._request("POST", "/platform/rl/inference", json=body))["handle"]
 
     def wait(self, handle: str, *, timeout: float, interval: float) -> list[dict[str, Any]]:
-        """Poll until the request has finished; returns one result per prompt."""
+        """Poll until the request has finished; returns one result per prompt.
+
+        A poll that fails in transit or with a 502/503/504 is retried until the
+        deadline: the tasks are still running, and polling is safe to repeat."""
         deadline = time.monotonic() + timeout
+        last_error: str | None = None
         while True:
-            results = _json(self._http.get(f"/platform/rl/inference/{handle}"))["results"]
-            if results is not None:
-                return results
+            try:
+                resp = self._request("GET", f"/platform/rl/inference/{handle}")
+            except MacrocosmosError as e:
+                last_error = str(e)
+            else:
+                if resp.status_code in _RETRY_STATUS:
+                    last_error = f"{resp.status_code} {resp.text[:300]}"
+                else:
+                    results = _json(resp)["results"]
+                    if results is not None:
+                        return results
+                    last_error = None
             if time.monotonic() > deadline:
-                # Usually no GPU worker is hosting this session yet.
-                raise MacrocosmosError(f"no results for batch {handle} after {timeout:.0f}s")
+                # With no error, usually no GPU worker is hosting this session yet.
+                detail = f"; last error: {last_error}" if last_error else ""
+                raise MacrocosmosError(f"no results for batch {handle} after {timeout:.0f}s{detail}")
             time.sleep(interval)
+
+    def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        try:
+            return self._http.request(method, path, **kwargs)
+        except httpx.TransportError as e:
+            raise MacrocosmosError(f"{method} {path}: {type(e).__name__}: {e}") from e
 
 
 def _json(resp: httpx.Response) -> dict[str, Any]:
+    where = f"{resp.request.method} {resp.request.url.path}"
     if resp.is_error:
-        raise MacrocosmosError(
-            f"{resp.request.method} {resp.request.url.path}: {resp.status_code} {resp.text[:300]}"
-        )
-    return resp.json()
+        raise MacrocosmosError(f"{where}: {resp.status_code} {resp.text[:300]}")
+    try:
+        return resp.json()
+    except ValueError as e:
+        raise MacrocosmosError(f"{where}: response is not JSON: {resp.text[:300]}") from e

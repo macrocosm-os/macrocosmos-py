@@ -4,9 +4,8 @@ The calls are Tinker's own. `session.trainer` is the Tinker training client
 itself. `session.save_weights_and_get_sampling_client()` exports its current
 LoRA, as Tinker's method of the same name does, and returns a sampler whose
 `sample(...)` runs on Macrocosmos: it sends the prompt to
-`POST /platform/rl/inference`, which queues it in the rollout fleet's work
-pool, then polls `GET /platform/rl/inference/{handle}` until the workers have
-posted the result. The result comes back as Tinker's `SampleResponse`.
+`POST /platform/rl/inference`, then polls `GET /platform/rl/inference/{handle}`
+until the result is ready. The result comes back as Tinker's `SampleResponse`.
 
 Creating a session opens it on Macrocosmos (`POST /platform/rl/sessions`),
 which records the base model and the GPU workers wanted and returns the
@@ -17,8 +16,10 @@ session's tasks to the workers hosting it.
 from __future__ import annotations
 
 import dataclasses
+import functools
 import threading
 import uuid
+import warnings
 from typing import Any, Sequence
 
 import tinker
@@ -50,7 +51,8 @@ class RlSampleResponse(types.SampleResponse):
 
 class RlSamplingClient:
     """Tinker's `SamplingClient`, served by Macrocosmos. Samples with one fixed
-    adapter (or the base model when it has none)."""
+    adapter, or, when it has none, with whatever the session currently serves:
+    the base model until an adapter has been exported, that adapter after."""
 
     def __init__(self, session: RlSession, adapter: dict[str, Any] | None) -> None:
         self._session = session
@@ -73,6 +75,8 @@ class RlSamplingClient:
         used. Each token's logprob comes back unless `logprobs=False`; the workers
         leave them out unless asked, and RL losses need them. `timeout` is how
         long to wait for the result; `poll_interval` how often to check."""
+        if self._session._closed:
+            raise MacrocosmosError(f"RL session {self._session.session_id} is closed")
         params = sampling_params.model_dump(exclude_none=True) if sampling_params else {}
         if isinstance(params.get("stop"), str):
             params["stop"] = [params["stop"]]
@@ -88,7 +92,6 @@ class RlSamplingClient:
 
     def _sample(self, prompt_entry: dict[str, Any], timeout: float, poll_interval: float) -> RlSampleResponse:
         platform = self._session._platform
-        # Into the work pool through Macrocosmos, then poll it for the result.
         handle = platform.submit(
             session_id=self._session.session_id, prompts=[prompt_entry], adapter=self.adapter
         )
@@ -112,7 +115,7 @@ class RlSamplingClient:
         if isinstance(prompt, types.ModelInput):
             return prompt.to_ints()
         if isinstance(prompt, str):
-            return self._session.trainer.get_tokenizer().encode(prompt)
+            return self._session._tokenizer.encode(prompt)
         return list(prompt)
 
 
@@ -142,7 +145,6 @@ class RlSession:
         platform: RlPlatform,
         max_gpus: int = 1,
         min_gpus: int | None = None,
-        gpu_type: Sequence[str] | None = None,
         max_output_tokens: int | None = None,
         base_model: str | None = None,
         owns_platform: bool = False,
@@ -156,8 +158,8 @@ class RlSession:
         self._closed = False
 
         info = training_client.get_info()
-        # One rollout worker serves one replica of the base model. min_workers
-        # is sent only when asked for: setting it needs staff or an org Admin.
+        # One GPU worker serves one replica of the base model. min_workers is
+        # sent only when asked for.
         requirements: dict[str, Any] = {"max_workers": max_gpus}
         if min_gpus is not None:
             requirements["min_workers"] = min_gpus
@@ -165,8 +167,6 @@ class RlSession:
             requirements["max_lora_rank"] = info.lora_rank
         if max_output_tokens:
             requirements["max_output_tokens"] = max_output_tokens
-        # Macrocosmos has no field for GPU types yet; kept here until it does.
-        self.gpu_type = list(gpu_type) if gpu_type else None
 
         opened = platform.open_session(
             base_model=base_model or info.model_data.model_name, requirements=requirements,
@@ -201,21 +201,36 @@ class RlSession:
             return self._adapter_version, self._rest
 
     def create_sampling_client(self) -> RlSamplingClient:
-        """A sampler for the base model, with no adapter."""
+        """A sampler with no adapter of its own. It samples whatever the session
+        currently serves: the base model only until the first
+        `save_weights_and_get_sampling_client()`, after that the latest exported
+        adapter. Check the response's `policy_version` (-1 is the base model)."""
         return RlSamplingClient(self, None)
 
+    @functools.cached_property
+    def _tokenizer(self) -> Any:
+        # Tinker fetches it over the network on every get_tokenizer() call.
+        return self.trainer.get_tokenizer()
+
     def close(self) -> None:
+        """Close the session on Macrocosmos. If that fails, the session stays
+        open there and `close()` can be called again."""
         if self._closed:
             return
+        self._platform.close_session(self.session_id)
         self._closed = True
-        try:
-            self._platform.close_session(self.session_id)
-        finally:
-            if self._owns_platform:
-                self._platform.close()
+        if self._owns_platform:
+            self._platform.close()
 
     def __enter__(self) -> RlSession:
         return self
 
-    def __exit__(self, *exc: object) -> None:
-        self.close()
+    def __exit__(self, exc_type: object, exc: BaseException | None, tb: object) -> None:
+        if exc is None:
+            self.close()
+            return
+        # The with-body's exception (a Ctrl-C, say) is the one to raise.
+        try:
+            self.close()
+        except Exception as close_error:
+            warnings.warn(f"closing RL session {self.session_id} failed: {close_error}", stacklevel=2)
