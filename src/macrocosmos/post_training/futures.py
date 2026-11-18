@@ -23,7 +23,9 @@ _NOT_YET = object()
 
 # Awaited futures wait in these threads. Waiting is mostly sleeping between
 # polls, so a generous pool lets many samples be gathered at once.
-_WAITERS = ThreadPoolExecutor(max_workers=128, thread_name_prefix="macrocosmos-rl")
+_WAITERS = ThreadPoolExecutor(
+    max_workers=128, thread_name_prefix="macrocosmos-post-training"
+)
 
 
 class APIFuture(Generic[T]):
@@ -125,12 +127,12 @@ def poll(
 def wait_for_job(
     gateway: Any, handle: str, timeout: Optional[float], *, what: str = ""
 ) -> Any:
-    """Wait for a training job (`GET /platform/rl/training/{handle}`) and return its result.
+    """Wait for a training job (`GET .../training/{handle}`) and return its result.
 
     Only `done` and `failed` are final; any other state keeps it waiting.
     """
     job = poll(
-        lambda: gateway.request("GET", f"/platform/rl/training/{handle}"),
+        lambda: gateway.request("GET", f"/training/{handle}"),
         lambda j: j.get("state") in ("done", "failed"),
         timeout=timeout,
         what=what or handle,

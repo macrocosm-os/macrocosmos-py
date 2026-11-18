@@ -1,4 +1,4 @@
-"""Code written for Tinker runs on macrocosmos.rl through `compat.install()`.
+"""Code written for Tinker runs on macrocosmos.post_training through `compat.install()`.
 
 The test body follows tinker-cookbook's `recipes/rl_loop.py`: the same imports,
 the same calls in the same order, the same checkpoint calls.
@@ -10,7 +10,7 @@ import uuid
 
 import pytest
 
-from macrocosmos import rl
+from macrocosmos import post_training
 
 from .fake_gateway import FakeGateway
 
@@ -18,18 +18,18 @@ from .fake_gateway import FakeGateway
 @pytest.fixture
 def tinker_on_macrocosmos(monkeypatch):
     gw = FakeGateway()
-    monkeypatch.setenv("MACROCOSMOS_RL_API_KEY", "test-key")
-    monkeypatch.setenv("MACROCOSMOS_RL_BASE_URL", "http://gw.test")
-    original = rl.ServiceClient.__init__
+    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_API_KEY", "test-key")
+    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_BASE_URL", "http://gw.test")
+    original = post_training.ServiceClient.__init__
 
     def with_fake_transport(self, *args, **kwargs):
         kwargs.setdefault("transport", gw.transport)
         original(self, *args, **kwargs)
 
-    monkeypatch.setattr(rl.ServiceClient, "__init__", with_fake_transport)
-    rl.compat.install()
+    monkeypatch.setattr(post_training.ServiceClient, "__init__", with_fake_transport)
+    post_training.compat.install()
     yield gw
-    rl.compat.uninstall()
+    post_training.compat.uninstall()
 
 
 def test_the_cookbook_rl_loop_calls_work_unchanged(tinker_on_macrocosmos):
@@ -39,7 +39,7 @@ def test_the_cookbook_rl_loop_calls_work_unchanged(tinker_on_macrocosmos):
     from tinker.lib.public_interfaces.api_future import APIFuture
     from tinker.types.tensor_data import TensorData
 
-    assert tinker is rl and APIFuture is rl.APIFuture
+    assert tinker is post_training and APIFuture is post_training.APIFuture
 
     with tinker.ServiceClient(
         base_url=None, user_metadata={"recipe": "rl_loop"}, display_name="rl-loop"
@@ -148,7 +148,7 @@ def test_the_cookbook_rl_loop_calls_work_unchanged(tinker_on_macrocosmos):
 def test_install_refuses_to_shadow_the_real_tinker(monkeypatch):
     monkeypatch.setitem(sys.modules, "tinker", type(sys)("tinker"))
     with pytest.raises(RuntimeError, match="already imported"):
-        rl.compat.install()
+        post_training.compat.install()
 
 
 def test_tinker_exceptions_keep_working(tinker_on_macrocosmos):

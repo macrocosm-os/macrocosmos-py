@@ -6,9 +6,9 @@ import math
 
 import pytest
 
-from macrocosmos import rl
-from macrocosmos.rl import _http, service_client as service_module, types
-from macrocosmos.rl.futures import APIFuture
+from macrocosmos import post_training
+from macrocosmos.post_training import _http, service_client as service_module, types
+from macrocosmos.post_training.futures import APIFuture
 
 from .fake_gateway import FakeGateway
 
@@ -26,7 +26,7 @@ def gw():
 
 
 def client(gw):
-    return rl.ServiceClient(
+    return post_training.PostTrainingClient(
         api_key="test-key", base_url="http://gw.test", transport=gw.transport
     )
 
@@ -51,7 +51,7 @@ def test_an_optim_step_that_fails_to_send_can_be_sent_again(gw):
         trainer = service.create_lora_training_client(base_model=MODEL).result()
         trainer.forward_backward([datum()], "importance_sampling").result()
         gw.fail_next(500)
-        with pytest.raises(rl.InternalServerError):
+        with pytest.raises(post_training.InternalServerError):
             trainer.optim_step(types.AdamParams())
         assert trainer.optim_step(types.AdamParams()).result().step == 1
         sent = [json.loads(r.content) for r in gw.calls("POST", r".+/optim_step")]
@@ -63,7 +63,7 @@ def test_a_split_batch_that_fails_halfway_is_reconciled_by_the_next_step(gw):
         trainer = service.create_lora_training_client(base_model=MODEL).result()
         big = [datum(300) for _ in range(6)]  # two requests
         gw.fail_next(None, 500)  # the first request lands, the second doesn't
-        with pytest.raises(rl.InternalServerError):
+        with pytest.raises(post_training.InternalServerError):
             trainer.forward_backward(big, "importance_sampling")
         # The trainer holds 1 request, the client counts 2: the trainer asks for a replay.
         assert trainer.optim_step(types.AdamParams()).result().step == 1
@@ -77,7 +77,7 @@ def test_a_replay_interrupted_by_a_timeout_resumes_without_resending_twice(gw):
         gw.restart_trainer()
         gw.hold.add("forward_backward")  # the resent data is slow
         step = trainer.optim_step(types.AdamParams())
-        with pytest.raises(rl.APITimeoutError):
+        with pytest.raises(post_training.APITimeoutError):
             step.result(timeout=0.3)
         gw.release()
         assert step.result().step == 1
@@ -107,7 +107,9 @@ def test_a_failed_create_job_releases_its_session(gw):
         future = service.create_lora_training_client(base_model=MODEL)
         [(handle, job)] = [(h, j) for h, j in gw.jobs.items() if h.endswith(".0")]
         job.update(state="failed", error="no trainer could load the model")
-        with pytest.raises(rl.RequestFailedError, match="could not load|no trainer"):
+        with pytest.raises(
+            post_training.RequestFailedError, match="could not load|no trainer"
+        ):
             future.result()
         [session] = gw.sessions.values()
         assert session["state"] == "closed"
@@ -129,7 +131,9 @@ def test_a_sampler_for_an_older_adapter_warns_that_it_got_a_newer_one(gw):
 def test_prompt_logprobs_are_refused_rather_than_silently_dropped(gw):
     with client(gw) as service:
         sampler = service.create_sampling_client(base_model=MODEL)
-        with pytest.raises(rl.NotSupportedError, match="include_prompt_logprobs"):
+        with pytest.raises(
+            post_training.NotSupportedError, match="include_prompt_logprobs"
+        ):
             sampler.sample([1, 2], num_samples=1, include_prompt_logprobs=True)
 
 
@@ -143,7 +147,7 @@ def test_a_closed_client_says_so(gw):
     service = client(gw)
     service.create_sampling_client(base_model=MODEL)
     service.close()
-    with pytest.raises(rl.RLError, match="closed"):
+    with pytest.raises(post_training.PostTrainingError, match="closed"):
         service.create_sampling_client(base_model=MODEL)
 
 

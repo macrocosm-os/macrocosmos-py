@@ -134,24 +134,24 @@ response = client.gravity.BuildAllDatasets(
 print(response)
 ```
 
-## Reinforcement learning (preview)
+## Post-training (preview)
 
-`macrocosmos.rl` trains LoRA adapters with reinforcement learning on Macrocosmos GPUs. Its API is [Tinker's](https://tinker-docs.thinkingmachines.ai/), so code written for Tinker runs with two changes.
+Fine-tune LoRA adapters with reinforcement learning on Macrocosmos GPUs. The API is [Tinker's](https://tinker-docs.thinkingmachines.ai/), so code written for Tinker ports with two changes.
 
 ```bash
-pip install "macrocosmos[rl]"     # Python 3.9+
-export MACROCOSMOS_RL_API_KEY=...       # from your Macrocosmos organization
-export MACROCOSMOS_RL_BASE_URL=...      # the API URL you were given for the preview
+pip install "macrocosmos[post-training]"         # Python 3.9+
+export MACROCOSMOS_POST_TRAINING_API_KEY=...     # from your Macrocosmos organization
+export MACROCOSMOS_POST_TRAINING_BASE_URL=...    # the API URL you were given for the preview
 ```
 
 ```python
-from macrocosmos import rl
-from macrocosmos.rl import types
-from macrocosmos.rl.utils import contains, render_prompt, score
+import macrocosmos as mc
+from macrocosmos.post_training import types
+from macrocosmos.post_training.utils import contains, render_prompt, score
 
 # Leaving the block releases the GPUs, even on an error or Ctrl-C.
-with rl.ServiceClient() as service_client:
-    training_client = service_client.create_lora_training_client(
+with mc.PostTrainingClient() as client:
+    training_client = client.create_lora_training_client(
         base_model="Qwen/Qwen3-4B", rank=32
     ).result()
     tokenizer = training_client.get_tokenizer()
@@ -166,18 +166,20 @@ with rl.ServiceClient() as service_client:
         training_client.optim_step(types.AdamParams(learning_rate=4e-5)).result()
 ```
 
-A complete loop is in [`examples/rl_loop.py`](examples/rl_loop.py).
+A complete loop is in [`examples/post_training_loop.py`](examples/post_training_loop.py).
 
 ### Migrating from Tinker
 
-1. Change the import: `import tinker` becomes `from macrocosmos import rl as tinker`.
+Tinker scripts refer to `tinker.ServiceClient`, `tinker.types.Datum` and so on throughout. To keep all of those lines as they are:
+
+1. Change the import: `import tinker` becomes `from macrocosmos import post_training as tinker`. Every name the script uses exists there; `tinker.ServiceClient` is `mc.PostTrainingClient` under Tinker's name.
 2. Put the training loop inside `with tinker.ServiceClient() as service_client:`. A session reserves GPUs for you while it's open, and leaving the block releases them.
 
-For libraries that import `tinker` themselves, such as Tinker's cookbook, call `rl.compat.install()` before importing them.
+For libraries that import `tinker` themselves, such as Tinker's cookbook, call `mc.post_training.compat.install()` before importing them.
 
 Differences from Tinker:
 
-| | Tinker | `macrocosmos.rl` |
+| | Tinker | Macrocosmos |
 |---|---|---|
 | Sessions | Created and released for you | Opened by `create_lora_training_client`, closed when the `with` block ends |
 | GPUs | Managed for you | Managed for you |
@@ -186,6 +188,6 @@ Differences from Tinker:
 | Loss functions | Built in and custom | Built in (`importance_sampling`, `ppo`, `cispo`, `cross_entropy`, …) |
 | Checkpoints | `save_state` / `load_state` | `save_state` saves the adapter only; resuming is not supported yet |
 | Inputs | Text, images | Text |
-| `forward`, `compute_logprobs`, REST client | Supported | Not supported yet (`rl.NotSupportedError`) |
+| `forward`, `compute_logprobs`, REST client | Supported | Not supported yet (`NotSupportedError`) |
 
 Tinker's types (`Datum`, `ModelInput`, `TensorData`, `AdamParams`, `SamplingParams`) and its error names are available under the same names, and the clients also accept Tinker's own objects, numpy arrays and torch tensors.

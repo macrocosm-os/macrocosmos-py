@@ -1,17 +1,17 @@
 """A complete RL loop on Macrocosmos: sample, score, train, repeat.
 
-    pip install "macrocosmos[rl]"
-    export MACROCOSMOS_RL_API_KEY=...
-    export MACROCOSMOS_RL_BASE_URL=...
-    python examples/rl_loop.py
+    pip install "macrocosmos[post-training]"
+    export MACROCOSMOS_POST_TRAINING_API_KEY=...
+    export MACROCOSMOS_POST_TRAINING_BASE_URL=...
+    python examples/post_training_loop.py
 
 The model learns to answer arithmetic with a bare number. Coming from Tinker?
 This is Tinker's API: only the import and the `with` block are new.
 """
 
-from macrocosmos import rl
-from macrocosmos.rl import types
-from macrocosmos.rl.utils import contains, mean, render_prompt, score
+import macrocosmos as mc
+from macrocosmos.post_training import types
+from macrocosmos.post_training.utils import contains, mean, render_prompt, score
 
 BASE_MODEL = "Qwen/Qwen3-4B"
 PROBLEMS = [
@@ -26,8 +26,8 @@ sampling_params = types.SamplingParams(max_tokens=32, temperature=1.0)
 adam_params = types.AdamParams(learning_rate=4e-5)
 
 # Leaving the block releases the GPUs, even on an error or Ctrl-C.
-with rl.ServiceClient() as service_client:
-    training_client = service_client.create_lora_training_client(
+with mc.PostTrainingClient() as client:
+    training_client = client.create_lora_training_client(
         base_model=BASE_MODEL, rank=32
     ).result()
     tokenizer = training_client.get_tokenizer()

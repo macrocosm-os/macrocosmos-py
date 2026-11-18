@@ -19,11 +19,14 @@ from .types import GetInfoResponse, ModelData
 SESSION_MAX_WORKERS = 4
 
 
-class ServiceClient:
-    """The entry point, as on Tinker. Owns every session it opens.
+class PostTrainingClient:
+    """The entry point. Owns every session it opens. Also available as
+    `ServiceClient`, its name on Tinker.
 
-        with ServiceClient() as service_client:
-            training_client = service_client.create_lora_training_client(
+        import macrocosmos as mc
+
+        with mc.PostTrainingClient() as client:
+            training_client = client.create_lora_training_client(
                 base_model="Qwen/Qwen3-8B", rank=32
             ).result()
             ...
@@ -32,8 +35,8 @@ class ServiceClient:
     `with` block or calling `close()` closes every session this client opened,
     and so does the interpreter exiting.
 
-    The API key comes from `api_key=` or `MACROCOSMOS_RL_API_KEY`, the URL from
-    `base_url=` or `MACROCOSMOS_RL_BASE_URL`.
+    The API key comes from `api_key=` or `MACROCOSMOS_POST_TRAINING_API_KEY`, the URL from
+    `base_url=` or `MACROCOSMOS_POST_TRAINING_BASE_URL`.
     """
 
     def __init__(
@@ -85,7 +88,7 @@ class ServiceClient:
         try:
             created = self._gw.request(
                 "POST",
-                f"/platform/rl/sessions/{session_id}/models",
+                f"/sessions/{session_id}/models",
                 {"base_model": base_model, "lora": lora},
             )
         except BaseException:
@@ -103,9 +106,7 @@ class ServiceClient:
             except RequestFailedError:
                 self._release(session_id)
                 raise
-            info = _info(
-                self._gw.request("GET", f"/platform/rl/models/{created['model_id']}")
-            )
+            info = _info(self._gw.request("GET", f"/models/{created['model_id']}"))
             return TrainingClient(
                 self._gw, session_id, info, step=result.get("step") or 0
             )
@@ -149,7 +150,7 @@ class ServiceClient:
 
     def get_server_capabilities(self) -> List[Dict[str, Any]]:
         """The base models you can train and sample, with their GPU memory needs."""
-        return self._gw.request("GET", "/platform/base-models")
+        return self._gw.request("GET", "/base-models")
 
     def create_training_client_from_state(self, *_: Any, **__: Any) -> NoReturn:
         raise NotSupportedError("resuming from a checkpoint is not supported yet")
@@ -183,7 +184,7 @@ class ServiceClient:
         _OPEN_CLIENTS.discard(self)
         self._gw.close()
 
-    def __enter__(self) -> "ServiceClient":
+    def __enter__(self) -> "PostTrainingClient":
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -194,7 +195,7 @@ class ServiceClient:
                 raise  # otherwise the with-body's own exception is the one to see
 
     def __repr__(self) -> str:
-        return f"ServiceClient({self._gw.base_url!r}, sessions={self._sessions})"
+        return f"PostTrainingClient({self._gw.base_url!r}, sessions={self._sessions})"
 
     def _open_session(
         self,
@@ -210,7 +211,7 @@ class ServiceClient:
             requirements["max_output_tokens"] = max_output_tokens
         session = self._gw.request(
             "POST",
-            "/platform/rl/sessions",
+            "/sessions",
             {"base_model": base_model, "requirements": requirements},
             idempotent=False,  # a blind retry could open a second session
         )
@@ -220,7 +221,7 @@ class ServiceClient:
         return session["session_id"]
 
     def _close_session(self, session_id: str) -> None:
-        self._gw.request("POST", f"/platform/rl/sessions/{session_id}/close")
+        self._gw.request("POST", f"/sessions/{session_id}/close")
         with self._lock:
             self._closed.add(session_id)
 
@@ -249,7 +250,10 @@ def _info(reply: Dict[str, Any]) -> GetInfoResponse:
 # Clients with sessions still open. Held strongly on purpose: a client that is
 # garbage-collected (say only its TrainingClient was kept) must still have its
 # sessions closed at exit.
-_OPEN_CLIENTS: Set[ServiceClient] = set()
+_OPEN_CLIENTS: Set[PostTrainingClient] = set()
+
+#: Tinker's name for the entry point, so ported scripts keep working.
+ServiceClient = PostTrainingClient
 
 
 @atexit.register

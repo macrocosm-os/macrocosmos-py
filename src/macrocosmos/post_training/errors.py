@@ -7,19 +7,19 @@ from typing import Any, Optional
 from macrocosmos.types._exceptions import MacrocosmosError
 
 
-class RLError(MacrocosmosError):
-    """Base class for every error raised by `macrocosmos.rl`."""
+class PostTrainingError(MacrocosmosError):
+    """Base class for every error raised by `macrocosmos.post_training`."""
 
 
-class APIConnectionError(RLError):
+class APIConnectionError(PostTrainingError):
     """The gateway could not be reached."""
 
 
-class APITimeoutError(RLError, TimeoutError):
+class APITimeoutError(PostTrainingError, TimeoutError):
     """A future did not resolve within its timeout."""
 
 
-class APIStatusError(RLError):
+class APIStatusError(PostTrainingError):
     """The gateway answered with an error status."""
 
     status_code: int = 0
@@ -70,11 +70,11 @@ class InternalServerError(APIStatusError):
     status_code = 500
 
 
-class NotSupportedError(RLError, NotImplementedError):
+class NotSupportedError(PostTrainingError, NotImplementedError):
     """A Tinker feature Macrocosmos doesn't offer yet."""
 
 
-class RequestFailedError(RLError):
+class RequestFailedError(PostTrainingError):
     """A queued job (training op or sampling request) finished in failure."""
 
     def __init__(self, message: str, *, handle: Optional[str] = None) -> None:

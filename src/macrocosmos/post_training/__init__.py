@@ -1,36 +1,37 @@
-"""Reinforcement learning on Macrocosmos, with Tinker's API.
+"""Post-training on Macrocosmos (LoRA fine-tuning with RL), with Tinker's API.
 
-    from macrocosmos import rl
-    from macrocosmos.rl import types
+    import macrocosmos as mc
+    from macrocosmos.post_training import types
 
-    with rl.ServiceClient() as service_client:           # key: MACROCOSMOS_RL_API_KEY
-        training_client = service_client.create_lora_training_client(
+    with mc.PostTrainingClient() as client:       # MACROCOSMOS_POST_TRAINING_API_KEY
+        training_client = client.create_lora_training_client(
             base_model="Qwen/Qwen3-8B", rank=32
         ).result()
         sampler = training_client.save_weights_and_get_sampling_client().result()
         result = sampler.sample(prompt, num_samples=8, sampling_params=params).result()
-        ...                                              # score the samples
+        ...                                       # score the samples
         training_client.forward_backward(data, loss_fn="importance_sampling")
         training_client.optim_step(types.AdamParams(learning_rate=1e-5)).result()
 
 Porting a Tinker script: change `import tinker` to
-`from macrocosmos import rl as tinker` and put the training loop inside
-`with tinker.ServiceClient() as service_client:`. For libraries that import
-`tinker` themselves, such as Tinker's cookbook, call `rl.compat.install()` first.
+`from macrocosmos import post_training as tinker` and put the training loop
+inside `with tinker.ServiceClient() as service_client:` (`ServiceClient` is
+`PostTrainingClient` under Tinker's name). For libraries that import `tinker`
+themselves, such as Tinker's cookbook, call `post_training.compat.install()` first.
 
-Install with `pip install "macrocosmos[rl]"`.
+Install with `pip install "macrocosmos[post-training]"`.
 """
 
 import sys
 
 if sys.version_info < (3, 9):  # pragma: no cover
-    raise ImportError("macrocosmos.rl needs Python 3.9 or newer")
+    raise ImportError("macrocosmos.post_training needs Python 3.9 or newer")
 
 try:
     import httpx  # noqa: F401
 except ImportError as e:  # pragma: no cover
     raise ImportError(
-        'macrocosmos.rl needs its extra: pip install "macrocosmos[rl]"'
+        'macrocosmos.post_training needs its extra: pip install "macrocosmos[post-training]"'
     ) from e
 
 from . import compat, types
@@ -48,12 +49,12 @@ from .errors import (
     PermissionDeniedError,
     RateLimitError,
     RequestFailedError,
-    RLError,
+    PostTrainingError,
     UnprocessableEntityError,
 )
 from .futures import APIFuture
 from .sampling_client import SamplingClient
-from .service_client import ServiceClient
+from .service_client import PostTrainingClient, ServiceClient
 from .training_client import TrainingClient
 from .types import (
     AdamParams,
@@ -74,9 +75,10 @@ from .types import (
     TensorData,
 )
 
-TinkerError = RLError  # so `except tinker.TinkerError` keeps working
+TinkerError = PostTrainingError  # so `except tinker.TinkerError` keeps working
 
 __all__ = [
+    "PostTrainingClient",
     "ServiceClient",
     "TrainingClient",
     "SamplingClient",
@@ -99,7 +101,7 @@ __all__ = [
     "SamplingParams",
     "StopReason",
     "TensorData",
-    "RLError",
+    "PostTrainingError",
     "TinkerError",
     "APIConnectionError",
     "APIStatusError",

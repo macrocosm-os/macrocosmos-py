@@ -25,7 +25,7 @@ class SamplingClient:
     """Samples from a session's model on Macrocosmos GPUs. Tinker's `SamplingClient`.
 
     Made by `TrainingClient.save_weights_and_get_sampling_client()` or
-    `ServiceClient.create_sampling_client()`.
+    `PostTrainingClient.create_sampling_client()`.
     """
 
     def __init__(
@@ -80,9 +80,9 @@ class SamplingClient:
                 f"a prompt of {len(entry['prompt_tokens'])} tokens is over the 16 KB request limit",
                 status_code=413,
             )
-        handle = self._gw.request(
-            "POST", "/platform/rl/inference", body, idempotent=False
-        )["handle"]
+        handle = self._gw.request("POST", "/inference", body, idempotent=False)[
+            "handle"
+        ]
         return APIFuture(
             lambda timeout: self._collect(handle, timeout),
             label=f"sample({num_samples})",
@@ -117,7 +117,7 @@ class SamplingClient:
     def _collect(self, handle: str, timeout: Optional[float]) -> SampleResponse:
         try:
             reply = poll(
-                lambda: self._gw.request("GET", f"/platform/rl/inference/{handle}"),
+                lambda: self._gw.request("GET", f"/inference/{handle}"),
                 lambda r: r.get("results") is not None,
                 timeout=DEFAULT_SAMPLE_TIMEOUT_S if timeout is None else timeout,
                 what=f"sampling {handle}",

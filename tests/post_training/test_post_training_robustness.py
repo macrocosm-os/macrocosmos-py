@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-from macrocosmos import rl
-from macrocosmos.rl import _http, types
+from macrocosmos import post_training
+from macrocosmos.post_training import _http, types
 
 from .fake_gateway import FakeGateway
 
@@ -25,7 +25,7 @@ def gw():
 
 @pytest.fixture
 def service(gw):
-    with rl.ServiceClient(
+    with post_training.PostTrainingClient(
         api_key="test-key", base_url="http://gw.test", transport=gw.transport
     ) as client:
         yield client
@@ -41,7 +41,7 @@ def test_reads_and_idempotent_writes_are_retried_on_503(gw, service):
 
 def test_opening_a_session_is_not_retried_so_no_second_session_leaks(gw, service):
     gw.fail_next(503)
-    with pytest.raises(rl.InternalServerError):
+    with pytest.raises(post_training.InternalServerError):
         service.create_lora_training_client(base_model=MODEL)
     assert len(gw.calls("POST", r"/platform/rl/sessions")) == 1
     assert gw.sessions == {}
@@ -50,14 +50,14 @@ def test_opening_a_session_is_not_retried_so_no_second_session_leaks(gw, service
 def test_submitting_samples_is_not_retried_so_nothing_is_paid_for_twice(gw, service):
     sampler = service.create_sampling_client(base_model=MODEL)
     gw.fail_next(503)
-    with pytest.raises(rl.InternalServerError):
+    with pytest.raises(post_training.InternalServerError):
         sampler.sample([1, 2, 3], num_samples=2)
     assert len(gw.calls("POST", r"/platform/rl/inference")) == 1
 
 
 def test_a_failed_model_create_releases_its_session_at_once(gw, service):
     gw.fail_next(None, 409)  # the session opens, creating its model fails
-    with pytest.raises(rl.ConflictError):
+    with pytest.raises(post_training.ConflictError):
         service.create_lora_training_client(base_model=MODEL)
     [session] = gw.sessions.values()
     assert session["state"] == "closed"
@@ -66,7 +66,7 @@ def test_a_failed_model_create_releases_its_session_at_once(gw, service):
 def test_a_failed_sample_raises_request_failed(gw, service):
     sampler = service.create_sampling_client(base_model=MODEL)
     gw.fail_sampling = "out of retries"
-    with pytest.raises(rl.RequestFailedError, match="out of retries"):
+    with pytest.raises(post_training.RequestFailedError, match="out of retries"):
         sampler.sample([1, 2, 3], num_samples=2).result()
 
 
@@ -77,9 +77,11 @@ def test_a_failed_job_raises_with_the_trainers_reason(gw, service):
     gw.jobs[handle].update(
         state="failed", error="TrainerRestarted: the trainer is at step 3"
     )
-    with pytest.raises(rl.RequestFailedError, match="TrainerRestarted"):
+    with pytest.raises(post_training.RequestFailedError, match="TrainerRestarted"):
         future.result()
-    with pytest.raises(rl.RequestFailedError):  # the error sticks to the future
+    with pytest.raises(
+        post_training.RequestFailedError
+    ):  # the error sticks to the future
         future.result()
 
 
@@ -145,12 +147,12 @@ def test_save_state_saves_the_adapter_and_warns_once(service):
 )
 def test_unsupported_features_say_so(service, call):
     trainer = service.create_lora_training_client(base_model=MODEL).result()
-    with pytest.raises(rl.NotSupportedError):
+    with pytest.raises(post_training.NotSupportedError):
         call(service, trainer)
 
 
 def test_closing_twice_and_the_repr_are_harmless(gw):
-    client = rl.ServiceClient(
+    client = post_training.PostTrainingClient(
         api_key="test-key", base_url="http://gw.test", transport=gw.transport
     )
     client.create_sampling_client(base_model=MODEL)

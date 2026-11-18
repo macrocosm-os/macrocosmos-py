@@ -32,7 +32,7 @@ _MAX_REPLAYS = 3
 class TrainingClient:
     """Trains a LoRA adapter on Macrocosmos trainer GPUs. Tinker's `TrainingClient`.
 
-    Made by `ServiceClient.create_lora_training_client()`. Every method returns
+    Made by `PostTrainingClient.create_lora_training_client()`. Every method returns
     an `APIFuture`. Calls are sent in the order they're made, so you can queue
     `forward_backward` and `optim_step` before waiting on either.
     """
@@ -51,7 +51,7 @@ class TrainingClient:
         ] = []  # forward_backward bodies since the last step
         self._last_step: Optional[APIFuture[OptimStepResponse]] = None
         self._submitter = ThreadPoolExecutor(
-            max_workers=1, thread_name_prefix="macrocosmos-rl-submit"
+            max_workers=1, thread_name_prefix="macrocosmos-post-training-submit"
         )
         self._warned_state = False
 
@@ -291,7 +291,7 @@ class TrainingClient:
         self._seq += 1
         reply = self._gw.request(
             "POST",
-            f"/platform/rl/models/{self.model_id}/{op}",
+            f"/models/{self.model_id}/{op}",
             {"seq_id": self._seq, **body},
         )
         return reply["handle"]

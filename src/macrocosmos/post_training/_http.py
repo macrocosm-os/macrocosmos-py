@@ -11,10 +11,23 @@ import httpx
 
 from macrocosmos import __package_name__, __version__
 
-from .errors import APIConnectionError, RLError, error_for_status
+from .errors import APIConnectionError, PostTrainingError, error_for_status
 
-API_KEY_ENV = "MACROCOSMOS_RL_API_KEY"
-BASE_URL_ENV = "MACROCOSMOS_RL_BASE_URL"
+API_KEY_ENV = "MACROCOSMOS_POST_TRAINING_API_KEY"
+BASE_URL_ENV = "MACROCOSMOS_POST_TRAINING_BASE_URL"
+# The post-training routes sit under this prefix on the gateway. The planned
+# standalone gateway serves them under `/v1`; moving there is this one line
+# (and the base URL).
+API_PREFIX = "/platform/rl"
+# Routes that sit outside the prefix on the current gateway.
+_OUTSIDE_PREFIX = {"/base-models": "/platform/base-models"}
+
+
+def url_path(path: str) -> str:
+    """The gateway path for a route, given relative to the prefix (`/sessions`)."""
+    return _OUTSIDE_PREFIX.get(path) or API_PREFIX + path
+
+
 # Request bodies over 16 KB are refused. Stay under that with some headroom.
 MAX_BODY_BYTES = 15 * 1024
 
@@ -50,7 +63,7 @@ class Gateway:
             )
         base_url = (base_url or os.environ.get(BASE_URL_ENV) or "").strip().rstrip("/")
         if not base_url:
-            raise RLError(f"No API URL: pass base_url= or set {BASE_URL_ENV}")
+            raise PostTrainingError(f"No API URL: pass base_url= or set {BASE_URL_ENV}")
         headers = {
             "X-API-Key": api_key,
             "x-client-id": __package_name__,
@@ -76,8 +89,8 @@ class Gateway:
         can't open a second session or pay for samples twice.
         """
         if self.closed:
-            raise RLError(
-                "this ServiceClient is closed; create a new one to keep going"
+            raise PostTrainingError(
+                "this client is closed; create a new one to keep going"
             )
         content = None if body is None else encode(body)
         headers = {"content-type": "application/json"} if content else None
@@ -85,7 +98,7 @@ class Gateway:
             last = attempt == _RETRIES
             try:
                 resp = self._http.request(
-                    method, path, content=content, headers=headers
+                    method, url_path(path), content=content, headers=headers
                 )
             except (httpx.ConnectError, httpx.ConnectTimeout) as e:
                 if last:

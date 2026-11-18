@@ -283,7 +283,7 @@ def datum_to_wire(datum: Any) -> Dict[str, Any]:
         tokens = to_ints(model_input)
     except ValueError as e:
         raise ValueError(
-            "macrocosmos.rl supports text inputs only (EncodedTextChunk); images and audio are not supported yet"
+            "macrocosmos.post_training supports text inputs only (EncodedTextChunk); images and audio are not supported yet"
         ) from e
     return {
         "tokens": tokens,

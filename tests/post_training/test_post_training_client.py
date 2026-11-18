@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from macrocosmos import rl
-from macrocosmos.rl import types
+from macrocosmos import post_training
+from macrocosmos.post_training import types
 
 from .fake_gateway import FakeGateway
 
@@ -18,7 +18,7 @@ def gw():
 
 @pytest.fixture
 def service(gw):
-    with rl.ServiceClient(
+    with post_training.PostTrainingClient(
         api_key="test-key", base_url="http://gw.test", transport=gw.transport
     ) as client:
         yield client
@@ -55,7 +55,7 @@ def test_create_opens_a_session_then_builds_the_model(gw, service):
 
 
 def test_leaving_the_with_block_closes_every_session(gw):
-    with rl.ServiceClient(
+    with post_training.PostTrainingClient(
         api_key="test-key", base_url="http://gw.test", transport=gw.transport
     ) as service:
         service.create_lora_training_client(base_model=MODEL).result()
@@ -65,7 +65,7 @@ def test_leaving_the_with_block_closes_every_session(gw):
 
 def test_an_error_in_the_block_still_closes_and_propagates(gw):
     with pytest.raises(KeyboardInterrupt):
-        with rl.ServiceClient(
+        with post_training.PostTrainingClient(
             api_key="test-key", base_url="http://gw.test", transport=gw.transport
         ) as service:
             service.create_lora_training_client(base_model=MODEL).result()
@@ -112,7 +112,7 @@ def test_a_big_batch_is_split_under_the_body_limit(gw, service):
 
 def test_one_datum_over_the_limit_fails_before_sending(service):
     trainer = service.create_lora_training_client(base_model=MODEL).result()
-    with pytest.raises(rl.PayloadTooLargeError, match="16 KB"):
+    with pytest.raises(post_training.PayloadTooLargeError, match="16 KB"):
         trainer.forward_backward([datum(4000)], loss_fn="importance_sampling")
 
 
@@ -151,7 +151,7 @@ def test_futures_can_be_awaited(service):
 def test_a_slow_job_times_out_and_can_be_waited_on_again(gw, service):
     gw.polls_until_done = 10**9
     future = service.create_lora_training_client(base_model=MODEL)
-    with pytest.raises(rl.APITimeoutError):
+    with pytest.raises(post_training.APITimeoutError):
         future.result(timeout=0.5)
     gw.polls_until_done = 0
     assert future.result().model_id.endswith("-m0")
@@ -162,15 +162,15 @@ def test_a_slow_job_times_out_and_can_be_waited_on_again(gw, service):
     [
         (
             lambda s: s.create_lora_training_client(base_model="nope/nope"),
-            rl.UnprocessableEntityError,
+            post_training.UnprocessableEntityError,
         ),
         (
-            lambda s: rl.ServiceClient(
+            lambda s: post_training.PostTrainingClient(
                 api_key="wrong-key",
                 base_url="http://gw.test",
                 transport=s._gw._http._transport,
             ).get_server_capabilities(),
-            rl.AuthenticationError,
+            post_training.AuthenticationError,
         ),
     ],
 )
@@ -182,17 +182,32 @@ def test_gateway_errors_are_typed(service, call, error):
 def test_a_closed_session_is_a_conflict(gw, service):
     trainer = service.create_lora_training_client(base_model=MODEL).result()
     gw.sessions[trainer.session_id]["state"] = "closed"
-    with pytest.raises(rl.ConflictError, match="closed"):
+    with pytest.raises(post_training.ConflictError, match="closed"):
         trainer.forward_backward([datum(4)], loss_fn="importance_sampling")
 
 
 def test_no_api_key_is_a_clear_error(monkeypatch):
-    monkeypatch.delenv("MACROCOSMOS_RL_API_KEY", raising=False)
-    with pytest.raises(rl.AuthenticationError, match="MACROCOSMOS_RL_API_KEY"):
-        rl.ServiceClient()
+    monkeypatch.delenv("MACROCOSMOS_POST_TRAINING_API_KEY", raising=False)
+    with pytest.raises(
+        post_training.AuthenticationError, match="MACROCOSMOS_POST_TRAINING_API_KEY"
+    ):
+        post_training.PostTrainingClient()
 
 
 def test_no_api_url_is_a_clear_error(monkeypatch):
-    monkeypatch.delenv("MACROCOSMOS_RL_BASE_URL", raising=False)
-    with pytest.raises(rl.RLError, match="MACROCOSMOS_RL_BASE_URL"):
-        rl.ServiceClient(api_key="test-key")
+    monkeypatch.delenv("MACROCOSMOS_POST_TRAINING_BASE_URL", raising=False)
+    with pytest.raises(
+        post_training.PostTrainingError, match="MACROCOSMOS_POST_TRAINING_BASE_URL"
+    ):
+        post_training.PostTrainingClient(api_key="test-key")
+
+
+def test_the_top_level_name_and_tinkers_name_are_the_same_client():
+    import macrocosmos as mc
+
+    assert (
+        mc.PostTrainingClient
+        is post_training.PostTrainingClient
+        is post_training.ServiceClient
+    )
+    assert mc.post_training is post_training

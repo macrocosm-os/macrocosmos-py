@@ -1,13 +1,13 @@
 """Run code that does `import tinker` on Macrocosmos, unchanged.
 
-    from macrocosmos.rl import compat
+    from macrocosmos.post_training import compat
     compat.install()        # before anything imports tinker
 
-    import tinker            # now macrocosmos.rl
+    import tinker            # now macrocosmos.post_training
     from tinker_cookbook import renderers   # its `import tinker` gets ours too
 
 For libraries such as Tinker's cookbook that import `tinker` themselves. Your
-own scripts can simply use `from macrocosmos import rl as tinker`.
+own scripts can simply use `from macrocosmos import post_training as tinker`.
 """
 
 from __future__ import annotations
@@ -21,21 +21,21 @@ from . import types as _types
 
 
 def install(*, replace: bool = False) -> None:
-    """Make `import tinker` (and `tinker.types`) resolve to `macrocosmos.rl`.
+    """Make `import tinker` (and `tinker.types`) resolve to `macrocosmos.post_training`.
 
     If the real `tinker` is already imported this refuses, unless `replace=True`,
     because objects built from the two would not mix.
     """
-    from macrocosmos import rl
+    from macrocosmos import post_training
 
     existing = sys.modules.get("tinker")
-    if existing is rl:
+    if existing is post_training:
         return
     if existing is not None and not replace:
         raise RuntimeError(
             "the real `tinker` is already imported; call compat.install() first, or pass replace=True"
         )
-    sys.modules["tinker"] = rl
+    sys.modules["tinker"] = post_training
     sys.modules["tinker.types"] = _types
     sys.modules["tinker.types.tensor_data"] = (
         _types  # `from tinker.types.tensor_data import TensorData`
@@ -57,15 +57,16 @@ def install(*, replace: bool = False) -> None:
     )
     if existing is not None:
         warnings.warn(
-            "replaced an already imported `tinker` with macrocosmos.rl", stacklevel=2
+            "replaced an already imported `tinker` with macrocosmos.post_training",
+            stacklevel=2,
         )
 
 
 def uninstall() -> None:
     """Undo `install()`."""
-    from macrocosmos import rl
+    from macrocosmos import post_training
 
-    if sys.modules.get("tinker") is rl:
+    if sys.modules.get("tinker") is post_training:
         for name in [
             n for n in sys.modules if n == "tinker" or n.startswith("tinker.")
         ]:
