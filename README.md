@@ -186,6 +186,7 @@ Differences from Tinker:
 | Sessions | Created and released for you | Opened by `create_lora_training_client`, closed when the `with` block ends |
 | GPUs | Managed for you | Managed for you |
 | Saved weights | `tinker://` paths | `mc://` paths |
+| Sampling after a save | Samples the adapter just saved | Samples the adapter the session currently serves; check `SampleResponse.policy_version` (pinning a saved adapter is coming) |
 | Models per session | Many | One; each training client opens its own session |
 | Loss functions | Built in and custom | Built in (`importance_sampling`, `ppo`, `cispo`, `cross_entropy`, …) |
 | Checkpoints | `save_state` / `load_state` | `save_state` saves the adapter only; resuming is not supported yet |

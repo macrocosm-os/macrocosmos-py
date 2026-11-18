@@ -14,12 +14,23 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Generator, Generic, Optional, TypeVar
 
-from .errors import APITimeoutError, RequestFailedError
+from .errors import (
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+    RateLimitError,
+    RequestFailedError,
+)
 
 T = TypeVar("T")
 U = TypeVar("U")
 
 _NOT_YET = object()
+
+# Errors that say nothing about the call itself (the network, a busy or
+# restarting gateway, a timeout), so a future doesn't keep them: the next
+# `.result()` tries again. Anything else is final.
+_TRANSIENT = (APITimeoutError, APIConnectionError, InternalServerError, RateLimitError)
 
 # Awaited futures wait in these threads. Waiting is mostly sleeping between
 # polls, so a generous pool lets many samples be gathered at once.
@@ -33,7 +44,12 @@ class APIFuture(Generic[T]):
 
     `future.result(timeout=None)` waits for it and returns it, or raises the
     call's error. `await future` does the same without blocking the event loop.
-    A timeout leaves the call running: ask again to keep waiting.
+    A timeout leaves the call running: ask again to keep waiting. So do
+    network errors and a busy gateway (5xx, 429): only a final failure, such as
+    the job failing, is kept and raised again on every later call.
+
+    Awaited futures wait in a shared pool of 128 threads, so gathering more than
+    that many at once queues the rest.
     """
 
     def __init__(
@@ -63,10 +79,13 @@ class APIFuture(Generic[T]):
                 )
                 try:
                     self._value = self._resolve(remaining)
-                except APITimeoutError:
-                    raise  # not final: a later call may wait longer
-                except Exception as e:  # noqa: BLE001 - kept, and raised to every caller
+                except _TRANSIENT:
+                    raise  # not final: the call may still succeed, so a later call retries
+                except Exception as e:  # noqa: BLE001 - final: kept, and raised to every caller
                     self._error = e
+                # Settled: drop the closure, so what it held (a step's data, the
+                # previous step's future) can be freed.
+                self._resolve = None  # type: ignore[assignment]
             if self._error is not None:
                 raise self._error
             return self._value

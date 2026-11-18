@@ -14,8 +14,9 @@ from .training_client import DEFAULT_TRAIN_TIMEOUT_S, TrainingClient
 from .types import GetInfoResponse, ModelData
 
 # Users choose the base model, LoRA rank and max tokens; the platform decides
-# the workers. Gateways from before that change still require `max_workers`:
-# for them only, the session is requested again with this value.
+# the workers. Until the gateway drops `max_workers` from its session request,
+# it answers the first session with a 422; the client then sends this value,
+# and keeps sending it for that client's later sessions.
 LEGACY_MAX_WORKERS = 4
 
 
@@ -55,6 +56,7 @@ class PostTrainingClient:
         self._sessions: List[str] = []
         self._closed: Set[str] = set()
         self._lock = threading.Lock()
+        self._send_max_workers = False  # learned from the gateway; see _open_session
 
     # --- clients --------------------------------------------------------------------
 
@@ -73,6 +75,10 @@ class PostTrainingClient:
         """Open a session and create a LoRA adapter on `base_model`.
 
         `max_output_tokens` is the longest completion the session will be asked for.
+
+        The session opens and the model is requested when this is called, so
+        errors such as an unknown base model are raised here. `.result()` waits
+        for the model to be built and returns its `TrainingClient`.
         """
         session_id = self._open_session(
             base_model, lora_rank=rank, max_output_tokens=max_output_tokens
@@ -209,14 +215,20 @@ class PostTrainingClient:
             requirements["max_lora_rank"] = lora_rank
         if max_output_tokens is not None:
             requirements["max_output_tokens"] = max_output_tokens
+        if self._send_max_workers:
+            requirements["max_workers"] = LEGACY_MAX_WORKERS
         body = {"base_model": base_model, "requirements": requirements}
         try:
-            # Not retried blindly: a retry could open a second session.
+            # Not retried blindly: a retry could open a second session. If the
+            # connection drops after sending, the session may exist anyway; the
+            # gateway's idle timeout closes it.
             session = self._gw.request("POST", "/sessions", body, idempotent=False)
         except UnprocessableEntityError as e:
-            if not _missing_field(e, "max_workers"):
+            if self._send_max_workers or not _missing_field(e, "max_workers"):
                 raise
             # A 422 opened nothing, so asking again can't leave a second session.
+            # Remember it, so later sessions ask once.
+            self._send_max_workers = True
             requirements["max_workers"] = LEGACY_MAX_WORKERS
             session = self._gw.request("POST", "/sessions", body, idempotent=False)
         with self._lock:
@@ -225,7 +237,11 @@ class PostTrainingClient:
         return session["session_id"]
 
     def _close_session(self, session_id: str) -> None:
-        self._gw.request("POST", f"/sessions/{session_id}/close")
+        # Short and retried once: this runs on Ctrl-C and at exit, where waiting
+        # minutes would be worse than leaving it to the gateway's idle timeout.
+        self._gw.request(
+            "POST", f"/sessions/{session_id}/close", retries=1, timeout=10.0
+        )
         with self._lock:
             self._closed.add(session_id)
 

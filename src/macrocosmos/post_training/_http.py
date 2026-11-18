@@ -78,7 +78,14 @@ class Gateway:
         )
 
     def request(
-        self, method: str, path: str, body: Any = None, *, idempotent: bool = True
+        self,
+        method: str,
+        path: str,
+        body: Any = None,
+        *,
+        idempotent: bool = True,
+        retries: int = _RETRIES,
+        timeout: Optional[float] = None,
     ) -> Any:
         """Send one request; return the decoded JSON or raise a typed error.
 
@@ -87,6 +94,9 @@ class Gateway:
         and 502/503/504. A non-idempotent write (opening a session, submitting
         samples) is retried only when it never reached the server, so a retry
         can't open a second session or pay for samples twice.
+
+        `retries` and `timeout` (seconds) narrow this for calls that must not
+        linger, such as closing sessions at exit.
         """
         if self.closed:
             raise PostTrainingError(
@@ -94,11 +104,12 @@ class Gateway:
             )
         content = None if body is None else encode(body)
         headers = {"content-type": "application/json"} if content else None
-        for attempt in range(_RETRIES + 1):
-            last = attempt == _RETRIES
+        extra = {} if timeout is None else {"timeout": timeout}
+        for attempt in range(retries + 1):
+            last = attempt == retries
             try:
                 resp = self._http.request(
-                    method, url_path(path), content=content, headers=headers
+                    method, url_path(path), content=content, headers=headers, **extra
                 )
             except (httpx.ConnectError, httpx.ConnectTimeout) as e:
                 if last:

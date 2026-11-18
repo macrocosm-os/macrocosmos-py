@@ -26,6 +26,9 @@ class SamplingClient:
 
     Made by `TrainingClient.save_weights_and_get_sampling_client()` or
     `PostTrainingClient.create_sampling_client()`.
+
+    It samples with the adapter the session currently serves; see
+    `save_weights_and_get_sampling_client` for what that means after a save.
     """
 
     def __init__(

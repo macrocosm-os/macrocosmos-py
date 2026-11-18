@@ -103,7 +103,14 @@ class TrainingClient:
         *,
         adam_params: Optional[AdamParams] = None,
     ) -> APIFuture[OptimStepResponse]:
-        """Apply the accumulated gradients with Adam."""
+        """Apply the accumulated gradients with Adam.
+
+        Steps apply in order: each one waits for the step before it. If the
+        trainer lost a step's gradients, they're sent again; when later steps'
+        `forward_backward` calls were already queued, those reach the trainer
+        first, so for reliable recovery wait for each `optim_step` before
+        queuing the next step's data.
+        """
         params = _asdict(adam_params or optim_params or AdamParams())
         with self._lock:
             at_step, step_data = self._step, list(self._unstepped)
@@ -117,13 +124,17 @@ class TrainingClient:
         resent: Optional[List[str]] = None
 
         def resolve(timeout: Optional[float]) -> OptimStepResponse:
-            nonlocal handle, replays, resent
+            nonlocal handle, replays, resent, previous
             deadline = _deadline(timeout)
             if previous is not None:
                 try:  # steps apply in order; an earlier step's error belongs to its own caller
                     previous.result(_remaining(deadline))
                 except Exception:  # noqa: BLE001
                     pass
+                if (
+                    previous.done()
+                ):  # settled: don't keep the chain of earlier steps alive
+                    previous = None
             while True:
                 if resent is not None:
                     for h in resent:
@@ -174,7 +185,14 @@ class TrainingClient:
     def save_weights_and_get_sampling_client(
         self, name: Optional[str] = None, **_: Any
     ) -> APIFuture[SamplingClient]:
-        """Save the adapter and return a sampler for it."""
+        """Save the adapter and return a sampler for this session.
+
+        For now a sampler answers with whatever adapter the session currently
+        serves, not necessarily the one just saved: the gateway can't yet be told
+        which saved adapter to sample. Each `SampleResponse.policy_version` says
+        which adapter answered, and a sampler warns once when it differs from the
+        one it was made for.
+        """
         return self.save_weights_for_sampler(name).then(
             lambda saved: self.create_sampling_client(
                 saved.path, version=saved.version

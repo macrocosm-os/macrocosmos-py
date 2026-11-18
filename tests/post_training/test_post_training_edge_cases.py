@@ -177,3 +177,44 @@ def test_dict_datums_with_numpy_like_values_are_converted():
         }
     )
     assert wire == {"tokens": [1, 2], "inputs": {"target_tokens": [2, 3]}}
+
+
+def test_a_future_recovers_after_transient_gateway_errors(gw):
+    with client(gw) as service:
+        trainer = service.create_lora_training_client(base_model=MODEL).result()
+        future = trainer.forward_backward([datum()], "importance_sampling")
+        gw.fail_next(*[503] * 5)  # every retry of the first poll fails
+        with pytest.raises(post_training.InternalServerError):
+            future.result()
+        assert not future.done()
+        assert len(future.result().loss_fn_outputs) == 1  # the job was fine all along
+
+
+def test_finished_steps_are_freed(gw):
+    import weakref
+
+    with client(gw) as service:
+        trainer = service.create_lora_training_client(base_model=MODEL).result()
+        trainer.forward_backward([datum()], "importance_sampling")
+        first = weakref.ref(trainer.optim_step(types.AdamParams()))
+        for _ in range(3):
+            trainer.forward_backward([datum()], "importance_sampling")
+            trainer.optim_step(types.AdamParams()).result()
+        gc.collect()
+        assert first() is None  # nothing keeps the first step (or its data) alive
+
+
+def test_a_gateway_that_needs_max_workers_is_asked_once_per_client():
+    gw = FakeGateway(legacy=True)
+    with client(gw) as service:
+        service.create_sampling_client(base_model=MODEL)
+        service.create_sampling_client(base_model=MODEL)
+    sent = [
+        json.loads(r.content)["requirements"]
+        for r in gw.calls("POST", r"/platform/rl/sessions")
+    ]
+    assert len(sent) == 3  # 422 then 201, then straight to 201
+    assert (
+        "max_workers" not in sent[0]
+        and sent[1]["max_workers"] == sent[2]["max_workers"] == 4
+    )
