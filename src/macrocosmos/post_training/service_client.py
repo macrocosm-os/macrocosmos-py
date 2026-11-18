@@ -7,16 +7,16 @@ from typing import Any, Dict, List, NoReturn, Optional, Set
 import httpx
 
 from ._http import Gateway
-from .errors import NotSupportedError, RequestFailedError
+from .errors import NotSupportedError, RequestFailedError, UnprocessableEntityError
 from .futures import _WAITERS, APIFuture, run_in, wait_for_job
 from .sampling_client import SamplingClient
 from .training_client import DEFAULT_TRAIN_TIMEOUT_S, TrainingClient
 from .types import GetInfoResponse, ModelData
 
-# How many copies of the model a session may scale to for sampling. The platform
-# decides how many actually run, from load, up to this cap; users don't pick
-# GPUs, as on Tinker. Sent because the gateway requires it for now.
-SESSION_MAX_WORKERS = 4
+# Users choose the base model, LoRA rank and max tokens; the platform decides
+# the workers. Gateways from before that change still require `max_workers`:
+# for them only, the session is requested again with this value.
+LEGACY_MAX_WORKERS = 4
 
 
 class PostTrainingClient:
@@ -204,17 +204,21 @@ class PostTrainingClient:
         lora_rank: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
     ) -> str:
-        requirements: Dict[str, Any] = {"max_workers": SESSION_MAX_WORKERS}
+        requirements: Dict[str, Any] = {}
         if lora_rank is not None:
             requirements["max_lora_rank"] = lora_rank
         if max_output_tokens is not None:
             requirements["max_output_tokens"] = max_output_tokens
-        session = self._gw.request(
-            "POST",
-            "/sessions",
-            {"base_model": base_model, "requirements": requirements},
-            idempotent=False,  # a blind retry could open a second session
-        )
+        body = {"base_model": base_model, "requirements": requirements}
+        try:
+            # Not retried blindly: a retry could open a second session.
+            session = self._gw.request("POST", "/sessions", body, idempotent=False)
+        except UnprocessableEntityError as e:
+            if not _missing_field(e, "max_workers"):
+                raise
+            # A 422 opened nothing, so asking again can't leave a second session.
+            requirements["max_workers"] = LEGACY_MAX_WORKERS
+            session = self._gw.request("POST", "/sessions", body, idempotent=False)
         with self._lock:
             self._sessions.append(session["session_id"])
             _OPEN_CLIENTS.add(self)
@@ -231,6 +235,17 @@ class PostTrainingClient:
             self._close_session(session_id)
         except Exception:  # noqa: BLE001 - close() and exit try again
             pass
+
+
+def _missing_field(error: UnprocessableEntityError, field: str) -> bool:
+    """Whether a 422 says the request lacked `field` (FastAPI's validation detail)."""
+    detail = error.body.get("detail") if isinstance(error.body, dict) else None
+    return isinstance(detail, list) and any(
+        isinstance(d, dict)
+        and d.get("type") == "missing"
+        and (d.get("loc") or [])[-1:] == [field]
+        for d in detail
+    )
 
 
 def _info(reply: Dict[str, Any]) -> GetInfoResponse:

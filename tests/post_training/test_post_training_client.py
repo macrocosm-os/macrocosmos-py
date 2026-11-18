@@ -46,7 +46,7 @@ def test_create_opens_a_session_then_builds_the_model(gw, service):
     [opened] = gw.calls("POST", r"/platform/rl/sessions")
     assert body(opened) == {
         "base_model": MODEL,
-        "requirements": {"max_workers": 4, "max_lora_rank": 16},
+        "requirements": {"max_lora_rank": 16},
     }
     [created] = gw.calls("POST", r"/platform/rl/sessions/.+/models")
     assert body(created)["lora"]["rank"] == 16
@@ -211,3 +211,27 @@ def test_the_top_level_name_and_tinkers_name_are_the_same_client():
         is post_training.ServiceClient
     )
     assert mc.post_training is post_training
+
+
+def test_sessions_carry_only_what_the_user_chooses(gw, service):
+    service.create_lora_training_client(
+        base_model=MODEL, rank=8, max_output_tokens=512
+    ).result()
+    [opened] = gw.calls("POST", r"/platform/rl/sessions")
+    assert body(opened)["requirements"] == {
+        "max_lora_rank": 8,
+        "max_output_tokens": 512,
+    }
+
+
+def test_a_gateway_that_still_requires_max_workers_gets_it_on_a_second_ask():
+    gw = FakeGateway(legacy=True)
+    with post_training.PostTrainingClient(
+        api_key="test-key", base_url="http://gw.test", transport=gw.transport
+    ) as client:
+        client.create_lora_training_client(base_model=MODEL).result()
+    first, second = (
+        body(r)["requirements"] for r in gw.calls("POST", r"/platform/rl/sessions")
+    )
+    assert "max_workers" not in first and second["max_workers"] == 4
+    assert len(gw.sessions) == 1  # the refused ask opened nothing

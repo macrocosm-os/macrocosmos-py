@@ -166,7 +166,9 @@ with mc.PostTrainingClient() as client:
         training_client.optim_step(types.AdamParams(learning_rate=4e-5)).result()
 ```
 
-A complete loop is in [`examples/post_training_loop.py`](examples/post_training_loop.py).
+A complete loop is in [`examples/post_training_loop.py`](examples/post_training_loop.py). Its settings (model, batch size, group size, steps, learning rate, LoRA rank, max tokens) live in one `Config` dataclass and can be overridden from the command line: `python examples/post_training_loop.py group_size=16 max_steps=20`.
+
+A session takes three settings from you: the base model, the LoRA rank (`rank=`) and the longest completion you'll sample (`max_output_tokens=`). How many GPUs serve it is up to the platform.
 
 ### Migrating from Tinker
 

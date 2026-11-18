@@ -25,8 +25,10 @@ class FakeGateway:
         models=("Qwen/Qwen3-4B", "Qwen/Qwen3-8B"),
         polls_until_done: int = 1,
         api_key: str = "test-key",
+        legacy: bool = False,
     ) -> None:
         self.models = list(models)
+        self.legacy = legacy  # a gateway that still requires requirements.max_workers
         self.polls_until_done = polls_until_done
         self.api_key = api_key
         self.sessions: Dict[str, Dict[str, Any]] = {}
@@ -112,9 +114,21 @@ class FakeGateway:
     def _open(self, body):
         if body["base_model"] not in self.models:
             return _err(422, f"base model {body['base_model']} is not registered")
+        if self.legacy and "max_workers" not in body["requirements"]:
+            return httpx.Response(
+                422,
+                json={
+                    "detail": [
+                        {
+                            "type": "missing",
+                            "loc": ["body", "requirements", "max_workers"],
+                            "msg": "Field required",
+                        }
+                    ]
+                },
+            )
         sid = f"rls-{next(self._ids):024x}"
         req = {
-            "min_workers": 1,
             "max_output_tokens": None,
             "max_lora_rank": None,
             **body["requirements"],
