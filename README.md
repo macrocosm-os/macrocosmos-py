@@ -180,7 +180,7 @@ Differences from Tinker:
 | | Tinker | `macrocosmos.rl` |
 |---|---|---|
 | Sessions | Created and released for you | Opened by `create_lora_training_client`, closed when the `with` block ends |
-| GPU limit | Managed for you | `create_lora_training_client(..., max_gpus=N)` |
+| GPUs | Managed for you | Managed for you |
 | Saved weights | `tinker://` paths | `mc://` paths |
 | Models per session | Many | One; each training client opens its own session |
 | Loss functions | Built in and custom | Built in (`importance_sampling`, `ppo`, `cispo`, `cross_entropy`, …) |

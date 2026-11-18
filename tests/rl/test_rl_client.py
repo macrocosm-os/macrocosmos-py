@@ -41,14 +41,12 @@ def datum(n_tokens: int) -> types.Datum:
 
 
 def test_create_opens_a_session_then_builds_the_model(gw, service):
-    trainer = service.create_lora_training_client(
-        base_model=MODEL, rank=16, max_gpus=2
-    ).result()
+    trainer = service.create_lora_training_client(base_model=MODEL, rank=16).result()
 
     [opened] = gw.calls("POST", r"/platform/rl/sessions")
     assert body(opened) == {
         "base_model": MODEL,
-        "requirements": {"max_workers": 2, "max_lora_rank": 16},
+        "requirements": {"max_workers": 4, "max_lora_rank": 16},
     }
     [created] = gw.calls("POST", r"/platform/rl/sessions/.+/models")
     assert body(created)["lora"]["rank"] == 16

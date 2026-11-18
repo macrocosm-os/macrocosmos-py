@@ -13,6 +13,11 @@ from .sampling_client import SamplingClient
 from .training_client import DEFAULT_TRAIN_TIMEOUT_S, TrainingClient
 from .types import GetInfoResponse, ModelData
 
+# How many copies of the model a session may scale to for sampling. The platform
+# decides how many actually run, from load, up to this cap; users don't pick
+# GPUs, as on Tinker. Sent because the gateway requires it for now.
+SESSION_MAX_WORKERS = 4
+
 
 class ServiceClient:
     """The entry point, as on Tinker. Owns every session it opens.
@@ -59,20 +64,15 @@ class ServiceClient:
         train_attn: bool = True,
         train_unembed: bool = True,
         *,
-        max_gpus: int = 1,
         max_output_tokens: Optional[int] = None,
         **_: Any,
     ) -> APIFuture[TrainingClient]:
         """Open a session and create a LoRA adapter on `base_model`.
 
-        `max_gpus` caps how many rollout GPUs the session may scale to, and
-        `max_output_tokens` the longest completion it will be asked for.
+        `max_output_tokens` is the longest completion the session will be asked for.
         """
         session_id = self._open_session(
-            base_model,
-            max_gpus=max_gpus,
-            lora_rank=rank,
-            max_output_tokens=max_output_tokens,
+            base_model, lora_rank=rank, max_output_tokens=max_output_tokens
         )
         lora: Dict[str, Any] = {
             "rank": rank,
@@ -116,8 +116,6 @@ class ServiceClient:
         self,
         model_path: Optional[str] = None,
         base_model: Optional[str] = None,
-        *,
-        max_gpus: int = 1,
         **_: Any,
     ) -> SamplingClient:
         """A sampler on a base model, in a session of its own."""
@@ -126,7 +124,7 @@ class ServiceClient:
                 "pass base_model=; to sample a trained adapter, use "
                 "training_client.save_weights_and_get_sampling_client()"
             )
-        session_id = self._open_session(base_model, max_gpus=max_gpus)
+        session_id = self._open_session(base_model)
         return SamplingClient(
             self._gw, session_id, base_model=base_model, model_path=model_path
         )
@@ -202,11 +200,10 @@ class ServiceClient:
         self,
         base_model: str,
         *,
-        max_gpus: int,
         lora_rank: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
     ) -> str:
-        requirements: Dict[str, Any] = {"max_workers": max_gpus}
+        requirements: Dict[str, Any] = {"max_workers": SESSION_MAX_WORKERS}
         if lora_rank is not None:
             requirements["max_lora_rank"] = lora_rank
         if max_output_tokens is not None:
