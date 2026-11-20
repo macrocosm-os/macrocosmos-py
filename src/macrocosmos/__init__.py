@@ -34,3 +34,14 @@ __all__ = [
     "LoggerClient",
     "AsyncLoggerClient",
 ]
+
+
+def __getattr__(name: str):
+    # Post-training needs its extra (`pip install "macrocosmos[post-training]"`), so
+    # it loads on first use: `import macrocosmos` keeps working without it.
+    if name in ("PostTrainingClient", "post_training"):
+        import importlib
+
+        module = importlib.import_module(".post_training", __name__)
+        return module if name == "post_training" else module.PostTrainingClient
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
