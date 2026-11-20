@@ -142,7 +142,7 @@ def test_save_state_saves_the_adapter_and_warns_once(service):
         lambda s, t: t.load_state("mc://x"),
         lambda s, t: t.create_sampling_client().compute_logprobs([1]),
         lambda s, t: s.create_training_client_from_state("mc://x"),
-        lambda s, t: s.create_rest_client().list_checkpoints("run"),
+        lambda s, t: s.create_rest_client().list_user_checkpoints(),
     ],
 )
 def test_unsupported_features_say_so(service, call):

@@ -41,6 +41,7 @@ class FakeGateway:
         self.fail_sampling: Optional[str] = None
         self.hold: set = set()
         self.adapters: Dict[str, Dict[str, bytes]] = {}  # mc:// path -> files
+        self.adapter_sha256: Dict[str, Dict[str, str]] = {}
         self.storage_requests: List[httpx.Request] = []
         self.downloads = True  # False: a gateway without the download route  # ops whose new jobs stay pending until release()
         self.transport = httpx.MockTransport(self._handle)
@@ -102,7 +103,12 @@ class FakeGateway:
                 self._op,
             ),
             (r"/platform/rl/training/([^/]+)", "GET", self._job),
-            (r"/platform/rl/adapters/urls", "POST", self._adapter_urls),
+            (r"/platform/rl/models/([^/]+)/checkpoints", "GET", self._checkpoints),
+            (
+                r"/platform/rl/models/([^/]+)/checkpoints/(.+)/download_urls",
+                "GET",
+                self._download_urls,
+            ),
             (r"/platform/rl/inference", "POST", self._infer),
             (r"/platform/rl/inference/([^/]+)", "GET", self._job_results),
         ]
@@ -322,22 +328,55 @@ class FakeGateway:
         )
 
     def _store_adapter(self, path):
-        self.adapters[path] = _adapter_files(path)
+        import hashlib
 
-    def _adapter_urls(self, body):
+        self.adapters[path] = _adapter_files(path)
+        # The manifest's hashes are fixed at save time, as the trainer writes them.
+        self.adapter_sha256[path] = {
+            n: hashlib.sha256(b).hexdigest() for n, b in self.adapters[path].items()
+        }
+
+    def _owned_model(self, model_id):
+        session = self._session(model_id.rsplit("-m", 1)[0])
+        return session if session is not None and session["model"] == model_id else None
+
+    def _checkpoints(self, _body, model_id):
         if not self.downloads:
             return _err(404, "Not Found")
-        path = body["path"]
-        model_id = path[len("mc://") :].split("/", 1)[0]
-        session = self._session(model_id.rsplit("-m", 1)[0])
-        if path not in self.adapters or session is None:
-            return _err(404, "adapter not found")
+        if self._owned_model(model_id) is None:
+            return _err(404, "model not found")
+        prefix = f"mc://{model_id}/"
+        items = [
+            {
+                "checkpoint_id": path[len(prefix) :],
+                "checkpoint_type": "sampler",
+                "time": "2026-11-20T10:00:00Z",
+                "tinker_path": path,
+                "size_bytes": sum(len(b) for b in files.values()),
+                "expires_at": "2026-11-27T10:00:00Z",
+            }
+            for path, files in self.adapters.items()
+            if path.startswith(prefix)
+        ]
+        return _ok({"checkpoints": items, "cursor": None})
+
+    def _download_urls(self, _body, model_id, checkpoint_id):
+        if not self.downloads:
+            return _err(404, "Not Found")
+        path = f"mc://{model_id}/{checkpoint_id}"
+        if self._owned_model(model_id) is None:
+            return _err(404, "model not found")
+        if path not in self.adapters:
+            return _err(404, "checkpoint not found")
         key = path[len("mc://") :]
-        urls = {
-            name: f"http://storage.test/{key}/{name}?sig=fake"
-            for name in self.adapters[path]
-        }
-        return _ok({"path": path, "urls": urls, "expires_at": 4102444800.0})
+        files = self.adapters[path]
+        return _ok(
+            {
+                "urls": {n: f"http://storage.test/{key}/{n}?sig=fake" for n in files},
+                "expires": "2026-11-20T11:00:00Z",
+                "sha256": self.adapter_sha256[path],
+            }
+        )
 
     def _storage(self, request):
         self.storage_requests.append(request)
@@ -363,14 +402,9 @@ def _err(status, detail):
 def _adapter_files(path: str) -> Dict[str, bytes]:
     import hashlib
 
-    files = {
+    return {
         "adapter_config.json": json.dumps(
             {"r": 32, "peft_type": "LORA", "for": path}
         ).encode(),
         "adapter_model.safetensors": hashlib.sha256(path.encode()).digest() * 64,
-    }
-    sums = {n: hashlib.sha256(b).hexdigest() for n, b in files.items()}
-    return {
-        **files,
-        "manifest.json": json.dumps({"format": "peft", "sha256": sums}).encode(),
     }

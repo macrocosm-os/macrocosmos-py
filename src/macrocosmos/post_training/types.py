@@ -8,6 +8,7 @@ so code built for Tinker, the cookbook included, can pass what it already has.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from datetime import datetime
 from typing import Any, Dict, List, Literal, Mapping, Optional, Sequence, Union
 
 LossFnType = Literal[
@@ -225,9 +226,32 @@ class SaveWeightsExternalResponse:
 @dataclass(frozen=True)
 class ExternalWeightsUrlsResponse:
     urls: Dict[str, str]
-    """Each file of the adapter and a signed URL to download it."""
-    expires_at: Optional[float] = None
-    """When the URLs stop working (Unix seconds)."""
+    """Each file of the adapter (relative path) and a signed URL to download it."""
+    expires: Optional[datetime] = None
+    """When the URLs stop working."""
+    sha256: Dict[str, str] = field(default_factory=dict)
+    """Each file's hash, to check the download (not on Tinker's response)."""
+
+
+@dataclass(frozen=True)
+class Checkpoint:
+    """A saved adapter, in Tinker's shape. `tinker_path` is its `mc://` path."""
+
+    checkpoint_id: str
+    checkpoint_type: str
+    time: Optional[datetime]
+    tinker_path: str
+    size_bytes: Optional[int] = None
+    public: bool = False
+    user_metadata: Optional[Dict[str, str]] = None
+    expires_at: Optional[datetime] = None
+    base_model: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class CheckpointsListResponse:
+    checkpoints: List[Checkpoint]
+    cursor: Any = None
 
 
 @dataclass(frozen=True)
