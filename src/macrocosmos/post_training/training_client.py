@@ -19,6 +19,7 @@ from .types import (
     LossFnType,
     OptimStepResponse,
     SaveWeightsForSamplerResponse,
+    SaveWeightsExternalResponse,
     SaveWeightsResponse,
     TensorData,
     datum_to_wire,
@@ -215,6 +216,22 @@ class TrainingClient:
             version=version,
             tokenizer_id=self._info.model_data.tokenizer_id,
         )
+
+    def save_weights_external(
+        self, name: str, ttl_seconds: Optional[float] = None, **_: Any
+    ) -> APIFuture[SaveWeightsExternalResponse]:
+        """Save the adapter to download it. Every saved adapter is already a
+        standard PEFT adapter, so this is `save_weights_for_sampler` under
+        Tinker's name; download it with `post_training.download(path, dir)`."""
+        return self.save_weights_for_sampler(name).then(
+            lambda saved: SaveWeightsExternalResponse(path=saved.path),
+            label=f"save_weights_external({name})",
+        )
+
+    async def save_weights_external_async(
+        self, name: str, **kw: Any
+    ) -> APIFuture[SaveWeightsExternalResponse]:
+        return await run_in(self._submitter, self.save_weights_external, name, **kw)
 
     def save_state(self, name: str, **_: Any) -> APIFuture[SaveWeightsResponse]:
         """Save the adapter's weights. The optimizer's state isn't saved yet, so a

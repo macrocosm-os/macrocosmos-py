@@ -9,6 +9,7 @@ import httpx
 from ._http import Gateway
 from .errors import NotSupportedError, RequestFailedError, UnprocessableEntityError
 from .futures import _WAITERS, APIFuture, run_in, wait_for_job
+from .rest_client import RestClient
 from .sampling_client import SamplingClient
 from .training_client import DEFAULT_TRAIN_TIMEOUT_S, TrainingClient
 from .types import GetInfoResponse, ModelData
@@ -163,10 +164,9 @@ class PostTrainingClient:
 
     create_training_client_from_state_with_optimizer = create_training_client_from_state
 
-    def create_rest_client(self) -> NoReturn:
-        raise NotSupportedError(
-            "the REST client (runs and checkpoints) is not supported yet"
-        )
+    def create_rest_client(self) -> RestClient:
+        """Tinker's `RestClient`: here, signed download URLs for saved adapters."""
+        return RestClient(self._gw)
 
     # --- sessions -------------------------------------------------------------------
 

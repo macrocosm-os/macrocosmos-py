@@ -35,6 +35,7 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 from . import compat, types
+from .download import download
 from .errors import (
     APIConnectionError,
     APIStatusError,
@@ -53,6 +54,7 @@ from .errors import (
     UnprocessableEntityError,
 )
 from .futures import APIFuture
+from .rest_client import RestClient
 from .sampling_client import SamplingClient
 from .service_client import PostTrainingClient, ServiceClient
 from .training_client import TrainingClient
@@ -81,6 +83,8 @@ __all__ = [
     "PostTrainingClient",
     "ServiceClient",
     "TrainingClient",
+    "RestClient",
+    "download",
     "SamplingClient",
     "APIFuture",
     "compat",

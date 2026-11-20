@@ -191,6 +191,7 @@ Differences from Tinker:
 | Loss functions | Built in and custom | Built in (`importance_sampling`, `ppo`, `cispo`, `cross_entropy`, …) |
 | Checkpoints | `save_state` / `load_state` | `save_state` saves the adapter only; resuming is not supported yet |
 | Inputs | Text, images | Text |
-| `forward`, `compute_logprobs`, REST client | Supported | Not supported yet (`NotSupportedError`) |
+| Downloading weights | `save_weights_external`, then `RestClient.get_external_weights_urls` (sampler weights can't be downloaded) | The same calls, for any saved adapter, plus `post_training.download(path, output_dir)`, which checks each file's sha256. Adapters are kept for 7 days |
+| `forward`, `compute_logprobs`, the rest of the REST client | Supported | Not supported yet (`NotSupportedError`) |
 
 Tinker's types (`Datum`, `ModelInput`, `TensorData`, `AdamParams`, `SamplingParams`) and its error names are available under the same names, and the clients also accept Tinker's own objects, numpy arrays and torch tensors.

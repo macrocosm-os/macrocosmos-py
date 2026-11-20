@@ -82,6 +82,10 @@ class Gateway:
         self._http = httpx.Client(
             base_url=base_url, headers=headers, timeout=timeout, transport=transport
         )
+        # Signed storage URLs carry their own authorisation: never send them the API key.
+        self._storage = httpx.Client(
+            timeout=300.0, transport=transport, follow_redirects=True
+        )
 
     def request(
         self,
@@ -129,9 +133,23 @@ class Gateway:
             time.sleep(min(0.5 * 2**attempt, 8.0))
         raise AssertionError("unreachable")
 
+    def fetch(self, url: str) -> bytes:
+        """Download a signed storage URL (no API key is sent)."""
+        try:
+            resp = self._storage.get(url)
+        except httpx.TransportError as e:
+            raise APIConnectionError(f"downloading {url.split('?')[0]}: {e}") from e
+        if not resp.is_success:
+            raise error_for_status(
+                resp.status_code,
+                f"downloading {url.split('?')[0]}: {resp.status_code} {resp.reason_phrase}",
+            )
+        return resp.content
+
     def close(self) -> None:
         self.closed = True
         self._http.close()
+        self._storage.close()
 
 
 def _decode(resp: httpx.Response) -> Any:

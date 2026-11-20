@@ -217,6 +217,20 @@ class SaveWeightsResponse:
 
 
 @dataclass(frozen=True)
+class SaveWeightsExternalResponse:
+    path: str
+    """An `mc://` path; download its files with `download()`."""
+
+
+@dataclass(frozen=True)
+class ExternalWeightsUrlsResponse:
+    urls: Dict[str, str]
+    """Each file of the adapter and a signed URL to download it."""
+    expires_at: Optional[float] = None
+    """When the URLs stop working (Unix seconds)."""
+
+
+@dataclass(frozen=True)
 class ModelData:
     model_name: str
     tokenizer_id: Optional[str] = None

@@ -39,7 +39,10 @@ class FakeGateway:
         self._restart_next = False
         self._fail_next: List[Optional[int]] = []
         self.fail_sampling: Optional[str] = None
-        self.hold: set = set()  # ops whose new jobs stay pending until release()
+        self.hold: set = set()
+        self.adapters: Dict[str, Dict[str, bytes]] = {}  # mc:// path -> files
+        self.storage_requests: List[httpx.Request] = []
+        self.downloads = True  # False: a gateway without the download route  # ops whose new jobs stay pending until release()
         self.transport = httpx.MockTransport(self._handle)
 
     # --- test controls -------------------------------------------------------
@@ -67,6 +70,8 @@ class FakeGateway:
     # --- routing --------------------------------------------------------------
 
     def _handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.host == "storage.test":
+            return self._storage(request)
         self.requests.append(request)
         if self._fail_next:
             status = self._fail_next.pop(0)
@@ -97,6 +102,7 @@ class FakeGateway:
                 self._op,
             ),
             (r"/platform/rl/training/([^/]+)", "GET", self._job),
+            (r"/platform/rl/adapters/urls", "POST", self._adapter_urls),
             (r"/platform/rl/inference", "POST", self._infer),
             (r"/platform/rl/inference/([^/]+)", "GET", self._job_results),
         ]
@@ -238,6 +244,7 @@ class FakeGateway:
                 "path": f"mc://{model_id}/adapters/{suffix}",
                 "version": t["step"],
             }
+            self._store_adapter(result["path"])
         self._queue(handle, result, held=op in self.hold)
         return _ok({"handle": handle}, 202)
 
@@ -314,6 +321,33 @@ class FakeGateway:
             }
         )
 
+    def _store_adapter(self, path):
+        self.adapters[path] = _adapter_files(path)
+
+    def _adapter_urls(self, body):
+        if not self.downloads:
+            return _err(404, "Not Found")
+        path = body["path"]
+        model_id = path[len("mc://") :].split("/", 1)[0]
+        session = self._session(model_id.rsplit("-m", 1)[0])
+        if path not in self.adapters or session is None:
+            return _err(404, "adapter not found")
+        key = path[len("mc://") :]
+        urls = {
+            name: f"http://storage.test/{key}/{name}?sig=fake"
+            for name in self.adapters[path]
+        }
+        return _ok({"path": path, "urls": urls, "expires_at": 4102444800.0})
+
+    def _storage(self, request):
+        self.storage_requests.append(request)
+        key = request.url.path.lstrip("/")
+        path, name = "mc://" + key.rsplit("/", 1)[0], key.rsplit("/", 1)[1]
+        files = self.adapters.get(path, {})
+        if name not in files or request.url.params.get("sig") != "fake":
+            return httpx.Response(403, text="SignatureDoesNotMatch")
+        return httpx.Response(200, content=files[name])
+
     def _queue(self, handle, result, held=False):
         self.jobs[handle] = {"polls": 0, "result": result, "held": held}
 
@@ -324,3 +358,19 @@ def _ok(body, status=200):
 
 def _err(status, detail):
     return httpx.Response(status, json={"detail": detail})
+
+
+def _adapter_files(path: str) -> Dict[str, bytes]:
+    import hashlib
+
+    files = {
+        "adapter_config.json": json.dumps(
+            {"r": 32, "peft_type": "LORA", "for": path}
+        ).encode(),
+        "adapter_model.safetensors": hashlib.sha256(path.encode()).digest() * 64,
+    }
+    sums = {n: hashlib.sha256(b).hexdigest() for n, b in files.items()}
+    return {
+        **files,
+        "manifest.json": json.dumps({"format": "peft", "sha256": sums}).encode(),
+    }
