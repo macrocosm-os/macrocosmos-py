@@ -235,3 +235,21 @@ def test_a_gateway_that_still_requires_max_workers_gets_it_on_a_second_ask():
     )
     assert "max_workers" not in first and second["max_workers"] == 4
     assert len(gw.sessions) == 1  # the refused ask opened nothing
+
+
+def test_the_route_prefix_and_request_limit_come_from_the_environment(monkeypatch):
+    import importlib
+
+    from macrocosmos.post_training import _http
+
+    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_API_PREFIX", "/v1/")
+    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES", "45000")
+    try:
+        importlib.reload(_http)
+        assert _http.url_path("/sessions") == "/v1/sessions"
+        assert _http.url_path("/base-models") == "/v1/base-models"
+        assert _http.MAX_BODY_BYTES == 45000
+    finally:
+        monkeypatch.undo()
+        importlib.reload(_http)
+    assert _http.url_path("/base-models") == "/platform/base-models"

@@ -15,12 +15,16 @@ from .errors import APIConnectionError, PostTrainingError, error_for_status
 
 API_KEY_ENV = "MACROCOSMOS_POST_TRAINING_API_KEY"
 BASE_URL_ENV = "MACROCOSMOS_POST_TRAINING_BASE_URL"
-# The post-training routes sit under this prefix on the gateway. The planned
-# standalone gateway serves them under `/v1`; moving there is this one line
-# (and the base URL).
-API_PREFIX = "/platform/rl"
+API_PREFIX_ENV = "MACROCOSMOS_POST_TRAINING_API_PREFIX"
+MAX_REQUEST_BYTES_ENV = "MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES"
+
+# The post-training routes sit under this prefix on the gateway: `/platform/rl`
+# on the current one, `/v1` on the standalone gateway. Set it with the base URL.
+API_PREFIX = (os.environ.get(API_PREFIX_ENV) or "/platform/rl").rstrip("/")
 # Routes that sit outside the prefix on the current gateway.
-_OUTSIDE_PREFIX = {"/base-models": "/platform/base-models"}
+_OUTSIDE_PREFIX = (
+    {"/base-models": "/platform/base-models"} if API_PREFIX == "/platform/rl" else {}
+)
 
 
 def url_path(path: str) -> str:
@@ -28,8 +32,10 @@ def url_path(path: str) -> str:
     return _OUTSIDE_PREFIX.get(path) or API_PREFIX + path
 
 
-# Request bodies over 16 KB are refused. Stay under that with some headroom.
-MAX_BODY_BYTES = 15 * 1024
+# The largest request body the client sends; bigger batches are split. The
+# current public ingress refuses bodies over 16 KB; the standalone gateway
+# takes jobs up to 48 KB.
+MAX_BODY_BYTES = int(os.environ.get(MAX_REQUEST_BYTES_ENV) or 15 * 1024)
 
 _RETRY_STATUS = frozenset({502, 503, 504})
 _RETRIES = 4
