@@ -13,7 +13,7 @@ jobs:
   publish:
     # Only run if 'true'
     if: ${{ vars.ENABLE_AUTO_PUBLISH_TO_PYPI == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
