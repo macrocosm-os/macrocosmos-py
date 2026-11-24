@@ -65,6 +65,7 @@ def test_a_split_batch_that_fails_halfway_is_reconciled_by_the_next_step(gw):
     with client(gw) as service:
         trainer = service.create_lora_training_client(base_model=MODEL).result()
         big = [datum(300) for _ in range(6)]  # two requests
+        service._gw.max_inflight_bytes  # noqa: B018 - read the limits before the failures
         gw.fail_next(None, 500)  # the first request lands, the second doesn't
         with pytest.raises(post_training.InternalServerError):
             trainer.forward_backward(big, "importance_sampling")

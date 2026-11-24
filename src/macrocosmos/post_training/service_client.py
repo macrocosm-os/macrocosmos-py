@@ -34,10 +34,11 @@ class PostTrainingClient:
     The API key comes from `api_key=` or `MACROCOSMOS_POST_TRAINING_API_KEY`, the URL from
     `base_url=` or `MACROCOSMOS_POST_TRAINING_BASE_URL`.
 
-    Training data goes out in requests of at most `max_request_bytes` (5 MB;
-    bigger batches are split), with at most `max_inflight_bytes` (50 MB) of a
-    session's data queued at once, as on Tinker. Both can also be set with
-    `MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES` / `..._MAX_INFLIGHT_BYTES`.
+    Training data goes out in requests of at most `max_request_bytes` (bigger
+    batches are split), with at most `max_inflight_bytes` of a session's data
+    queued at once, as on Tinker. The gateway sets both (5 MiB and 50 MiB today);
+    pass them, or set `MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES` /
+    `..._MAX_INFLIGHT_BYTES`, to override it.
     """
 
     def __init__(

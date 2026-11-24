@@ -28,6 +28,11 @@ class FakeGateway:
         max_body: int = MAX_BODY,
         inline_logprobs_bytes: Optional[int] = None,
     ) -> None:
+        # What GET /v1/client/config answers, as the real gateway does.
+        self.client_config: Dict[str, Any] = {
+            "max_request_bytes": 5 << 20,
+            "max_inflight_bytes": 50 << 20,
+        }
         # Log-probs bigger than this come back as `logprobs_url`, as the trainer does.
         self.inline_logprobs_bytes = inline_logprobs_bytes
         self.task_data: Dict[str, bytes] = {}
@@ -96,6 +101,7 @@ class FakeGateway:
     def _routes(self):
         return [
             (r"/v1/base-models", "GET", self._base_models),
+            (r"/v1/client/config", "GET", lambda _body: _ok(self.client_config)),
             (r"/v1/sessions", "POST", self._open),
             (r"/v1/sessions/([^/]+)/close", "POST", self._close),
             (r"/v1/sessions/([^/]+)/models", "POST", self._create_model),

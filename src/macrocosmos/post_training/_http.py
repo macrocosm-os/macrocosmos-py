@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import httpx
 
@@ -29,28 +30,33 @@ def url_path(path: str) -> str:
 
 
 # Size limits for training data, as on Tinker: each request carries at most
-# DEFAULT_MAX_REQUEST_BYTES (bigger batches are split across requests), and at
-# most DEFAULT_MAX_INFLIGHT_BYTES of a session's data is queued on the gateway
-# at once (more waits for earlier requests to finish). Override with the
-# `max_request_bytes=` / `max_inflight_bytes=` client options or the
-# environment variables above; 0 turns the in-flight limit off.
-DEFAULT_MAX_REQUEST_BYTES = 5_000_000
-DEFAULT_MAX_INFLIGHT_BYTES = 50_000_000
+# `max_request_bytes` (bigger batches are split across requests), and at most
+# `max_inflight_bytes` of a session's data is queued on the gateway at once (more
+# waits for earlier requests to finish). The gateway sets both in
+# `GET /v1/client/config`, read once on first use, as Tinker's client reads its
+# server's config. The `max_request_bytes=` / `max_inflight_bytes=` client options
+# or the environment variables above override them; 0 turns the in-flight limit off.
+LIMITS = ("max_request_bytes", "max_inflight_bytes")
 # Room in each request for seq_id, loss_fn and its config.
 _ENVELOPE_BYTES = 512
 
 
-def _limit(value: Optional[int], env: str, default: int) -> int:
-    """A size limit in bytes: the option if given, else the environment, else the default."""
+def _override(value: Optional[int], env: str) -> Optional[int]:
+    """A size limit the user set: the option if given, else the environment, else None."""
     if value is None:
         raw = os.environ.get(env, "").strip().replace("_", "")
         if not raw:
-            return default
+            return None
         if not raw.isdigit():
             raise ValueError(f"{env} must be a whole number of bytes, got {raw!r}")
         value = int(raw)
-    if value < 0:
-        raise ValueError(f"size limits can't be negative, got {value}")
+    return _checked("", value)
+
+
+def _checked(name: str, value: Any) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        where = f"the gateway's {name}" if name else "a size limit"
+        raise ValueError(f"{where} must be a whole number of bytes >= 0, got {value!r}")
     return value
 
 
@@ -81,14 +87,13 @@ class Gateway:
         max_request_bytes: Optional[int] = None,
         max_inflight_bytes: Optional[int] = None,
     ) -> None:
-        self.max_request_bytes = _limit(
-            max_request_bytes, MAX_REQUEST_BYTES_ENV, DEFAULT_MAX_REQUEST_BYTES
-        )
-        if self.max_request_bytes <= _ENVELOPE_BYTES:
-            raise ValueError(f"max_request_bytes must be over {_ENVELOPE_BYTES} bytes")
-        self.max_inflight_bytes = _limit(
-            max_inflight_bytes, MAX_INFLIGHT_BYTES_ENV, DEFAULT_MAX_INFLIGHT_BYTES
-        )
+        self._overrides = {
+            "max_request_bytes": _override(max_request_bytes, MAX_REQUEST_BYTES_ENV),
+            "max_inflight_bytes": _override(max_inflight_bytes, MAX_INFLIGHT_BYTES_ENV),
+        }
+        _check_request_limit(self._overrides["max_request_bytes"])
+        self._config: Optional[Dict[str, int]] = None
+        self._config_lock = threading.Lock()
         api_key = (api_key or os.environ.get(API_KEY_ENV) or "").strip()
         if not api_key:
             raise error_for_status(
@@ -160,6 +165,32 @@ class Gateway:
             time.sleep(min(0.5 * 2**attempt, 8.0))
         raise AssertionError("unreachable")
 
+    @property
+    def max_request_bytes(self) -> int:
+        return self._limit("max_request_bytes")
+
+    @property
+    def max_inflight_bytes(self) -> int:
+        return self._limit("max_inflight_bytes")
+
+    def _limit(self, name: str) -> int:
+        override = self._overrides[name]
+        return override if override is not None else self._client_config()[name]
+
+    def _client_config(self) -> Dict[str, int]:
+        """The gateway's limits, read once (`GET /v1/client/config`)."""
+        with self._config_lock:
+            if self._config is None:
+                reply = self.request("GET", "/client/config")
+                if not isinstance(reply, dict) or any(n not in reply for n in LIMITS):
+                    raise PostTrainingError(
+                        f"the gateway's client config lacks {', '.join(LIMITS)}: {reply!r}"
+                    )
+                config = {name: _checked(name, reply[name]) for name in LIMITS}
+                _check_request_limit(config["max_request_bytes"])
+                self._config = config
+            return self._config
+
     def fetch(self, url: str) -> bytes:
         """Download a signed storage URL (no API key is sent)."""
         try:
@@ -177,6 +208,11 @@ class Gateway:
         self.closed = True
         self._http.close()
         self._storage.close()
+
+
+def _check_request_limit(value: Optional[int]) -> None:
+    if value is not None and value <= _ENVELOPE_BYTES:
+        raise ValueError(f"max_request_bytes must be over {_ENVELOPE_BYTES} bytes")
 
 
 def _decode(resp: httpx.Response) -> Any:

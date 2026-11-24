@@ -49,6 +49,7 @@ def test_opening_a_session_is_not_retried_so_no_second_session_leaks(gw, service
 
 def test_submitting_samples_is_not_retried_so_nothing_is_paid_for_twice(gw, service):
     sampler = service.create_sampling_client(base_model=MODEL)
+    service._gw.max_request_bytes  # noqa: B018 - read the limits before the failure
     gw.fail_next(503)
     with pytest.raises(post_training.InternalServerError):
         sampler.sample([1, 2, 3], num_samples=2)

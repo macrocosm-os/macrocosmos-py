@@ -26,34 +26,59 @@ def no_limit_env(monkeypatch):
     monkeypatch.delenv(INFLIGHT_ENV, raising=False)
 
 
-def test_defaults_match_tinker():
-    with client(FakeGateway()) as c:
-        assert c._gw.max_request_bytes == 5_000_000
-        assert c._gw.max_inflight_bytes == 50_000_000
+def test_limits_come_from_the_gateway_read_once():
+    gw = FakeGateway()
+    gw.client_config = {"max_request_bytes": 1_000_000, "max_inflight_bytes": 7_000_000}
+    with client(gw) as c:
+        assert c._gw.max_request_bytes == 1_000_000
+        assert c._gw.max_inflight_bytes == 7_000_000
+        assert c._gw.max_request_bytes == 1_000_000
+    assert len(gw.calls("GET", r"/v1/client/config")) == 1
 
 
-def test_limits_come_from_the_environment_and_options_win(monkeypatch):
+def test_the_gateway_is_asked_only_when_a_limit_is_needed():
+    gw = FakeGateway()
+    with client(gw) as c:
+        c.create_lora_training_client(base_model=MODEL).result()
+    assert gw.calls("GET", r"/v1/client/config") == []
+
+
+def test_options_and_the_environment_override_the_gateway(monkeypatch):
     monkeypatch.setenv(REQUEST_ENV, "50_000_000")
     monkeypatch.setenv(INFLIGHT_ENV, "0")
-    with client(FakeGateway()) as c:
+    gw = FakeGateway()
+    with client(gw) as c:
         assert c._gw.max_request_bytes == 50_000_000
         assert c._gw.max_inflight_bytes == 0
-    with client(FakeGateway(), max_request_bytes=45_000) as c:
+    with client(gw, max_request_bytes=45_000) as c:
         assert c._gw.max_request_bytes == 45_000
+    assert gw.calls("GET", r"/v1/client/config") == []  # every limit was set
+
+
+def test_a_gateway_without_the_limits_is_an_error():
+    gw = FakeGateway()
+    gw.client_config = {"max_request_bytes": 5 << 20}
+    with client(gw) as c:
+        with pytest.raises(post_training.PostTrainingError, match="max_inflight_bytes"):
+            c._gw.max_inflight_bytes  # noqa: B018
+    gw.client_config = {"max_request_bytes": "5MB", "max_inflight_bytes": 0}
+    with client(gw) as c:
+        with pytest.raises(ValueError, match="gateway's max_request_bytes"):
+            c._gw.max_request_bytes  # noqa: B018
 
 
 def test_bad_limits_fail_early(monkeypatch):
     with pytest.raises(ValueError, match="over 512 bytes"):
         client(FakeGateway(), max_request_bytes=100)
-    with pytest.raises(ValueError, match="negative"):
+    with pytest.raises(ValueError, match=">= 0"):
         client(FakeGateway(), max_inflight_bytes=-1)
     monkeypatch.setenv(REQUEST_ENV, "5MB")
     with pytest.raises(ValueError, match="whole number of bytes"):
         client(FakeGateway())
 
 
-def test_a_big_batch_fits_one_request_under_the_default():
-    gw = FakeGateway(max_body=5_000_000)
+def test_a_big_batch_fits_one_request_under_the_gateways_limit():
+    gw = FakeGateway(max_body=5 << 20)
     with client(gw) as c:
         trainer = c.create_lora_training_client(base_model=MODEL).result()
         out = trainer.forward_backward(
