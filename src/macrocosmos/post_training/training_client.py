@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import threading
 import time
 import warnings
@@ -102,7 +103,10 @@ class TrainingClient:
 
         def resolve(timeout: Optional[float]) -> ForwardBackwardOutput:
             deadline = _deadline(timeout)
-            results = [self._wait(h, _remaining(deadline)) for h in handles]
+            results = [
+                self._with_logprobs(self._wait(h, _remaining(deadline)))
+                for h in handles
+            ]
             return _merge(results, sizes=[len(b) for b, _ in batches], loss_fn=loss_fn)
 
         return APIFuture(resolve, label=f"forward_backward({len(data)} datums)")
@@ -390,6 +394,14 @@ class TrainingClient:
             raise
         self._done(handle)
         return result
+
+    def _with_logprobs(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """A forward_backward result with its log-probs. Over the trainer's inline
+        limit (5 MB) they come as `logprobs_url`, a signed link valid for an hour."""
+        url = result.get("logprobs_url")
+        if result.get("logprobs") is not None or not url:
+            return result
+        return {**result, "logprobs": json.loads(self._gw.fetch(url))}
 
     def _done(self, handle: str) -> None:
         with self._inflight_lock:

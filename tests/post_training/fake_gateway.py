@@ -26,7 +26,11 @@ class FakeGateway:
         polls_until_done: int = 1,
         api_key: str = "test-key",
         max_body: int = MAX_BODY,
+        inline_logprobs_bytes: Optional[int] = None,
     ) -> None:
+        # Log-probs bigger than this come back as `logprobs_url`, as the trainer does.
+        self.inline_logprobs_bytes = inline_logprobs_bytes
+        self.task_data: Dict[str, bytes] = {}
         self.max_body = max_body  # bigger requests get the ingress's HTML 413
         self.models = list(models)
         self.polls_until_done = polls_until_done
@@ -213,6 +217,15 @@ class FakeGateway:
                 },
                 "logprobs": [[-1.0] * len(d["tokens"]) for d in body["data"]],
             }
+            rows = json.dumps(result["logprobs"]).encode()
+            if (
+                self.inline_logprobs_bytes is not None
+                and len(rows) > self.inline_logprobs_bytes
+            ):
+                key = f"task_data/{handle}.out.json"
+                self.task_data[key] = rows
+                del result["logprobs"]
+                result["logprobs_url"] = f"http://storage.test/{key}?sig=fake"
         elif op == "optim_step":
             if self._restart_next:  # the trainer restarted and lost the gradients
                 self._restart_next = False
@@ -363,6 +376,8 @@ class FakeGateway:
     def _storage(self, request):
         self.storage_requests.append(request)
         key = request.url.path.lstrip("/")
+        if key in self.task_data and request.url.params.get("sig") == "fake":
+            return httpx.Response(200, content=self.task_data[key])
         path, name = "mc://" + key.rsplit("/", 1)[0], key.rsplit("/", 1)[1]
         files = self.adapters.get(path, {})
         if name not in files or request.url.params.get("sig") != "fake":

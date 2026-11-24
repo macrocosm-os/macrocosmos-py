@@ -109,3 +109,15 @@ def test_no_in_flight_limit_sends_everything_at_once():
         assert len(gw.calls("POST", r".+/forward_backward")) == 6
         gw.release()
         assert len(future.result().loss_fn_outputs) == 6
+
+
+def test_big_log_probs_are_fetched_from_their_signed_url():
+    gw = FakeGateway(max_body=5_000_000, inline_logprobs_bytes=1_000)
+    with client(gw) as c:
+        trainer = c.create_lora_training_client(base_model=MODEL).result()
+        out = trainer.forward_backward(
+            [datum(300) for _ in range(4)], loss_fn="importance_sampling"
+        ).result()
+    assert [len(o["logprobs"].tolist()) for o in out.loss_fn_outputs] == [300] * 4
+    [fetched] = gw.storage_requests
+    assert "x-api-key" not in fetched.headers  # signed links never get the API key
