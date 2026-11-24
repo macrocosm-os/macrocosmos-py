@@ -100,10 +100,9 @@ class PostTrainingClient:
         if seed is not None:
             lora["seed"] = seed
         try:
+            # The session already has the base model.
             created = self._gw.request(
-                "POST",
-                f"/sessions/{session_id}/models",
-                {"base_model": base_model, "lora": lora},
+                "POST", f"/sessions/{session_id}/models", {"lora": lora}
             )
         except BaseException:
             self._release(session_id)  # don't hold GPUs for a model that won't exist

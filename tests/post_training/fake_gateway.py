@@ -167,8 +167,8 @@ class FakeGateway:
             return _err(404, "session not found")
         if s["state"] == "closed":
             return _err(409, "session is closed")
-        if body["base_model"] != s["base_model"]:
-            return _err(422, "base_model is not the session's")
+        if set(body) != {"lora"}:  # the model comes from the session
+            return _err(422, "extra fields: " + ", ".join(sorted(set(body) - {"lora"})))
         if body["lora"]["rank"] != s["requirements"]["max_lora_rank"]:
             return _err(422, "lora.rank must equal the session's max_lora_rank")
         model_id = f"{sid}-m0"

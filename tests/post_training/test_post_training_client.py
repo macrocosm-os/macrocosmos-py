@@ -52,6 +52,7 @@ def test_create_opens_a_session_then_builds_the_model(gw, service):
         "requirements": {"max_lora_rank": 16},
     }
     [created] = gw.calls("POST", r"/v1/sessions/.+/models")
+    assert set(body(created)) == {"lora"}  # the session already has the base model
     assert body(created)["lora"]["rank"] == 16
     assert trainer.get_info().model_data.tokenizer_id == MODEL
     assert trainer.get_info().lora_rank == 16
