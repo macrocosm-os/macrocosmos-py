@@ -27,7 +27,10 @@ def gw():
 
 def client(gw):
     return post_training.PostTrainingClient(
-        api_key="test-key", base_url="http://gw.test", transport=gw.transport
+        api_key="test-key",
+        base_url="http://gw.test",
+        transport=gw.transport,
+        max_request_bytes=15 * 1024,
     )
 
 
@@ -202,19 +205,3 @@ def test_finished_steps_are_freed(gw):
             trainer.optim_step(types.AdamParams()).result()
         gc.collect()
         assert first() is None  # nothing keeps the first step (or its data) alive
-
-
-def test_a_gateway_that_needs_max_workers_is_asked_once_per_client():
-    gw = FakeGateway(legacy=True)
-    with client(gw) as service:
-        service.create_sampling_client(base_model=MODEL)
-        service.create_sampling_client(base_model=MODEL)
-    sent = [
-        json.loads(r.content)["requirements"]
-        for r in gw.calls("POST", r"/platform/rl/sessions")
-    ]
-    assert len(sent) == 3  # 422 then 201, then straight to 201
-    assert (
-        "max_workers" not in sent[0]
-        and sent[1]["max_workers"] == sent[2]["max_workers"] == 4
-    )

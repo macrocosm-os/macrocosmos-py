@@ -4,10 +4,11 @@ import dataclasses
 import threading
 import time
 import warnings
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List, Mapping, NoReturn, Optional, Sequence
+from typing import Any, Dict, List, Mapping, NoReturn, Optional, Sequence, Tuple
 
-from ._http import MAX_BODY_BYTES, Gateway, encode
+from ._http import _ENVELOPE_BYTES, Gateway, encode
 from .errors import NotSupportedError, PayloadTooLargeError, RequestFailedError
 from .futures import APIFuture, run_in, wait_for_job
 from .sampling_client import SamplingClient
@@ -51,6 +52,11 @@ class TrainingClient:
             Dict[str, Any]
         ] = []  # forward_backward bodies since the last step
         self._last_step: Optional[APIFuture[OptimStepResponse]] = None
+        # forward_backward requests on the gateway, oldest first: handle -> bytes.
+        self._inflight: "OrderedDict[str, int]" = OrderedDict()
+        # Results fetched while waiting for room, until their future reads them.
+        self._finished: Dict[str, Dict[str, Any]] = {}
+        self._inflight_lock = threading.Lock()
         self._submitter = ThreadPoolExecutor(
             max_workers=1, thread_name_prefix="macrocosmos-post-training-submit"
         )
@@ -72,6 +78,9 @@ class TrainingClient:
 
         `data` holds `Datum`s, ours or Tinker's. A batch too big for one request
         is split across several; the output is the same as for a single call.
+        While more than the client's `max_inflight_bytes` of training data is
+        queued on the gateway, this waits for earlier requests to finish
+        before sending more.
 
         If this raises partway through a split batch, part of it may already be
         with the trainer. Don't send it again: the next `optim_step` reconciles
@@ -79,22 +88,22 @@ class TrainingClient:
         """
         if not data:
             raise ValueError("forward_backward needs at least one Datum")
-        batches = _split([datum_to_wire(d) for d in data])
+        batches = _split([datum_to_wire(d) for d in data], self._gw.max_request_bytes)
         config = dict(loss_fn_config) if loss_fn_config else None
         with self._lock:
             handles = []
-            for batch in batches:
+            for batch, size in batches:
                 body = {"data": batch, "loss_fn": loss_fn, "loss_fn_config": config}
                 # Recorded before sending: if the send fails after reaching the
                 # trainer, the step's count still matches; if it never reached it,
                 # optim_step's replay sends it.
                 self._unstepped.append(body)
-                handles.append(self._submit("forward_backward", body))
+                handles.append(self._submit_data(body, size))
 
         def resolve(timeout: Optional[float]) -> ForwardBackwardOutput:
             deadline = _deadline(timeout)
             results = [self._wait(h, _remaining(deadline)) for h in handles]
-            return _merge(results, sizes=[len(b) for b in batches], loss_fn=loss_fn)
+            return _merge(results, sizes=[len(b) for b, _ in batches], loss_fn=loss_fn)
 
         return APIFuture(resolve, label=f"forward_backward({len(data)} datums)")
 
@@ -157,7 +166,7 @@ class TrainingClient:
                     )
                 with self._lock:
                     resent = [
-                        self._submit("forward_backward", body) for body in step_data
+                        self._submit_data(body, len(encode(body))) for body in step_data
                     ]
 
         future: APIFuture[OptimStepResponse] = APIFuture(
@@ -331,6 +340,33 @@ class TrainingClient:
         )
         return reply["handle"]
 
+    def _submit_data(self, body: Dict[str, Any], size: int) -> str:
+        """Queue one forward_backward request of `size` bytes, first waiting for
+        room under the in-flight limit. Call with the lock held."""
+        self._make_room(size)
+        handle = self._submit("forward_backward", body)
+        with self._inflight_lock:
+            self._inflight[handle] = size
+        return handle
+
+    def _make_room(self, size: int) -> None:
+        """Wait for the oldest requests to finish until `size` more bytes fit.
+        A request bigger than the whole limit goes out once nothing else is queued."""
+        limit = self._gw.max_inflight_bytes
+        while limit:
+            with self._inflight_lock:
+                if not self._inflight or sum(self._inflight.values()) + size <= limit:
+                    return
+                oldest = next(iter(self._inflight))
+            try:
+                result = wait_for_job(self._gw, oldest, DEFAULT_TRAIN_TIMEOUT_S)
+            except RequestFailedError:  # finished all the same; its future reports it
+                result = None
+            with self._inflight_lock:
+                # Not if its own future already read it meanwhile.
+                if self._inflight.pop(oldest, None) is not None and result is not None:
+                    self._finished[oldest] = result
+
     def _submit_step(
         self, params: Dict[str, float], at_step: int, step_data: List[Any]
     ) -> str:
@@ -340,9 +376,25 @@ class TrainingClient:
         )
 
     def _wait(self, handle: str, timeout: Optional[float]) -> Dict[str, Any]:
-        return wait_for_job(
-            self._gw, handle, DEFAULT_TRAIN_TIMEOUT_S if timeout is None else timeout
-        )
+        with self._inflight_lock:
+            if handle in self._finished:
+                return self._finished.pop(handle)
+        try:
+            result = wait_for_job(
+                self._gw,
+                handle,
+                DEFAULT_TRAIN_TIMEOUT_S if timeout is None else timeout,
+            )
+        except RequestFailedError:
+            self._done(handle)
+            raise
+        self._done(handle)
+        return result
+
+    def _done(self, handle: str) -> None:
+        with self._inflight_lock:
+            self._inflight.pop(handle, None)
+            self._finished.pop(handle, None)
 
 
 def _deadline(timeout: Optional[float]) -> Optional[float]:
@@ -359,23 +411,29 @@ def _asdict(params: Any) -> Dict[str, float]:
     return params.model_dump(exclude_none=True)  # Tinker's pydantic AdamParams
 
 
-def _split(data: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
-    """Pack datums into as few requests as fit under the body limit, keeping their order."""
-    budget = MAX_BODY_BYTES - 512  # room for seq_id, loss_fn and its config
-    batches: List[List[Dict[str, Any]]] = [[]]
+def _split(
+    data: List[Dict[str, Any]], max_bytes: int
+) -> List[Tuple[List[Dict[str, Any]], int]]:
+    """Pack datums into as few requests as fit under `max_bytes`, keeping their
+    order. Returns each request's datums and its approximate size in bytes."""
+    budget = max_bytes - _ENVELOPE_BYTES
+    batches: List[Tuple[List[Dict[str, Any]], int]] = []
+    batch: List[Dict[str, Any]] = []
     size = 0
     for datum in data:
         n = len(encode(datum)) + 1
         if n > budget:
             raise PayloadTooLargeError(
-                f"one datum of {len(datum['tokens'])} tokens is {n} bytes, over the 16 KB request limit",
+                f"one datum of {len(datum['tokens'])} tokens is {n:,} bytes, over the "
+                f"{max_bytes:,}-byte request limit (max_request_bytes=)",
                 status_code=413,
             )
-        if size + n > budget and batches[-1]:
-            batches.append([])
-            size = 0
-        batches[-1].append(datum)
+        if size + n > budget and batch:
+            batches.append((batch, size + _ENVELOPE_BYTES))
+            batch, size = [], 0
+        batch.append(datum)
         size += n
+    batches.append((batch, size + _ENVELOPE_BYTES))
     return batches
 
 

@@ -170,6 +170,8 @@ A complete loop is in [`examples/post_training_loop.py`](examples/post_training_
 
 A session takes three settings from you: the base model, the LoRA rank (`rank=`) and the longest completion you'll sample (`max_output_tokens=`). How many GPUs serve it is up to the platform.
 
+As on Tinker, training data goes out in requests of up to 5 MB (bigger batches are split for you), with up to 50 MB of a session's data queued at once; past that, `forward_backward` waits for earlier requests to finish. Change these with `mc.PostTrainingClient(max_request_bytes=..., max_inflight_bytes=...)` or `MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES` / `MACROCOSMOS_POST_TRAINING_MAX_INFLIGHT_BYTES` (`0` turns off the in-flight limit).
+
 ### Migrating from Tinker
 
 Tinker scripts refer to `tinker.ServiceClient`, `tinker.types.Datum` and so on throughout. To keep all of those lines as they are:

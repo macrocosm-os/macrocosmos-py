@@ -7,18 +7,12 @@ from typing import Any, Dict, List, NoReturn, Optional, Set
 import httpx
 
 from ._http import Gateway
-from .errors import NotSupportedError, RequestFailedError, UnprocessableEntityError
+from .errors import NotSupportedError, RequestFailedError
 from .futures import _WAITERS, APIFuture, run_in, wait_for_job
 from .rest_client import RestClient
 from .sampling_client import SamplingClient
 from .training_client import DEFAULT_TRAIN_TIMEOUT_S, TrainingClient
 from .types import GetInfoResponse, ModelData
-
-# Users choose the base model, LoRA rank and max tokens; the platform decides
-# the workers. Until the gateway drops `max_workers` from its session request,
-# it answers the first session with a 422; the client then sends this value,
-# and keeps sending it for that client's later sessions.
-LEGACY_MAX_WORKERS = 4
 
 
 class PostTrainingClient:
@@ -39,6 +33,11 @@ class PostTrainingClient:
 
     The API key comes from `api_key=` or `MACROCOSMOS_POST_TRAINING_API_KEY`, the URL from
     `base_url=` or `MACROCOSMOS_POST_TRAINING_BASE_URL`.
+
+    Training data goes out in requests of at most `max_request_bytes` (5 MB;
+    bigger batches are split), with at most `max_inflight_bytes` (50 MB) of a
+    session's data queued at once, as on Tinker. Both can also be set with
+    `MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES` / `..._MAX_INFLIGHT_BYTES`.
     """
 
     def __init__(
@@ -49,15 +48,22 @@ class PostTrainingClient:
         app_name: Optional[str] = None,
         timeout: float = 30.0,
         transport: Optional[httpx.BaseTransport] = None,
+        max_request_bytes: Optional[int] = None,
+        max_inflight_bytes: Optional[int] = None,
         **_tinker_options: Any,  # user_metadata, project_id, display_name: accepted, unused
     ) -> None:
         self._gw = Gateway(
-            api_key, base_url, timeout=timeout, app_name=app_name, transport=transport
+            api_key,
+            base_url,
+            timeout=timeout,
+            app_name=app_name,
+            transport=transport,
+            max_request_bytes=max_request_bytes,
+            max_inflight_bytes=max_inflight_bytes,
         )
         self._sessions: List[str] = []
         self._closed: Set[str] = set()
         self._lock = threading.Lock()
-        self._send_max_workers = False  # learned from the gateway; see _open_session
 
     # --- clients --------------------------------------------------------------------
 
@@ -215,22 +221,11 @@ class PostTrainingClient:
             requirements["max_lora_rank"] = lora_rank
         if max_output_tokens is not None:
             requirements["max_output_tokens"] = max_output_tokens
-        if self._send_max_workers:
-            requirements["max_workers"] = LEGACY_MAX_WORKERS
         body = {"base_model": base_model, "requirements": requirements}
-        try:
-            # Not retried blindly: a retry could open a second session. If the
-            # connection drops after sending, the session may exist anyway; the
-            # gateway's idle timeout closes it.
-            session = self._gw.request("POST", "/sessions", body, idempotent=False)
-        except UnprocessableEntityError as e:
-            if self._send_max_workers or not _missing_field(e, "max_workers"):
-                raise
-            # A 422 opened nothing, so asking again can't leave a second session.
-            # Remember it, so later sessions ask once.
-            self._send_max_workers = True
-            requirements["max_workers"] = LEGACY_MAX_WORKERS
-            session = self._gw.request("POST", "/sessions", body, idempotent=False)
+        # Not retried blindly: a retry could open a second session. If the
+        # connection drops after sending, the session may exist anyway; the
+        # gateway's idle timeout closes it.
+        session = self._gw.request("POST", "/sessions", body, idempotent=False)
         with self._lock:
             self._sessions.append(session["session_id"])
             _OPEN_CLIENTS.add(self)
@@ -251,17 +246,6 @@ class PostTrainingClient:
             self._close_session(session_id)
         except Exception:  # noqa: BLE001 - close() and exit try again
             pass
-
-
-def _missing_field(error: UnprocessableEntityError, field: str) -> bool:
-    """Whether a 422 says the request lacked `field` (FastAPI's validation detail)."""
-    detail = error.body.get("detail") if isinstance(error.body, dict) else None
-    return isinstance(detail, list) and any(
-        isinstance(d, dict)
-        and d.get("type") == "missing"
-        and (d.get("loc") or [])[-1:] == [field]
-        for d in detail
-    )
 
 
 def _info(reply: Dict[str, Any]) -> GetInfoResponse:

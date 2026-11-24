@@ -8,7 +8,7 @@ from typing import Any, Dict, NoReturn, Optional, Tuple
 from urllib.parse import quote
 
 from ._http import Gateway
-from .errors import NotFoundError, NotSupportedError
+from .errors import NotSupportedError
 from .futures import APIFuture
 from .types import Checkpoint, CheckpointsListResponse, ExternalWeightsUrlsResponse
 
@@ -77,14 +77,7 @@ class RestClient:
         raise NotSupportedError("publishing checkpoints is not supported yet")
 
     def _get(self, path: str) -> Dict[str, Any]:
-        try:
-            return self._gw.request("GET", path)
-        except NotFoundError as e:
-            if _no_such_route(e):
-                raise NotSupportedError(
-                    "this gateway doesn't serve checkpoints yet"
-                ) from None
-            raise
+        return self._gw.request("GET", path)
 
 
 def parse_path(path: str) -> Tuple[str, str]:
@@ -117,9 +110,3 @@ def _when(value: Any) -> Optional[datetime]:
     if isinstance(value, (int, float)):
         return datetime.fromtimestamp(value, timezone.utc)
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-
-
-def _no_such_route(error: NotFoundError) -> bool:
-    """FastAPI's bare 404 for an unknown route, as opposed to "checkpoint not found"."""
-    body: Any = error.body
-    return isinstance(body, dict) and body.get("detail") == "Not Found"

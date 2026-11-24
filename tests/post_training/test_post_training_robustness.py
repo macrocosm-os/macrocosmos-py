@@ -43,7 +43,7 @@ def test_opening_a_session_is_not_retried_so_no_second_session_leaks(gw, service
     gw.fail_next(503)
     with pytest.raises(post_training.InternalServerError):
         service.create_lora_training_client(base_model=MODEL)
-    assert len(gw.calls("POST", r"/platform/rl/sessions")) == 1
+    assert len(gw.calls("POST", r"/v1/sessions")) == 1
     assert gw.sessions == {}
 
 
@@ -52,7 +52,7 @@ def test_submitting_samples_is_not_retried_so_nothing_is_paid_for_twice(gw, serv
     gw.fail_next(503)
     with pytest.raises(post_training.InternalServerError):
         sampler.sample([1, 2, 3], num_samples=2)
-    assert len(gw.calls("POST", r"/platform/rl/inference")) == 1
+    assert len(gw.calls("POST", r"/v1/inference")) == 1
 
 
 def test_a_failed_model_create_releases_its_session_at_once(gw, service):
@@ -92,8 +92,7 @@ def test_stop_token_ids_and_stop_strings_are_told_apart(gw, service):
     ).result()
     sampler.sample([1], sampling_params=types.SamplingParams(stop="\n\n")).result()
     first, second = (
-        json.loads(r.content)["prompts"][0]
-        for r in gw.calls("POST", r"/platform/rl/inference")
+        json.loads(r.content)["prompts"][0] for r in gw.calls("POST", r"/v1/inference")
     )
     assert first["stop_token_ids"] == [151645, 151643] and "stop" not in first
     assert second["stop"] == ["\n\n"]
@@ -159,4 +158,4 @@ def test_closing_twice_and_the_repr_are_harmless(gw):
     assert "sessions=['rls-" in repr(client)
     client.close()
     client.close()
-    assert len(gw.calls("POST", r"/platform/rl/sessions/.+/close")) == 1
+    assert len(gw.calls("POST", r"/v1/sessions/.+/close")) == 1

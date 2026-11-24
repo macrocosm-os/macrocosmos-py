@@ -5,7 +5,7 @@ import uuid
 import warnings
 from typing import Any, Dict, NoReturn, Optional
 
-from ._http import MAX_BODY_BYTES, Gateway, encode
+from ._http import Gateway, encode
 from .errors import (
     APITimeoutError,
     NotSupportedError,
@@ -78,9 +78,10 @@ class SamplingClient:
         # Samplers can't pin a saved adapter (`model_path`) yet. Until they can,
         # the session's current adapter answers, and `SampleResponse.policy_version`
         # says which one it was.
-        if len(encode(body)) > MAX_BODY_BYTES:
+        if len(encode(body)) > self._gw.max_request_bytes:
             raise PayloadTooLargeError(
-                f"a prompt of {len(entry['prompt_tokens'])} tokens is over the 16 KB request limit",
+                f"a prompt of {len(entry['prompt_tokens'])} tokens is over the "
+                f"{self._gw.max_request_bytes:,}-byte request limit",
                 status_code=413,
             )
         handle = self._gw.request("POST", "/inference", body, idempotent=False)[

@@ -17,25 +17,42 @@ API_KEY_ENV = "MACROCOSMOS_POST_TRAINING_API_KEY"
 BASE_URL_ENV = "MACROCOSMOS_POST_TRAINING_BASE_URL"
 API_PREFIX_ENV = "MACROCOSMOS_POST_TRAINING_API_PREFIX"
 MAX_REQUEST_BYTES_ENV = "MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES"
+MAX_INFLIGHT_BYTES_ENV = "MACROCOSMOS_POST_TRAINING_MAX_INFLIGHT_BYTES"
 
-# The post-training routes sit under this prefix on the gateway: `/platform/rl`
-# on the current one, `/v1` on the standalone gateway. Set it with the base URL.
-API_PREFIX = (os.environ.get(API_PREFIX_ENV) or "/platform/rl").rstrip("/")
-# Routes that sit outside the prefix on the current gateway.
-_OUTSIDE_PREFIX = (
-    {"/base-models": "/platform/base-models"} if API_PREFIX == "/platform/rl" else {}
-)
+# Every post-training route sits under this prefix on the gateway.
+API_PREFIX = (os.environ.get(API_PREFIX_ENV) or "/v1").rstrip("/")
 
 
 def url_path(path: str) -> str:
     """The gateway path for a route, given relative to the prefix (`/sessions`)."""
-    return _OUTSIDE_PREFIX.get(path) or API_PREFIX + path
+    return API_PREFIX + path
 
 
-# The largest request body the client sends; bigger batches are split. The
-# current public ingress refuses bodies over 16 KB; the standalone gateway
-# takes jobs up to 48 KB.
-MAX_BODY_BYTES = int(os.environ.get(MAX_REQUEST_BYTES_ENV) or 15 * 1024)
+# Size limits for training data, as on Tinker: each request carries at most
+# DEFAULT_MAX_REQUEST_BYTES (bigger batches are split across requests), and at
+# most DEFAULT_MAX_INFLIGHT_BYTES of a session's data is queued on the gateway
+# at once (more waits for earlier requests to finish). Override with the
+# `max_request_bytes=` / `max_inflight_bytes=` client options or the
+# environment variables above; 0 turns the in-flight limit off.
+DEFAULT_MAX_REQUEST_BYTES = 5_000_000
+DEFAULT_MAX_INFLIGHT_BYTES = 50_000_000
+# Room in each request for seq_id, loss_fn and its config.
+_ENVELOPE_BYTES = 512
+
+
+def _limit(value: Optional[int], env: str, default: int) -> int:
+    """A size limit in bytes: the option if given, else the environment, else the default."""
+    if value is None:
+        raw = os.environ.get(env, "").strip().replace("_", "")
+        if not raw:
+            return default
+        if not raw.isdigit():
+            raise ValueError(f"{env} must be a whole number of bytes, got {raw!r}")
+        value = int(raw)
+    if value < 0:
+        raise ValueError(f"size limits can't be negative, got {value}")
+    return value
+
 
 _RETRY_STATUS = frozenset({502, 503, 504})
 _RETRIES = 4
@@ -61,7 +78,17 @@ class Gateway:
         timeout: float = 30.0,
         app_name: Optional[str] = None,
         transport: Optional[httpx.BaseTransport] = None,
+        max_request_bytes: Optional[int] = None,
+        max_inflight_bytes: Optional[int] = None,
     ) -> None:
+        self.max_request_bytes = _limit(
+            max_request_bytes, MAX_REQUEST_BYTES_ENV, DEFAULT_MAX_REQUEST_BYTES
+        )
+        if self.max_request_bytes <= _ENVELOPE_BYTES:
+            raise ValueError(f"max_request_bytes must be over {_ENVELOPE_BYTES} bytes")
+        self.max_inflight_bytes = _limit(
+            max_inflight_bytes, MAX_INFLIGHT_BYTES_ENV, DEFAULT_MAX_INFLIGHT_BYTES
+        )
         api_key = (api_key or os.environ.get(API_KEY_ENV) or "").strip()
         if not api_key:
             raise error_for_status(
@@ -158,10 +185,13 @@ def _decode(resp: httpx.Response) -> Any:
     try:
         body = resp.json()
         detail = body.get("detail", body) if isinstance(body, dict) else body
-    except ValueError:  # some errors (413) come back as HTML
+    except ValueError:  # not JSON, e.g. a proxy's HTML error page
         body, detail = resp.text, resp.reason_phrase
     if resp.status_code == 413:
-        detail = f"{detail} (request bodies are limited to 16 KB; send fewer datums per call)"
+        detail = (
+            f"{detail} (the gateway takes smaller requests than this client sends; "
+            f"lower max_request_bytes= or {MAX_REQUEST_BYTES_ENV})"
+        )
     where = f"{resp.request.method} {resp.request.url.path}"
     raise error_for_status(
         resp.status_code, f"{where}: {resp.status_code} {detail}", body

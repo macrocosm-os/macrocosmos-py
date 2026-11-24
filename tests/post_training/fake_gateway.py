@@ -1,4 +1,4 @@
-"""An in-memory gateway that follows the `/platform/rl` contract.
+"""An in-memory gateway that follows the `/v1` contract.
 
 Plug it into a client with `ServiceClient(api_key="test-key", transport=gw.transport)`.
 Jobs finish after `polls_until_done` polls. `restart_trainer()` makes the next
@@ -25,10 +25,10 @@ class FakeGateway:
         models=("Qwen/Qwen3-4B", "Qwen/Qwen3-8B"),
         polls_until_done: int = 1,
         api_key: str = "test-key",
-        legacy: bool = False,
+        max_body: int = MAX_BODY,
     ) -> None:
+        self.max_body = max_body  # bigger requests get the ingress's HTML 413
         self.models = list(models)
-        self.legacy = legacy  # a gateway that still requires requirements.max_workers
         self.polls_until_done = polls_until_done
         self.api_key = api_key
         self.sessions: Dict[str, Dict[str, Any]] = {}
@@ -39,11 +39,10 @@ class FakeGateway:
         self._restart_next = False
         self._fail_next: List[Optional[int]] = []
         self.fail_sampling: Optional[str] = None
-        self.hold: set = set()
+        self.hold: set = set()  # ops whose new jobs stay pending until release()
         self.adapters: Dict[str, Dict[str, bytes]] = {}  # mc:// path -> files
         self.adapter_sha256: Dict[str, Dict[str, str]] = {}
         self.storage_requests: List[httpx.Request] = []
-        self.downloads = True  # False: a gateway without the download route  # ops whose new jobs stay pending until release()
         self.transport = httpx.MockTransport(self._handle)
 
     # --- test controls -------------------------------------------------------
@@ -78,7 +77,7 @@ class FakeGateway:
             status = self._fail_next.pop(0)
             if status is not None:
                 return _err(status, "injected failure")
-        if len(request.content) > MAX_BODY:
+        if len(request.content) > self.max_body:
             return httpx.Response(413, text="<html>413 Request Entity Too Large</html>")
         if request.headers.get("x-api-key") != self.api_key:
             return _err(401, "invalid API key")
@@ -92,25 +91,25 @@ class FakeGateway:
 
     def _routes(self):
         return [
-            (r"/platform/base-models", "GET", self._base_models),
-            (r"/platform/rl/sessions", "POST", self._open),
-            (r"/platform/rl/sessions/([^/]+)/close", "POST", self._close),
-            (r"/platform/rl/sessions/([^/]+)/models", "POST", self._create_model),
-            (r"/platform/rl/models/([^/]+)", "GET", self._model_info),
+            (r"/v1/base-models", "GET", self._base_models),
+            (r"/v1/sessions", "POST", self._open),
+            (r"/v1/sessions/([^/]+)/close", "POST", self._close),
+            (r"/v1/sessions/([^/]+)/models", "POST", self._create_model),
+            (r"/v1/models/([^/]+)", "GET", self._model_info),
             (
-                r"/platform/rl/models/([^/]+)/(forward_backward|optim_step|save_weights_for_sampler)",
+                r"/v1/models/([^/]+)/(forward_backward|optim_step|save_weights_for_sampler)",
                 "POST",
                 self._op,
             ),
-            (r"/platform/rl/training/([^/]+)", "GET", self._job),
-            (r"/platform/rl/models/([^/]+)/checkpoints", "GET", self._checkpoints),
+            (r"/v1/training/([^/]+)", "GET", self._job),
+            (r"/v1/models/([^/]+)/checkpoints", "GET", self._checkpoints),
             (
-                r"/platform/rl/models/([^/]+)/checkpoints/(.+)/download_urls",
+                r"/v1/models/([^/]+)/checkpoints/(.+)/download_urls",
                 "GET",
                 self._download_urls,
             ),
-            (r"/platform/rl/inference", "POST", self._infer),
-            (r"/platform/rl/inference/([^/]+)", "GET", self._job_results),
+            (r"/v1/inference", "POST", self._infer),
+            (r"/v1/inference/([^/]+)", "GET", self._job_results),
         ]
 
     # --- sessions --------------------------------------------------------------
@@ -126,19 +125,6 @@ class FakeGateway:
     def _open(self, body):
         if body["base_model"] not in self.models:
             return _err(422, f"base model {body['base_model']} is not registered")
-        if self.legacy and "max_workers" not in body["requirements"]:
-            return httpx.Response(
-                422,
-                json={
-                    "detail": [
-                        {
-                            "type": "missing",
-                            "loc": ["body", "requirements", "max_workers"],
-                            "msg": "Field required",
-                        }
-                    ]
-                },
-            )
         sid = f"rls-{next(self._ids):024x}"
         req = {
             "max_output_tokens": None,
@@ -180,7 +166,7 @@ class FakeGateway:
         s["model"] = model_id
         self.trainer[model_id] = {"step": 0, "pending": 0}
         self._queue(
-            handle, {"base_model": body["base_model"], "lora": body["lora"], "step": 0}
+            handle, {"base_model": s["base_model"], "lora": body["lora"], "step": 0}
         )
         return _ok({"model_id": model_id, "handle": handle}, 202)
 
@@ -341,8 +327,6 @@ class FakeGateway:
         return session if session is not None and session["model"] == model_id else None
 
     def _checkpoints(self, _body, model_id):
-        if not self.downloads:
-            return _err(404, "Not Found")
         if self._owned_model(model_id) is None:
             return _err(404, "model not found")
         prefix = f"mc://{model_id}/"
@@ -361,8 +345,6 @@ class FakeGateway:
         return _ok({"checkpoints": items, "cursor": None})
 
     def _download_urls(self, _body, model_id, checkpoint_id):
-        if not self.downloads:
-            return _err(404, "Not Found")
         path = f"mc://{model_id}/{checkpoint_id}"
         if self._owned_model(model_id) is None:
             return _err(404, "model not found")

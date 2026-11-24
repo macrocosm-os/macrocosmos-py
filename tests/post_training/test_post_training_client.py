@@ -19,7 +19,10 @@ def gw():
 @pytest.fixture
 def service(gw):
     with post_training.PostTrainingClient(
-        api_key="test-key", base_url="http://gw.test", transport=gw.transport
+        api_key="test-key",
+        base_url="http://gw.test",
+        transport=gw.transport,
+        max_request_bytes=15 * 1024,  # small, so tests split batches
     ) as client:
         yield client
 
@@ -43,12 +46,12 @@ def datum(n_tokens: int) -> types.Datum:
 def test_create_opens_a_session_then_builds_the_model(gw, service):
     trainer = service.create_lora_training_client(base_model=MODEL, rank=16).result()
 
-    [opened] = gw.calls("POST", r"/platform/rl/sessions")
+    [opened] = gw.calls("POST", r"/v1/sessions")
     assert body(opened) == {
         "base_model": MODEL,
         "requirements": {"max_lora_rank": 16},
     }
-    [created] = gw.calls("POST", r"/platform/rl/sessions/.+/models")
+    [created] = gw.calls("POST", r"/v1/sessions/.+/models")
     assert body(created)["lora"]["rank"] == 16
     assert trainer.get_info().model_data.tokenizer_id == MODEL
     assert trainer.get_info().lora_rank == 16
@@ -80,7 +83,7 @@ def test_seq_ids_count_up_from_one_and_never_repeat(gw, service):
     trainer.save_weights_for_sampler("final").result()
     ops = gw.calls(
         "POST",
-        r"/platform/rl/models/.+/(forward_backward|optim_step|save_weights_for_sampler)",
+        r"/v1/models/.+/(forward_backward|optim_step|save_weights_for_sampler)",
     )
     assert [body(r)["seq_id"] for r in ops] == [1, 2, 3]
 
@@ -100,7 +103,7 @@ def test_a_big_batch_is_split_under_the_body_limit(gw, service):
     data = [datum(300) for _ in range(12)]  # ~70 KB as JSON
     out = trainer.forward_backward(data, loss_fn="importance_sampling").result()
 
-    sent = gw.calls("POST", r"/platform/rl/models/.+/forward_backward")
+    sent = gw.calls("POST", r"/v1/models/.+/forward_backward")
     assert len(sent) > 1
     assert all(len(r.content) < 16 * 1024 for r in sent)
     assert len(out.loss_fn_outputs) == 12
@@ -112,7 +115,9 @@ def test_a_big_batch_is_split_under_the_body_limit(gw, service):
 
 def test_one_datum_over_the_limit_fails_before_sending(service):
     trainer = service.create_lora_training_client(base_model=MODEL).result()
-    with pytest.raises(post_training.PayloadTooLargeError, match="16 KB"):
+    with pytest.raises(
+        post_training.PayloadTooLargeError, match="15,360-byte request limit"
+    ):
         trainer.forward_backward([datum(4000)], loss_fn="importance_sampling")
 
 
@@ -217,39 +222,24 @@ def test_sessions_carry_only_what_the_user_chooses(gw, service):
     service.create_lora_training_client(
         base_model=MODEL, rank=8, max_output_tokens=512
     ).result()
-    [opened] = gw.calls("POST", r"/platform/rl/sessions")
+    [opened] = gw.calls("POST", r"/v1/sessions")
     assert body(opened)["requirements"] == {
         "max_lora_rank": 8,
         "max_output_tokens": 512,
     }
 
 
-def test_a_gateway_that_still_requires_max_workers_gets_it_on_a_second_ask():
-    gw = FakeGateway(legacy=True)
-    with post_training.PostTrainingClient(
-        api_key="test-key", base_url="http://gw.test", transport=gw.transport
-    ) as client:
-        client.create_lora_training_client(base_model=MODEL).result()
-    first, second = (
-        body(r)["requirements"] for r in gw.calls("POST", r"/platform/rl/sessions")
-    )
-    assert "max_workers" not in first and second["max_workers"] == 4
-    assert len(gw.sessions) == 1  # the refused ask opened nothing
-
-
-def test_the_route_prefix_and_request_limit_come_from_the_environment(monkeypatch):
+def test_the_route_prefix_comes_from_the_environment(monkeypatch):
     import importlib
 
     from macrocosmos.post_training import _http
 
-    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_API_PREFIX", "/v1/")
-    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES", "45000")
+    assert _http.url_path("/sessions") == "/v1/sessions"
+    monkeypatch.setenv("MACROCOSMOS_POST_TRAINING_API_PREFIX", "/v2/")
     try:
         importlib.reload(_http)
-        assert _http.url_path("/sessions") == "/v1/sessions"
-        assert _http.url_path("/base-models") == "/v1/base-models"
-        assert _http.MAX_BODY_BYTES == 45000
+        assert _http.url_path("/sessions") == "/v2/sessions"
     finally:
         monkeypatch.undo()
         importlib.reload(_http)
-    assert _http.url_path("/base-models") == "/platform/base-models"
+    assert _http.url_path("/base-models") == "/v1/base-models"

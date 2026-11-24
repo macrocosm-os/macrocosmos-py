@@ -96,14 +96,6 @@ def test_a_path_that_isnt_an_adapter_is_refused(trainer):
         client.create_rest_client().get_external_weights_urls("s3://bucket/key")
 
 
-def test_a_gateway_without_the_routes_says_so(gw, trainer):
-    client, training_client = trainer
-    path = training_client.save_weights_for_sampler("final").result().path
-    gw.downloads = False
-    with pytest.raises(post_training.NotSupportedError, match="checkpoints"):
-        client.create_rest_client().get_external_weights_urls(path)
-
-
 def test_the_rest_of_tinkers_rest_client_says_not_supported(trainer):
     client, _ = trainer
     rest = client.create_rest_client()
