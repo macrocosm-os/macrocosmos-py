@@ -5,7 +5,8 @@
 
 The facts are made up, so the base model gives their answers ~0% probability.
 Each training step raises it; `forward_backward` reports it as it trains. At the end
-the trained adapter is saved and downloaded to ./demo-adapter (about 280 MB).
+the trained adapter is saved, asked the questions, and downloaded to ./demo-adapter
+(about 280 MB). `ask=false` skips the questions on a gateway without /v1/sampling.
 """
 
 import dataclasses
@@ -37,6 +38,9 @@ class Config:
     steps: int = 8
     learning_rate: float = 2e-4
     download_to: str = "./demo-adapter"
+    ask: bool = (
+        True  # sample the trained model's answers (needs the gateway's /v1/sampling)
+    )
 
 
 def main(config: Config) -> None:
@@ -66,12 +70,20 @@ def main(config: Config) -> None:
                 training_client.optim_step(adam)  # queued right behind it
             show_step(step, result.result(), examples)
 
-        # 5. Save the trained adapter.
-        saved = training_client.save_weights_external(name="demo-facts").result()
-        say("saved:", saved.path)
+        # 5. Save the trained adapter, and get a sampler for exactly that version.
+        sampler = training_client.save_weights_and_get_sampling_client(
+            name="demo-facts"
+        ).result()
+        say("saved:", sampler.model_path)
 
-        # 6. Download it: a standard PEFT LoRA, ready for Hugging Face.
-        folder = post_training.download(saved.path, config.download_to, client=client)
+        # 6. Ask the trained model the questions: it now answers with the facts.
+        if config.ask:
+            ask(sampler, tokenizer)
+
+        # 7. Download it: a standard PEFT LoRA, ready for Hugging Face.
+        folder = post_training.download(
+            sampler.model_path, config.download_to, client=client
+        )
         for file in sorted(Path(folder).iterdir()):
             size = file.stat().st_size
             shown = f"{size / 1e6:.1f} MB" if size >= 1e6 else f"{size / 1e3:.1f} KB"
@@ -83,12 +95,17 @@ def main(config: Config) -> None:
 # --- details: chat format, training examples, output ----------------------------------
 
 
-def to_example(tokenizer, question: str, answer: str):
-    """A Qwen3 chat turn as a Datum; only the answer's tokens are trained on."""
-    prompt = tokenizer.encode(
+def chat_prompt(tokenizer, question: str) -> list:
+    """A Qwen3 user turn, then the assistant's turn opened (thinking off)."""
+    return tokenizer.encode(
         f"<|im_start|>user\n{question}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
         add_special_tokens=False,
     )
+
+
+def to_example(tokenizer, question: str, answer: str):
+    """A Qwen3 chat turn as a Datum; only the answer's tokens are trained on."""
+    prompt = chat_prompt(tokenizer, question)
     tokens = prompt + tokenizer.encode(f"{answer}<|im_end|>", add_special_tokens=False)
     n_prompt = len(prompt)
     weights = [0.0] * (n_prompt - 1) + [1.0] * (len(tokens) - n_prompt)
@@ -100,6 +117,24 @@ def to_example(tokenizer, question: str, answer: str):
         },
     )
     return datum, n_prompt
+
+
+def ask(sampler, tokenizer) -> None:
+    """Greedy answers from the trained adapter, one per question."""
+    end = tokenizer.convert_tokens_to_ids("<|im_end|>")
+    params = types.SamplingParams(max_tokens=32, temperature=0.0, stop=[end])
+    futures = [
+        sampler.sample(chat_prompt(tokenizer, q), num_samples=1, sampling_params=params)
+        for q, _ in FACTS
+    ]
+    print(f"\n{BOLD}asking the trained model{RESET}")
+    for (question, answer), future in zip(FACTS, futures):
+        reply = tokenizer.decode(
+            future.result().sequences[0].tokens, skip_special_tokens=True
+        ).strip()
+        mark = f"{GREEN}✓{RESET}" if reply == answer else "✗"
+        print(f"   {mark} {question}  {DIM}→{RESET}  {reply}")
+    print()
 
 
 def answer_probability(output: dict, n_prompt: int) -> float:
@@ -142,7 +177,13 @@ def parse(argv: list) -> Config:
         key, _, value = arg.partition("=")
         if key not in names:
             raise SystemExit(f"unknown setting {key!r}; settings: {', '.join(names)}")
-        overrides[key] = type(getattr(defaults, key))(value)
+        kind = type(getattr(defaults, key))
+        if kind is bool:
+            if value.lower() not in ("true", "false"):
+                raise SystemExit(f"{key} must be true or false, not {value!r}")
+            overrides[key] = value.lower() == "true"
+        else:
+            overrides[key] = kind(value)
     return dataclasses.replace(defaults, **overrides)
 
 
