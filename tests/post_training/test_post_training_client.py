@@ -244,3 +244,23 @@ def test_the_route_prefix_comes_from_the_environment(monkeypatch):
         monkeypatch.undo()
         importlib.reload(_http)
     assert _http.url_path("/base-models") == "/v1/base-models"
+
+
+def test_get_tokenizer_is_transformers_tokenizer_for_the_models_tokenizer_id(
+    service, monkeypatch
+):
+    import transformers
+
+    from macrocosmos.post_training import tokenizer
+
+    loaded = []
+    monkeypatch.setattr(
+        transformers.AutoTokenizer,
+        "from_pretrained",
+        lambda name: loaded.append(name) or f"<tokenizer {name}>",
+    )
+    tokenizer.load_tokenizer.cache_clear()
+    trainer = service.create_lora_training_client(base_model=MODEL).result()
+    assert trainer.get_tokenizer() == f"<tokenizer {MODEL}>"
+    assert loaded == [MODEL]  # the gateway's tokenizer_id
+    tokenizer.load_tokenizer.cache_clear()
