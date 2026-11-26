@@ -3,11 +3,11 @@
     uv run python examples/post_training_rl.py
     uv run python examples/post_training_rl.py steps=20 learning_rate=5e-5
 
-The task: answer an addition question with the number and nothing else. The base
-model usually adds words ("The answer is 42."), so it starts with a low reward.
-Each step samples several answers per question from the current adapter, rewards
-the ones that are exactly the number, and trains toward them with
-`importance_sampling`. The mean reward should climb as it learns the format.
+The task: multiply two two-digit numbers, answering with the number only and no
+thinking. The base model gets some of these wrong, so answers to the same
+question differ. Each step samples several answers per question from the current
+adapter, rewards the right ones, and trains toward them with
+`importance_sampling`. The mean reward should climb as it learns.
 """
 
 import dataclasses
@@ -34,7 +34,7 @@ class Config:
 
 def main(config: Config) -> None:
     rng = random.Random(config.seed)
-    print(f"\n{BOLD}RL on {config.model_name}: answer with only the number{RESET}\n")
+    print(f"\n{BOLD}RL on {config.model_name}: two-digit multiplication{RESET}\n")
 
     # 1. A client and a LoRA adapter. Leaving the `with` block frees the GPUs.
     with mc.PostTrainingClient(app_name="post-training-rl-demo") as client:
@@ -93,8 +93,8 @@ def main(config: Config) -> None:
 
 
 def new_question(rng: random.Random):
-    a, b = rng.randint(10, 99), rng.randint(10, 99)
-    return f"What is {a} + {b}? Reply with only the number.", str(a + b)
+    a, b = rng.randint(11, 99), rng.randint(11, 99)
+    return f"What is {a} * {b}? Reply with only the number.", str(a * b)
 
 
 def chat_prompt(tokenizer, question: str) -> list:
@@ -107,7 +107,7 @@ def chat_prompt(tokenizer, question: str) -> list:
 
 def reward(reply: str, answer: str) -> float:
     """1 for exactly the number, 0.5 for the right number with extra words, else 0."""
-    reply = reply.strip()
+    reply = reply.strip().replace(",", "")
     if reply == answer:
         return 1.0
     return 0.5 if answer in reply else 0.0
