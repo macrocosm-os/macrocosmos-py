@@ -119,7 +119,21 @@ def test_a_failed_create_job_releases_its_session(gw):
         assert session["state"] == "closed"
 
 
-def test_a_sampler_for_an_older_adapter_warns_that_it_got_a_newer_one(gw):
+def test_a_sampler_from_a_save_asks_for_that_adapter_version(gw):
+    with client(gw) as service:
+        trainer = service.create_lora_training_client(base_model=MODEL).result()
+        old = trainer.save_weights_and_get_sampling_client().result()
+        trainer.forward_backward([datum()], "importance_sampling")
+        trainer.optim_step(types.AdamParams()).result()
+        response = old.sample([1, 2], num_samples=2).result()
+    assert (
+        json.loads(gw.calls("POST", r"/v1/sampling")[0].content)["adapter_version"] == 0
+    )
+    assert response.policy_version == 0
+
+
+def test_a_sampler_that_answers_with_another_adapter_warns(gw):
+    gw.pin_adapters = False
     with client(gw) as service:
         trainer = service.create_lora_training_client(base_model=MODEL).result()
         old = trainer.save_weights_and_get_sampling_client().result()

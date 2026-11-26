@@ -75,18 +75,18 @@ class SamplingClient:
             **_sampling_options(sampling_params),
         }
         body: Dict[str, Any] = {"session_id": self.session_id, "prompts": [entry]}
-        # Samplers can't pin a saved adapter (`model_path`) yet. Until they can,
-        # the session's current adapter answers, and `SampleResponse.policy_version`
-        # says which one it was.
+        # A sampler made from a save asks for that adapter version; otherwise the
+        # newest version a sampler has for the session answers.
+        # `SampleResponse.policy_version` says which one it was.
+        if self.version is not None:
+            body["adapter_version"] = self.version
         if len(encode(body)) > self._gw.max_request_bytes:
             raise PayloadTooLargeError(
                 f"a prompt of {len(entry['prompt_tokens'])} tokens is over the "
                 f"{self._gw.max_request_bytes:,}-byte request limit",
                 status_code=413,
             )
-        handle = self._gw.request("POST", "/inference", body, idempotent=False)[
-            "handle"
-        ]
+        handle = self._gw.request("POST", "/sampling", body, idempotent=False)["handle"]
         return APIFuture(
             lambda timeout: self._collect(handle, timeout),
             label=f"sample({num_samples})",
@@ -121,7 +121,7 @@ class SamplingClient:
     def _collect(self, handle: str, timeout: Optional[float]) -> SampleResponse:
         try:
             reply = poll(
-                lambda: self._gw.request("GET", f"/inference/{handle}"),
+                lambda: self._gw.request("GET", f"/sampling/{handle}"),
                 lambda r: r.get("results") is not None,
                 timeout=DEFAULT_SAMPLE_TIMEOUT_S if timeout is None else timeout,
                 what=f"sampling {handle}",
@@ -145,8 +145,7 @@ class SamplingClient:
         ):
             self._warned_version = True
             warnings.warn(
-                f"asked for adapter version {self.version}, got samples from version {policy_version}: "
-                "samplers use the session's current adapter for now",
+                f"asked for adapter version {self.version}, got samples from version {policy_version}",
                 stacklevel=4,
             )
         return SampleResponse(

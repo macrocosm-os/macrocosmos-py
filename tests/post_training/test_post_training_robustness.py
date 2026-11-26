@@ -53,7 +53,7 @@ def test_submitting_samples_is_not_retried_so_nothing_is_paid_for_twice(gw, serv
     gw.fail_next(503)
     with pytest.raises(post_training.InternalServerError):
         sampler.sample([1, 2, 3], num_samples=2)
-    assert len(gw.calls("POST", r"/v1/inference")) == 1
+    assert len(gw.calls("POST", r"/v1/sampling")) == 1
 
 
 def test_a_failed_model_create_releases_its_session_at_once(gw, service):
@@ -93,7 +93,7 @@ def test_stop_token_ids_and_stop_strings_are_told_apart(gw, service):
     ).result()
     sampler.sample([1], sampling_params=types.SamplingParams(stop="\n\n")).result()
     first, second = (
-        json.loads(r.content)["prompts"][0] for r in gw.calls("POST", r"/v1/inference")
+        json.loads(r.content)["prompts"][0] for r in gw.calls("POST", r"/v1/sampling")
     )
     assert first["stop_token_ids"] == [151645, 151643] and "stop" not in first
     assert second["stop"] == ["\n\n"]

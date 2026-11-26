@@ -48,6 +48,7 @@ class FakeGateway:
         self._restart_next = False
         self._fail_next: List[Optional[int]] = []
         self.fail_sampling: Optional[str] = None
+        self.pin_adapters = True  # False: samplers answer with their newest adapter
         self.hold: set = set()  # ops whose new jobs stay pending until release()
         self.adapters: Dict[str, Dict[str, bytes]] = {}  # mc:// path -> files
         self.adapter_sha256: Dict[str, Dict[str, str]] = {}
@@ -118,8 +119,8 @@ class FakeGateway:
                 "GET",
                 self._download_urls,
             ),
-            (r"/v1/inference", "POST", self._infer),
-            (r"/v1/inference/([^/]+)", "GET", self._job_results),
+            (r"/v1/sampling", "POST", self._infer),
+            (r"/v1/sampling/([^/]+)", "GET", self._job_results),
         ]
 
     # --- sessions --------------------------------------------------------------
@@ -277,15 +278,24 @@ class FakeGateway:
     # --- sampling --------------------------------------------------------------
 
     def _infer(self, body):
+        # The gateway's SamplingRequest and SamplePrompt refuse unknown fields.
+        if set(body) - {"session_id", "prompts", "adapter_version"} or any(
+            set(p) - SAMPLE_PROMPT_FIELDS for p in body["prompts"]
+        ):
+            return _err(422, "extra fields")
         s = self._session(body["session_id"])
         if s is None:
             return _err(404, "session not found")
         if s["state"] == "closed":
             return _err(409, "session is closed")
         handle = f"batch{next(self._ids)}.{len(body['prompts'])}"
-        version = (
-            self.trainer.get(s["model"] or "", {}).get("step", -1) if s["model"] else -1
-        )
+        version = body.get("adapter_version") if self.pin_adapters else None
+        if version is None:  # the newest adapter the sampler has, or the base model
+            version = (
+                self.trainer.get(s["model"] or "", {}).get("step", -1)
+                if s["model"]
+                else -1
+            )
         results = []
         for i, p in enumerate(body["prompts"]):
             seqs = []
@@ -392,6 +402,20 @@ class FakeGateway:
 
     def _queue(self, handle, result, held=False):
         self.jobs[handle] = {"polls": 0, "result": result, "held": held}
+
+
+SAMPLE_PROMPT_FIELDS = {
+    "prompt_tokens",
+    "n",
+    "logprobs",
+    "max_tokens",
+    "temperature",
+    "top_p",
+    "top_k",
+    "seed",
+    "stop",
+    "stop_token_ids",
+}
 
 
 def _ok(body, status=200):
