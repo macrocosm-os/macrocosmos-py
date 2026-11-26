@@ -46,7 +46,8 @@ class SamplingClient:
         self.base_model = base_model
         self.model_path = model_path
         self.version = version
-        """The saved adapter's version; compare it with `SampleResponse.policy_version`."""
+        """Which save this sampler samples (`adapters/rollout-{version}`), or None for
+        the session's newest; `SampleResponse.policy_version` says which answered."""
         self._tokenizer_id = tokenizer_id or base_model
         self._warned_version = False
 
@@ -75,8 +76,8 @@ class SamplingClient:
             **_sampling_options(sampling_params),
         }
         body: Dict[str, Any] = {"session_id": self.session_id, "prompts": [entry]}
-        # A sampler made from a save asks for that adapter version; otherwise the
-        # newest version a sampler has for the session answers.
+        # A sampler made from a save asks for that save; otherwise the session's
+        # newest save answers.
         # `SampleResponse.policy_version` says which one it was.
         if self.version is not None:
             body["adapter_version"] = self.version

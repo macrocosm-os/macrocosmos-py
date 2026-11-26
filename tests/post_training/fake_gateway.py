@@ -289,7 +289,23 @@ class FakeGateway:
         if s["state"] == "closed":
             return _err(409, "session is closed")
         handle = f"batch{next(self._ids)}.{len(body['prompts'])}"
-        version = body.get("adapter_version") if self.pin_adapters else None
+        asked = body.get("adapter_version")
+        if (
+            asked is not None
+            and f"mc://{s['model']}/adapters/rollout-{asked}" not in self.adapters
+        ):
+            # As the sampler: it loads unnamed saves only, by their number.
+            handle = f"batch{next(self._ids)}.{len(body['prompts'])}"
+            error = f"no finished adapter save rollout-{asked} for session {body['session_id']}"
+            self.jobs[handle] = {
+                "polls": 0,
+                "results": [
+                    {"index": i, "state": "failed", "error": error}
+                    for i in range(len(body["prompts"]))
+                ],
+            }
+            return _ok({"handle": handle, "n": len(body["prompts"])}, 202)
+        version = asked if self.pin_adapters else None
         if version is None:  # the newest adapter the sampler has, or the base model
             version = (
                 self.trainer.get(s["model"] or "", {}).get("step", -1)

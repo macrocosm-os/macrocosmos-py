@@ -126,10 +126,20 @@ def test_a_sampler_from_a_save_asks_for_that_adapter_version(gw):
         trainer.forward_backward([datum()], "importance_sampling")
         trainer.optim_step(types.AdamParams()).result()
         response = old.sample([1, 2], num_samples=2).result()
-    assert (
-        json.loads(gw.calls("POST", r"/v1/sampling")[0].content)["adapter_version"] == 0
-    )
-    assert response.policy_version == 0
+    save_number = int(old.model_path.rsplit("rollout-", 1)[1])
+    sent = json.loads(gw.calls("POST", r"/v1/sampling")[0].content)
+    assert sent["adapter_version"] == save_number
+    assert response.policy_version == save_number
+
+
+def test_a_sampler_saves_unnamed_so_samplers_can_find_it(gw):
+    with client(gw) as service:
+        trainer = service.create_lora_training_client(base_model=MODEL).result()
+        sampler = trainer.save_weights_and_get_sampling_client(name="final").result()
+        assert "/adapters/rollout-" in sampler.model_path
+        named = trainer.save_weights_for_sampler("final").result()
+        with pytest.raises(post_training.NotSupportedError, match="unnamed saves"):
+            trainer.create_sampling_client(named.path)
 
 
 def test_a_sampler_that_answers_with_another_adapter_warns(gw):
@@ -137,13 +147,14 @@ def test_a_sampler_that_answers_with_another_adapter_warns(gw):
     with client(gw) as service:
         trainer = service.create_lora_training_client(base_model=MODEL).result()
         old = trainer.save_weights_and_get_sampling_client().result()
-        trainer.forward_backward([datum()], "importance_sampling")
-        trainer.optim_step(types.AdamParams()).result()
+        for _ in range(3):
+            trainer.forward_backward([datum()], "importance_sampling")
+            trainer.optim_step(types.AdamParams()).result()
         with pytest.warns(
-            UserWarning, match="asked for adapter version 0, got samples from version 1"
+            UserWarning, match=f"asked for adapter version {old.version}, got"
         ):
             response = old.sample([1, 2], num_samples=2).result()
-        assert response.policy_version == 1
+        assert response.policy_version != old.version
 
 
 def test_prompt_logprobs_are_refused_rather_than_silently_dropped(gw):

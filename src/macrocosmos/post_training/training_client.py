@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import re
 import threading
 import time
 import warnings
@@ -30,6 +31,7 @@ from .types import (
 #: How long `.result()` waits for a training op when no timeout is given.
 DEFAULT_TRAIN_TIMEOUT_S = 1800.0
 _MAX_REPLAYS = 3
+_ROLLOUT_PATH = re.compile(r"mc://(?P<model_id>[^/]+)/adapters/rollout-(?P<n>\d+)")
 
 
 class TrainingClient:
@@ -199,36 +201,41 @@ class TrainingClient:
     def save_weights_and_get_sampling_client(
         self, name: Optional[str] = None, **_: Any
     ) -> APIFuture[SamplingClient]:
-        """Save the adapter and return a sampler for this session.
+        """Save the adapter and return a sampler for exactly that save.
 
-        For now a sampler answers with whatever adapter the session currently
-        serves, not necessarily the one just saved: the gateway can't yet be told
-        which saved adapter to sample. Each `SampleResponse.policy_version` says
-        which adapter answered, and a sampler warns once when it differs from the
-        one it was made for.
+        Samplers find a session's adapters by save (`adapters/rollout-{n}`), so
+        this save is always unnamed: `name` is accepted, as on Tinker, but not
+        used. To keep a named copy too, call `save_weights_for_sampler(name)`.
         """
-        return self.save_weights_for_sampler(name).then(
-            lambda saved: self.create_sampling_client(
-                saved.path, version=saved.version
-            ),
+        return self.save_weights_for_sampler().then(
+            lambda saved: self.create_sampling_client(saved.path),
             label="save_weights_and_get_sampling_client",
         )
 
     def create_sampling_client(
-        self,
-        model_path: Optional[str] = None,
-        *,
-        version: Optional[int] = None,
-        **_: Any,
+        self, model_path: Optional[str] = None, **_: Any
     ) -> SamplingClient:
+        """A sampler for one of this session's unnamed saves (`model_path`, as
+        `save_weights_for_sampler()` returns it), or for its newest save."""
         return SamplingClient(
             self._gw,
             self.session_id,
             base_model=self._info.model_data.model_name,
             model_path=model_path,
-            version=version,
+            version=None if model_path is None else self._save_number(model_path),
             tokenizer_id=self._info.model_data.tokenizer_id,
         )
+
+    def _save_number(self, model_path: str) -> int:
+        """`n` from `mc://{model_id}/adapters/rollout-{n}`, the save a sampler loads."""
+        match = _ROLLOUT_PATH.fullmatch(model_path)
+        if match is None or match["model_id"] != self.model_id:
+            raise NotSupportedError(
+                f"can't sample {model_path!r}: samplers load this session's unnamed "
+                "saves (mc://<model_id>/adapters/rollout-<n>), from "
+                "save_weights_for_sampler() without a name"
+            )
+        return int(match["n"])
 
     def save_weights_external(
         self, name: str, ttl_seconds: Optional[float] = None, **_: Any
