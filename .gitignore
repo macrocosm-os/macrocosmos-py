@@ -178,3 +178,6 @@ cython_debug/
 # Ignore private key files. This is not by any means an exhaustive list. Extend the list as needed.
 *.pem
 *.key
+
+# Local notes, never committed
+context/

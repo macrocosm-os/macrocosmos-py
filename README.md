@@ -133,3 +133,67 @@ response = client.gravity.BuildAllDatasets(
 # Prints the gravity task ID for the datasets built
 print(response)
 ```
+
+## Post-training (preview)
+
+Fine-tune LoRA adapters with reinforcement learning on Macrocosmos GPUs. The API is [Tinker's](https://tinker-docs.thinkingmachines.ai/), so code written for Tinker ports with two changes.
+
+```bash
+pip install "macrocosmos[post-training]"         # Python 3.9+
+export MACROCOSMOS_POST_TRAINING_API_KEY=...     # from your Macrocosmos organization
+export MACROCOSMOS_POST_TRAINING_BASE_URL=...    # the API URL you were given for the preview
+```
+
+```python
+import macrocosmos as mc
+from macrocosmos.post_training import types
+from macrocosmos.post_training.utils import contains, render_prompt, score
+
+# Leaving the block releases the GPUs, even on an error or Ctrl-C.
+with mc.PostTrainingClient() as client:
+    training_client = client.create_lora_training_client(
+        base_model="Qwen/Qwen3-4B", rank=32
+    ).result()
+    tokenizer = training_client.get_tokenizer()
+    prompt = render_prompt(tokenizer, "What is 7 * 6? Answer with a number only.")
+
+    for step in range(10):
+        sampler = training_client.save_weights_and_get_sampling_client().result()
+        result = sampler.sample(prompt, num_samples=8).result()
+        data, rewards = score(prompt, result, contains("42", tokenizer))
+
+        training_client.forward_backward(data, loss_fn="importance_sampling")
+        training_client.optim_step(types.AdamParams(learning_rate=4e-5)).result()
+```
+
+A complete loop is in [`examples/post_training_loop.py`](examples/post_training_loop.py). Its settings (model, batch size, group size, steps, learning rate, LoRA rank, max tokens) live in one `Config` dataclass and can be overridden from the command line: `python examples/post_training_loop.py group_size=16 max_steps=20`.
+
+A session takes three settings from you: the base model, the LoRA rank (`rank=`) and the longest completion you'll sample (`max_output_tokens=`). How many GPUs serve it is up to the platform.
+
+As on Tinker, training data goes out in requests of up to 5 MiB (bigger batches are split for you), with up to 50 MiB of a session's data queued at once; past that, `forward_backward` waits for earlier requests to finish. The gateway sets both limits, and the client reads them on first use. Override them with `mc.PostTrainingClient(max_request_bytes=..., max_inflight_bytes=...)` or `MACROCOSMOS_POST_TRAINING_MAX_REQUEST_BYTES` / `MACROCOSMOS_POST_TRAINING_MAX_INFLIGHT_BYTES` (`0` turns off the in-flight limit).
+
+### Migrating from Tinker
+
+Tinker scripts refer to `tinker.ServiceClient`, `tinker.types.Datum` and so on throughout. To keep all of those lines as they are:
+
+1. Change the import: `import tinker` becomes `from macrocosmos import post_training as tinker`. Every name the script uses exists there; `tinker.ServiceClient` is `mc.PostTrainingClient` under Tinker's name.
+2. Put the training loop inside `with tinker.ServiceClient() as service_client:`. A session reserves GPUs for you while it's open, and leaving the block releases them.
+
+For libraries that import `tinker` themselves, such as Tinker's cookbook, call `mc.post_training.compat.install()` before importing them.
+
+Differences from Tinker:
+
+| | Tinker | Macrocosmos |
+|---|---|---|
+| Sessions | Created and released for you | Opened by `create_lora_training_client`, closed when the `with` block ends |
+| GPUs | Managed for you | Managed for you |
+| Saved weights | `tinker://` paths | `mc://` paths |
+| Sampling after a save | Samples the adapter just saved | The same: the sampler asks for that adapter version; `SampleResponse.policy_version` says which one answered |
+| Models per session | Many | One; each training client opens its own session |
+| Loss functions | Built in and custom | Built in (`importance_sampling`, `ppo`, `cispo`, `cross_entropy`, …) |
+| Checkpoints | `save_state` / `load_state` | `save_state` saves the adapter only; resuming is not supported yet |
+| Inputs | Text, images | Text |
+| Downloading weights | `save_weights_external`, then `RestClient.get_external_weights_urls` (sampler weights can't be downloaded) | The same calls, for any saved adapter, plus `RestClient.list_checkpoints(model_id)` and `post_training.download(path, output_dir)`, which checks each file's sha256. Adapters are kept for 7 days |
+| `forward`, `compute_logprobs`, the rest of the REST client | Supported | Not supported yet (`NotSupportedError`) |
+
+Tinker's types (`Datum`, `ModelInput`, `TensorData`, `AdamParams`, `SamplingParams`) and its error names are available under the same names, and the clients also accept Tinker's own objects, numpy arrays and torch tensors.
