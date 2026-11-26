@@ -3,11 +3,13 @@
     uv run python examples/post_training_rl.py
     uv run python examples/post_training_rl.py steps=20 learning_rate=5e-5
 
-The task: multiply two two-digit numbers, answering with the number only and no
-thinking. The base model gets some of these wrong, so answers to the same
-question differ. Each step samples several answers per question from the current
-adapter, rewards the right ones, and trains toward them with
-`importance_sampling`. The mean reward should climb as it learns.
+The task: multiply two two-digit numbers, with no thinking. Only a bare, correct
+number earns the full reward, but the question doesn't say so: the base model
+often adds words ("47 × 86 = 4042") or explains at length. Each step
+samples several answers per question from the current adapter, rewards the
+better ones, and trains toward them with `importance_sampling`. The mean reward
+climbs as RL teaches it to answer with the number alone. `hint=true` asks for
+the number only, which the base model mostly does already (reward ~0.95).
 """
 
 import dataclasses
@@ -28,13 +30,16 @@ class Config:
     questions_per_step: int = 8
     samples_per_question: int = 8
     learning_rate: float = 1e-4
-    max_tokens: int = 16
+    max_tokens: int = 64  # room to finish an explanation; a bare number is far shorter
     seed: int = 0
+    hint: bool = False  # tell the model to reply with only the number
 
 
 def main(config: Config) -> None:
     rng = random.Random(config.seed)
-    print(f"\n{BOLD}RL on {config.model_name}: two-digit multiplication{RESET}\n")
+    print(
+        f"\n{BOLD}RL on {config.model_name}: answer a product with the bare number{RESET}\n"
+    )
 
     # 1. A client and a LoRA adapter. Leaving the `with` block frees the GPUs.
     with mc.PostTrainingClient(app_name="post-training-rl-demo") as client:
@@ -54,7 +59,9 @@ def main(config: Config) -> None:
             sampler = training_client.save_weights_and_get_sampling_client(
                 name=f"rl-step-{step}"
             ).result()
-            questions = [new_question(rng) for _ in range(config.questions_per_step)]
+            questions = [
+                new_question(rng, config.hint) for _ in range(config.questions_per_step)
+            ]
             prompts = [chat_prompt(tokenizer, q) for q, _ in questions]
             futures = [
                 sampler.sample(
@@ -92,9 +99,10 @@ def main(config: Config) -> None:
 # --- details: the task, the training examples, output -----------------------------------
 
 
-def new_question(rng: random.Random):
+def new_question(rng: random.Random, hint: bool):
     a, b = rng.randint(11, 99), rng.randint(11, 99)
-    return f"What is {a} * {b}? Reply with only the number.", str(a * b)
+    question = f"What is {a} * {b}?" + (" Reply with only the number." if hint else "")
+    return question, str(a * b)
 
 
 def chat_prompt(tokenizer, question: str) -> list:
@@ -156,7 +164,13 @@ def parse(argv: list) -> Config:
         key, _, value = arg.partition("=")
         if key not in names:
             raise SystemExit(f"unknown setting {key!r}; settings: {', '.join(names)}")
-        overrides[key] = type(getattr(defaults, key))(value)
+        kind = type(getattr(defaults, key))
+        if kind is bool:
+            if value.lower() not in ("true", "false"):
+                raise SystemExit(f"{key} must be true or false, not {value!r}")
+            overrides[key] = value.lower() == "true"
+        else:
+            overrides[key] = kind(value)
     return dataclasses.replace(defaults, **overrides)
 
 
